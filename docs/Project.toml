@@ -1,0 +1,6 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+VLDataScienceMachineLearningPackage = "24b76065-2c22-4f73-af85-7cb67476fb03"
+
+[sources]
+VLDataScienceMachineLearningPackage = { path = "../code" }
