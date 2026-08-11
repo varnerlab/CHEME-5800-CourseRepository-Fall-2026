@@ -1,0 +1,29 @@
+{
+  "dataset_id": "cheme5800-l3b-synthetic-fulfillment-shifts-v1",
+  "title": "Synthetic fulfillment-center shift teaching data",
+  "provenance": "Instructor-generated synthetic data; not measurements from a real facility.",
+  "creator": "CHEME 4800/5800 instructional team",
+  "created": "2026-08-11",
+  "purpose": "Practice CSV/JSON ingestion, schema validation, provenance, and sorting.",
+  "expected_rows": 8,
+  "allowed_zones": ["East", "West"],
+  "units": {
+    "orders_completed": "orders",
+    "labor_hours": "h",
+    "picking_error_fraction": "dimensionless"
+  },
+  "required_columns": [
+    "shift_id",
+    "zone",
+    "orders_completed",
+    "labor_hours",
+    "picking_error_fraction"
+  ],
+  "constraints": {
+    "shift_id": "nonempty and unique",
+    "zone": "nonempty and one of the allowed zones",
+    "orders_completed": "finite, integer valued, and not negative",
+    "labor_hours": "finite and greater than zero",
+    "picking_error_fraction": "finite and in the closed interval [0, 1]"
+  }
+}

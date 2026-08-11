@@ -17,9 +17,9 @@ supporting_notebooks = [
 ]
 datasets = [
   "L3b/data/README.md",
-  "L3b/data/reactor-runs.csv",
-  "L3b/data/reactor-metadata.json",
-  "L3b/data/reactor-runs-invalid-example.csv",
+  "L3b/data/fulfillment-shifts.csv",
+  "L3b/data/fulfillment-metadata.json",
+  "L3b/data/fulfillment-shifts-invalid-example.csv",
 ]
 student_paths = ["README.md", "L3b", "L3c", "L3d"]
 instructor_only_paths = ["../../instructor/validation/week-03"]

@@ -6,25 +6,28 @@ include(joinpath(WEEK_ROOT, "L3d", "Include.jl"))
 
 @testset "L3b data validation and provenance" begin
     data_root = joinpath(WEEK_ROOT, "L3b", "data")
-    csv_path = joinpath(data_root, "reactor-runs.csv")
-    metadata_path = joinpath(data_root, "reactor-metadata.json")
-    bundle = load_reactor_bundle(csv_path, metadata_path)
+    csv_path = joinpath(data_root, "fulfillment-shifts.csv")
+    metadata_path = joinpath(data_root, "fulfillment-metadata.json")
+    bundle = load_shift_bundle(csv_path, metadata_path)
     @test bundle.validation.valid
     @test isempty(bundle.validation.errors)
-    @test nrow(bundle.runs) == 8
+    @test nrow(bundle.shifts) == 8
     @test occursin("synthetic", lowercase(bundle.metadata["provenance"]))
     @test length(file_sha256(csv_path)) == 64
 
-    invalid = CSV.read(joinpath(data_root, "reactor-runs-invalid-example.csv"), DataFrame)
-    report = validate_reactor_runs(invalid)
+    invalid = CSV.read(joinpath(data_root, "fulfillment-shifts-invalid-example.csv"), DataFrame)
+    report = validate_shift_records(invalid)
     @test !report.valid
-    @test any(error -> occursin("residence_time_min", error), report.errors)
-    @test any(error -> occursin("conversion_fraction", error), report.errors)
+    @test any(error -> occursin("unique", error), report.errors)
+    @test any(error -> occursin("zone", error), report.errors)
+    @test any(error -> occursin("orders_completed", error), report.errors)
+    @test any(error -> occursin("labor_hours", error), report.errors)
+    @test any(error -> occursin("picking_error_fraction", error), report.errors)
 
-    @test !validate_reactor_runs(select(bundle.runs, Not(:catalyst))).valid
-    @test !validate_reactor_runs(bundle.runs[1:0, :]).valid
-    duplicates = vcat(bundle.runs, bundle.runs[1:1, :])
-    @test any(error -> occursin("unique", error), validate_reactor_runs(duplicates).errors)
+    @test !validate_shift_records(select(bundle.shifts, Not(:zone))).valid
+    @test !validate_shift_records(bundle.shifts[1:0, :]).valid
+    duplicates = vcat(bundle.shifts, bundle.shifts[1:1, :])
+    @test any(error -> occursin("unique", error), validate_shift_records(duplicates).errors)
 end
 
 @testset "L3c iteration and recursion" begin

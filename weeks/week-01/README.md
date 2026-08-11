@@ -47,6 +47,28 @@ julia --startup-file=no --project=. instructor/validation/week-01/runtests.jl
 Problem sets and their simultaneously released solutions use separate repositories
 and are not included in this weekly instructional unit.
 
+### In-class work students complete
+
+Two notebooks ship deliberately red and stay that way until a student does something.
+This is intentional; do not "fix" it.
+
+| Meeting | What ships incomplete | Goes green when |
+|---|---|---|
+| L1b | `do_you_see_the_histogram` starts `false` and is asserted | the student looks at the plot and sets it `true` |
+| L1c | `ideal_gas_pressure` in `L1c/src/Compute.jl` is a stub with two `TODO`s | the student writes the validation loop and the `P = nRT/V` return |
+
+L1c therefore carries two source files in `L1c/src/`:
+
+| File | Purpose |
+|---|---|
+| `Compute.jl` | Student-facing stub. Defines the module and signature, throws `"Oops! The ideal_gas_pressure(...) method has not been implemented yet."` |
+| `Compute-solution.jl` | Reference solution. Same module name, so the two are drop-in interchangeable. Listed in `instructor_only_paths` so it is not bundled for students. |
+
+`instructor/validation/week-01/runtests.jl` runs the engineering-calculation tests
+against `Compute-solution.jl`, and separately asserts that the student-facing
+`Compute.jl` still contains its `TODO` markers and does **not** contain the solution's
+return expression. If that guard fails, a solution has leaked into the student tree.
+
 ## Source adaptation
 
 - L1a directly retains and reformats the detailed Fall 2025 treatment of primitive,

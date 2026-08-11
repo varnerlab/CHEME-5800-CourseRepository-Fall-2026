@@ -43,18 +43,43 @@ julia --startup-file=no --project=. instructor/validation/week-02/runtests.jl
 python -m unittest discover -s weeks/week-02/L2b/src -p 'test_*.py'
 ```
 
-The Python comparison uses only the standard library supplied with Anaconda.
+The Python comparison uses only the standard library supplied with Anaconda. It is an
+optional appendix in L2b, not part of the required path, and the Julia tests do not
+depend on it.
+
 Problem sets and their simultaneously released solutions use separate repositories.
+
+### In-class work students complete
+
+Both labs ship deliberately red and stay that way until students write code. This is
+intentional; do not "fix" it.
+
+| Meeting | What ships incomplete | Goes green when |
+|---|---|---|
+| L2b | `cargo_loading_time_minutes` in `L2b/src/Compute.jl` is a stub with two `TODO`s | the student validates both arguments and converts tonnes to kg before dividing |
+| L2d | `fibonacci_sequence` in `L2d/src/Compute.jl` is a stub with four `TODO`s | the student writes the guards, the allocation, the base cases, and the checked loop |
+
+Each lab carries `Compute.jl` (student stub) and `Compute-solution.jl` (reference) in
+the same `src/` folder, using the same module name so the two are drop-in
+interchangeable. Both solutions are listed in `release.toml` under
+`instructor_only_paths`. `instructor/validation/week-02/runtests.jl` validates against
+the solutions and separately asserts that each student file still contains its `TODO`
+markers and none of the solution's distinctive expressions.
 
 ## Source adaptation
 
 - L2a directly adapts the detailed Fall 2025 functions lecture. Its executable
   error demonstration is now caught so the notebook can run deterministically.
-- L2b is new for Fall 2026 and uses a residence-time unit defect to distinguish a
-  crashing program from a program that silently returns the wrong answer.
+- L2b is new for Fall 2026 and uses a freight-loading unit defect (tonnes versus kilograms) to distinguish a
+  crashing program from a program that silently returns the wrong answer. The topic was
+  reconfirmed against the 2025 and 2024 alternatives; the Julia/Python comparison was
+  demoted to an optional appendix so the meeting stays on debugging.
 - L2c's table workflow is new for the rebalanced course. The full Fall 2025
   hexadecimal/text lab is retained beside it because it provides a richer
   collections and representation example than the earlier short replacement.
 - L2d keeps the Fall 2025 defensive-programming objective while replacing the
-  comment/uncomment workflow with one deterministic, fully tested interface.
+  comment/uncomment workflow with one deterministic, fully tested interface. It is now
+  framed as productionizing Monday's calculation rather than re-teaching the recurrence,
+  because Fibonacci also carries Week 3's iteration-versus-recursion comparison. Week 3
+  should reuse this implementation as its baseline rather than introducing a third one.
 

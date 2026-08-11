@@ -16,7 +16,12 @@ supporting_notebooks = [
 ]
 datasets = []
 student_paths = ["README.md", "release.toml", "L1a", "L1b", "L1c", "L1d"]
-instructor_only_paths = ["instructor/validation/week-01"]
+instructor_only_paths = [
+  "instructor/validation/week-01",
+  # L1c ships as a stub students complete in class; the reference solution must not
+  # be bundled with it.
+  "L1c/src/Compute-solution.jl",
+]
 
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-01/runtests.jl"

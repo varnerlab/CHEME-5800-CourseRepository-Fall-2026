@@ -1,19 +1,31 @@
 module L2bDebugging
 
-export residence_time_minutes
+export cargo_loading_time_minutes
 
-function _require_finite_positive(name::AbstractString, value::Real)::Float64
-    isfinite(value) || throw(ArgumentError("$(name) must be finite"))
-    value > 0 || throw(ArgumentError("$(name) must be positive"))
-    return Float64(value)
+"""
+    cargo_loading_time_minutes(cargo_tonnes, loading_rate_kg_min) -> Float64
+
+Return the time in min needed to load `cargo_tonnes` tonnes of freight at a
+sustained rate of `loading_rate_kg_min` kilograms per minute.
+
+The contract: both arguments must be finite and strictly positive; anything else
+raises an `ArgumentError` naming the offending argument. Note the unit mismatch —
+cargo arrives in tonnes and the rate in kg/min, so a conversion is required before
+dividing.
+"""
+function cargo_loading_time_minutes(cargo_tonnes::Real, loading_rate_kg_min::Real)::Float64
+
+    # TODO 1: validate the inputs.
+    #   Throw an ArgumentError naming the argument if either cargo_tonnes or
+    #   loading_rate_kg_min is not finite, or is not strictly positive.
+    #   See `isfinite` and `throw`.
+
+    # TODO 2: return the loading time in minutes.
+    #   t = m/r, but the units do not line up as given: 1 tonne = 1000 kg.
+    #   Convert, divide, and return a Float64.
+
+    throw(ErrorException("Oooops! The `cargo_loading_time_minutes(...)` function is " *
+                         "not implemented yet - we'd better fix that."))
 end
 
-"""Return residence time in min for volume in L and volumetric flow in mL/min."""
-function residence_time_minutes(volume_L::Real, flow_mL_min::Real)::Float64
-    volume = _require_finite_positive("volume_L", volume_L)
-    flow = _require_finite_positive("flow_mL_min", flow_mL_min)
-    return 1000.0 * volume / flow
 end
-
-end
-

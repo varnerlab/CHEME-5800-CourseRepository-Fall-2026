@@ -16,10 +16,17 @@ supporting_notebooks = [
 ]
 datasets = []
 student_paths = ["README.md", "release.toml", "L2a", "L2b", "L2c", "L2d"]
-instructor_only_paths = ["instructor/validation/week-02"]
+instructor_only_paths = [
+  "instructor/validation/week-02",
+  # L2b and L2d ship as stubs students complete in class; the reference solutions
+  # must not be bundled with them.
+  "L2b/src/Compute-solution.jl",
+  "L2d/src/Compute-solution.jl",
+]
 
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-02/runtests.jl"
+# Optional: the Python comparison is an appendix in L2b, not part of the required path.
 python = "python -m unittest discover -s weeks/week-02/L2b/src -p 'test_*.py'"
 external_packages_required = true
 network_required = false

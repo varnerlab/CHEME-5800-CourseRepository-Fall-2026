@@ -183,7 +183,43 @@ mandatory notebook decomposition:
 Execution tests remain necessary but do not substitute for instructional writing,
 mathematical development, task structure, or output interpretation.
 
-### 5.2 Historical-content-first rule
+### 5.2 Labs require student work
+
+**Every lab must ship something incomplete that students finish during the meeting.**
+A notebook that only reads and runs pre-written code is not a lab. This is a deliberate
+change for Fall 2026: several 2025 labs were read-and-run, and that is what we are
+correcting.
+
+Each lab is a single 50-minute meeting shared with discussion and setup, so scope the
+work to one function or one clearly bounded piece of one. Students receive the
+scaffolding — types, signature, docstring, helper functions, and the test set that acts
+as the specification — and write the body. A lab that requires building a program from
+nothing is mis-sized.
+
+The convention, carried over from the 2025 labs and standardized here:
+
+- A lab's `src/` folder holds `Compute.jl` (student-facing stub) and
+  `Compute-solution.jl` (reference solution) side by side, using the **same module
+  name** so the two are drop-in interchangeable.
+- The stub keeps the module, signature, and docstring; replaces the body with
+  `# TODO:` comments describing what to write; and ends with
+  `throw(ErrorException("Oooops! The \`name(...)\` function is not implemented yet - we'd better fix that."))`.
+- The week's `release.toml` lists the solution under `instructor_only_paths` so it is
+  not bundled for students.
+- The week's `runtests.jl` validates against the solution, and separately asserts that
+  the student file still contains its `TODO` markers and none of the solution's
+  distinctive expressions. That guard catches a solution leaking into the student tree.
+- The lab notebook must contain a section naming the file, listing what each `TODO`
+  expects, and pointing at the test cell as the definition of done. A stub alone is not
+  discoverable.
+
+Where the work is a judgement rather than a function — confirming a plot rendered, for
+instance — a `TODO`-marked flag in a notebook code cell that the test set asserts is an
+acceptable substitute (see `L1b`).
+
+This rule is enforced mechanically by rule `F16` of the `notebook-style` audit skill.
+
+### 5.3 Historical-content-first rule
 
 Before authoring a notebook, inspect the corresponding CHEME 5800 Fall 2025
 lecture and lab repositories and other approved course instances. Adapt the

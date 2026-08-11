@@ -14,10 +14,10 @@ def _positive_finite(name: str, value: float) -> float:
     return converted
 
 
-def residence_time_minutes(volume_l: float, flow_ml_min: float) -> float:
-    """Return residence time in min for volume in L and flow in mL/min."""
+def cargo_loading_time_minutes(cargo_tonnes: float, loading_rate_kg_min: float) -> float:
+    """Return loading time in min for cargo in tonnes and rate in kg/min."""
 
-    volume = _positive_finite("volume_l", volume_l)
-    flow = _positive_finite("flow_ml_min", flow_ml_min)
-    return 1000.0 * volume / flow
+    cargo = _positive_finite("cargo_tonnes", cargo_tonnes)
+    rate = _positive_finite("loading_rate_kg_min", loading_rate_kg_min)
+    return 1000.0 * cargo / rate
 

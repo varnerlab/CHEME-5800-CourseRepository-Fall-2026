@@ -9,12 +9,14 @@ from pathlib import Path
 from typing import Any
 
 REQUIRED_COLUMNS = (
-    "run_id",
-    "catalyst",
-    "temperature_K",
-    "residence_time_min",
-    "conversion_fraction",
+    "shift_id",
+    "zone",
+    "orders_completed",
+    "labor_hours",
+    "picking_error_fraction",
 )
+
+ALLOWED_ZONES = ("East", "West")
 
 
 def validate_rows(rows: list[dict[str, str]]) -> list[str]:
@@ -27,17 +29,20 @@ def validate_rows(rows: list[dict[str, str]]) -> list[str]:
     if missing:
         return [f"missing required columns: {', '.join(missing)}"]
 
-    run_ids: list[str] = []
+    shift_ids: list[str] = []
     for row_index, row in enumerate(rows, start=1):
-        run_id = row["run_id"].strip()
-        catalyst = row["catalyst"].strip()
-        if not run_id:
-            errors.append(f"row {row_index}: run_id must be nonempty")
-        if not catalyst:
-            errors.append(f"row {row_index}: catalyst must be nonempty")
-        run_ids.append(run_id)
+        shift_id = row["shift_id"].strip()
+        zone = row["zone"].strip()
+        if not shift_id:
+            errors.append(f"row {row_index}: shift_id must be nonempty")
+        shift_ids.append(shift_id)
 
-        for field in ("temperature_K", "residence_time_min", "conversion_fraction"):
+        if not zone:
+            errors.append(f"row {row_index}: zone must be nonempty")
+        elif zone not in ALLOWED_ZONES:
+            errors.append(f"row {row_index}: zone must be one of {', '.join(ALLOWED_ZONES)}")
+
+        for field in ("orders_completed", "labor_hours", "picking_error_fraction"):
             try:
                 value = float(row[field])
             except (TypeError, ValueError):
@@ -45,14 +50,20 @@ def validate_rows(rows: list[dict[str, str]]) -> list[str]:
                 continue
             if not math.isfinite(value):
                 errors.append(f"row {row_index}: {field} must be finite")
-            elif field in ("temperature_K", "residence_time_min") and value <= 0:
-                errors.append(f"row {row_index}: {field} must be positive")
-            elif field == "conversion_fraction" and not 0 <= value <= 1:
-                errors.append(f"row {row_index}: conversion_fraction must be between 0 and 1")
+            elif field == "orders_completed" and (value < 0 or value != round(value)):
+                errors.append(
+                    f"row {row_index}: orders_completed must be a finite nonnegative whole number"
+                )
+            elif field == "labor_hours" and value <= 0:
+                errors.append(f"row {row_index}: labor_hours must be finite and positive")
+            elif field == "picking_error_fraction" and not 0 <= value <= 1:
+                errors.append(
+                    f"row {row_index}: picking_error_fraction must be finite and between 0 and 1"
+                )
 
-    nonempty_ids = [run_id for run_id in run_ids if run_id]
+    nonempty_ids = [shift_id for shift_id in shift_ids if shift_id]
     if len(set(nonempty_ids)) != len(nonempty_ids):
-        errors.append("run_id values must be unique")
+        errors.append("shift_id values must be unique")
     return errors
 
 
@@ -72,7 +83,7 @@ def load_bundle(csv_path: str | Path, metadata_path: str | Path) -> dict[str, An
 if __name__ == "__main__":
     lecture_root = Path(__file__).resolve().parent.parent
     result = load_bundle(
-        lecture_root / "data" / "reactor-runs.csv",
-        lecture_root / "data" / "reactor-metadata.json",
+        lecture_root / "data" / "fulfillment-shifts.csv",
+        lecture_root / "data" / "fulfillment-metadata.json",
     )
     print({"valid": result["valid"], "rows": len(result["rows"]), "errors": result["errors"]})

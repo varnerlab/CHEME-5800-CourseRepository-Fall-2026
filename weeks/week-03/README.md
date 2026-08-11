@@ -42,10 +42,10 @@ under `instructor/validation/week-03`.
 
 ## Data provenance
 
-The L3b reactor data are instructor-generated synthetic teaching values, not
+The L3b fulfillment-shift data are instructor-generated synthetic teaching values, not
 experimental observations. [`L3b/data/README.md`](L3b/data/README.md) records the
 purpose and SHA-256 digests. The intentionally invalid file is named
-`reactor-runs-invalid-example.csv` and lives beside the data contract it violates.
+`fulfillment-shifts-invalid-example.csv` and lives beside the data contract it violates.
 
 ## Preparation and validation
 
