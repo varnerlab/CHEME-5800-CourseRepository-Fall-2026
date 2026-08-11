@@ -1,0 +1,9 @@
+run_id,catalyst,temperature_K,residence_time_min,conversion_fraction
+R01,A,330,4,0.62
+R02,A,340,4,0.71
+R03,A,350,4,0.79
+R04,A,360,4,0.84
+R05,B,330,6,0.66
+R06,B,340,6,0.74
+R07,B,350,6,0.82
+R08,B,360,6,0.88

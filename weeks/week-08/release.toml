@@ -1,0 +1,20 @@
+schema_version = 2
+week = 8
+version = "1.0-prototype"
+status = "prototype"
+title = "Regularization, cross-validation, and model checking"
+languages = ["Julia"]
+entry_notebooks = [
+  "L8a/CHEME-5800-L8a-Lecture-RegularizationAndGeneralization-Fall-2026.ipynb",
+  "L8b/CHEME-5800-L8b-Example-RidgeCoefficientShrinkage-Fall-2026.ipynb",
+  "L8c/CHEME-5800-L8c-Lab-ResidualModelChecking-Fall-2026.ipynb",
+  "L8d/CHEME-5800-L8d-Lab-RidgeCrossValidation-Fall-2026.ipynb",
+]
+supporting_notebooks = []
+datasets = []
+student_paths = ["README.md", "L8a", "L8b", "L8c", "L8d", "src"]
+instructor_only_paths = ["../../instructor/validation/week-08"]
+[validation]
+julia = "julia --startup-file=no --project=. instructor/validation/week-08/runtests.jl"
+external_packages_required = true
+network_required = false

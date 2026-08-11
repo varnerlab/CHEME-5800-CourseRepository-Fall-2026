@@ -1,0 +1,20 @@
+schema_version = 2
+week = 15
+version = "1.0-prototype"
+status = "prototype"
+title = "Dynamics as algorithms and the CHEME 5820 bridge"
+languages = ["Julia"]
+entry_notebooks = [
+  "L15a/CHEME-5800-L15a-Lecture-DynamicsAsAlgorithms-Fall-2026.ipynb",
+  "L15b/CHEME-5800-L15b-Lab-ThreeGeneDynamics-Fall-2026.ipynb",
+  "L15c/CHEME-5800-L15c-Lecture-StateUpdatesAnd5820Bridge-Fall-2026.ipynb",
+  "L15d/CHEME-5800-L15d-Lab-MixedSugarFermentation-Fall-2026.ipynb",
+]
+supporting_notebooks = []
+datasets = []
+student_paths = ["README.md", "L15a", "L15b", "L15c", "L15d", "src"]
+instructor_only_paths = ["../../instructor/validation/week-15"]
+[validation]
+julia = "julia --startup-file=no --project=. instructor/validation/week-15/runtests.jl"
+external_packages_required = true
+network_required = false

@@ -1,0 +1,20 @@
+schema_version = 2
+week = 11
+version = "1.0-prototype"
+status = "prototype"
+title = "Markov models, MDPs, and value iteration"
+languages = ["Julia"]
+entry_notebooks = [
+  "L11a/CHEME-5800-L11a-Lecture-MarkovModels-Fall-2026.ipynb",
+  "L11b/CHEME-5800-L11b-Lab-MarkovSequenceGenerator-Fall-2026.ipynb",
+  "L11c/CHEME-5800-L11c-Lecture-MarkovDecisionProcesses-Fall-2026.ipynb",
+  "L11d/CHEME-5800-L11d-Lab-ValueIterationGridWorld-Fall-2026.ipynb",
+]
+supporting_notebooks = []
+datasets = []
+student_paths = ["README.md", "L11a", "L11b", "L11c", "L11d", "src"]
+instructor_only_paths = ["../../instructor/validation/week-11"]
+[validation]
+julia = "julia --startup-file=no --project=. instructor/validation/week-11/runtests.jl"
+external_packages_required = true
+network_required = false

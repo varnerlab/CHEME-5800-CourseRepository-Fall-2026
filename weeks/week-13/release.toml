@@ -1,0 +1,26 @@
+schema_version = 2
+week = 13
+version = "1.0-prototype"
+status = "prototype"
+title = "REST clients and MCP servers"
+languages = ["Julia", "Python"]
+entry_notebooks = [
+  "L13a/CHEME-5800-L13a-Lecture-RESTJSONAndSchemas-Fall-2026.ipynb",
+  "L13b/CHEME-5800-L13b-Lab-NWSClient-Fall-2026.ipynb",
+  "L13c/CHEME-5800-L13c-Lecture-MCPToolsResourcesAndTrust-Fall-2026.ipynb",
+  "L13d/CHEME-5800-L13d-Lab-UreaCycleMCP-Fall-2026.ipynb",
+]
+supporting_notebooks = []
+datasets = [
+  "data/nws-points-ithaca.fixture.json",
+  "data/nws-forecast-hourly-ithaca.fixture.json",
+  "data/urea-cycle-network.json",
+]
+student_paths = ["README.md", "L13a", "L13b", "L13c", "L13d", "data", "src", "python"]
+instructor_only_paths = ["../../instructor/validation/week-13"]
+[validation]
+julia = "julia --startup-file=no --project=. instructor/validation/week-13/runtests.jl"
+python = "PYTHONPATH=weeks/week-13/python/src python -m unittest discover -s weeks/week-13/python/test -v"
+network_required = false
+live_nws_required = false
+model_account_required = false

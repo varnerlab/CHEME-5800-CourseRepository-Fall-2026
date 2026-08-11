@@ -1,0 +1,25 @@
+schema_version = 1
+week = 2
+version = "1.0-prototype"
+status = "prototype"
+title = "Functions, errors, collections, and defensive programs"
+
+languages = ["Julia", "Python"]
+entry_notebooks = [
+  "L2a/CHEME-5800-L2a-Lecture-IntroductionToFunctions-Fall-2026.ipynb",
+  "L2b/CHEME-5800-L2b-Lab-ErrorsTestsDebugging-Fall-2026.ipynb",
+  "L2c/CHEME-5800-L2c-Lecture-CollectionsAndTables-Fall-2026.ipynb",
+  "L2d/CHEME-5800-L2d-Lab-DefensiveFibonacci-Fall-2026.ipynb",
+]
+supporting_notebooks = [
+  "L2c/CHEME-5800-L2c-Example-HexadecimalAndTextRepresentation-Fall-2026.ipynb",
+]
+datasets = []
+student_paths = ["README.md", "release.toml", "L2a", "L2b", "L2c", "L2d"]
+instructor_only_paths = ["instructor/validation/week-02"]
+
+[validation]
+julia = "julia --startup-file=no --project=. instructor/validation/week-02/runtests.jl"
+python = "python -m unittest discover -s weeks/week-02/L2b/src -p 'test_*.py'"
+external_packages_required = true
+network_required = false

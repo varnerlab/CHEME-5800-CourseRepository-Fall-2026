@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cheme5800-urea-mcp"
+version = "0.1.0"
+description = "CHEME 4800/5800 Week 13 urea-cycle MCP server"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]==2.0.0",
+    "ipykernel==7.1.0",
+]
+
+[project.scripts]
+cheme5800-urea-mcp = "cheme5800_mcp.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,35 @@
+schema_version = 2
+week = 5
+version = "1.0-prototype"
+status = "prototype"
+title = "Maximum flow and linear programming"
+
+languages = ["Julia"]
+entry_notebooks = [
+  "L5a/CHEME-5800-L5a-Lecture-MaximumFlowProblems-Fall-2026.ipynb",
+  "L5a/CHEME-5800-L5a-WorkedExample-MaximumFlow-Fall-2026.ipynb",
+  "L5b/CHEME-5800-L5b-Lab-MaximumFlowSensitivity-Fall-2026.ipynb",
+  "L5c/CHEME-5800-L5c-Lecture-LinearProgramming-Fall-2026.ipynb",
+  "L5c/CHEME-5800-L5c-Example-FruitAllocation-Fall-2026.ipynb",
+  "L5d/CHEME-5800-L5d-Lab-MinimumCostAssignmentFlow-Fall-2026.ipynb",
+]
+supporting_notebooks = [
+  "L5c/CHEME-5800-L5c-Algorithm-RevisedSimplex-Fall-2026.ipynb",
+]
+datasets = [
+  "L5a/data/README.md",
+  "L5a/data/Workers-Tasks-Bipartite.edgelist",
+  "L5b/data/README.md",
+  "L5b/data/Workers-Tasks-Bipartite.edgelist",
+  "L5c/figs/README.md",
+  "L5c/figs/Fig-ThreeCases-LP-Schematic.svg",
+  "L5d/data/README.md",
+  "L5d/data/Workers-Tasks-MCMF-Bipartite.edgelist",
+]
+student_paths = ["README.md", "L5a", "L5b", "L5c", "L5d"]
+instructor_only_paths = ["../../instructor/validation/week-05"]
+
+[validation]
+julia = "julia --startup-file=no --project=. instructor/validation/week-05/runtests.jl"
+external_packages_required = true
+network_required = false

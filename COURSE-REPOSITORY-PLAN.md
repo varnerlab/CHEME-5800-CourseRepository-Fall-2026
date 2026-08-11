@@ -10,10 +10,10 @@ This repository plan is implemented in service of the approved [Fall 2026 topic 
 
 The approved topic boundary resolves the content-level decisions that were previously implicit here:
 
-- CHEME 4800 and CHEME 5800 share each weekly release and its examples, but 5800 has explicit implementation/testing extensions rather than identical assessment artifacts.
+- CHEME 4800 and CHEME 5800 share each weekly release and its examples, but 5800 has explicitly labeled advanced implementation/testing notebooks rather than identical assessment artifacts.
 - The semester preserves varied historical examples while selectively compressing algorithm surveys and avoiding unnecessary CHEME 5820 overlap.
 - The rebalanced sequence restores early practical data work and adds a full REST/MCP communications unit.
-- The Week 13 REST/MCP unit is the selected first vertical prototype because it exercises the largest net-new content and the cross-language packaging path.
+- The Week 13 REST/MCP unit was used as a technical risk prototype because it exercises the largest net-new content and the cross-language packaging path. The chronological student-facing build through Week 16 is now complete.
 
 ## 1. Decisions already made
 
@@ -22,7 +22,7 @@ The approved topic boundary resolves the content-level decisions that were previ
 3. The course will use the local-code model. Course materials will use a pinned local snapshot of [`VLDataScienceMachineLearningPackage.jl`](https://github.com/varnerlab/VLDataScienceMachineLearningPackage.jl), rather than installing the package from a remote URL during class.
 4. The repository will have one student-facing Julia environment at its root: one `Project.toml` and one committed `Manifest.toml`.
 5. Individual lecture and lab directories will not contain their own Julia environments.
-6. GitHub Classroom will not be part of the Fall 2026 operating model. GitHub has announced that Classroom will be decommissioned on August 28, 2026, so assignment distribution, collection, testing, feedback, and grading need a replacement.
+6. Problem sets are out of scope for this repository. Each problem set lives in a separate repository, and its problem and solution are released at the same time through a separately managed workflow.
 7. Published weekly releases are immutable. Corrections produce a new patch release; an existing asset is never silently replaced.
 
 ## 2. Student experience to design around
@@ -35,8 +35,6 @@ The normal weekly workflow should be:
 4. Open that folder in VS Code or Jupyter.
 5. Start Julia with the environment supplied in the bundle.
 6. Work on lecture examples and the lab locally.
-7. Submit the designated assignment artifact through the selected assignment system.
-
 Students should not need to clone, pull, merge, stash, resolve notebook conflicts, initialize submodules, or manage multiple Julia environments.
 
 ## 3. Proposed authoring-repository layout
@@ -45,35 +43,29 @@ Students should not need to clone, pull, merge, stash, resolve notebook conflict
 CHEME-5800-CourseRepository-Fall-2026/
 ├── Project.toml
 ├── Manifest.toml
+├── Include.jl
 ├── README.md
 ├── LICENSE
 ├── .gitignore
-├── local/
-│   └── VLDataScienceMachineLearningPackage/
-│       ├── UPSTREAM.toml
-│       └── src/
-│           ├── VLDataScienceMachineLearningPackage.jl
-│           ├── Include.jl
-│           └── ...
-├── data/
-│   ├── README.md
-│   ├── common/
-│   └── week-specific/
+├── code/
+│   ├── Project.toml
+│   ├── UPSTREAM.toml
+│   └── src/
+│       ├── VLDataScienceMachineLearningPackage.jl
+│       └── ...
 ├── weeks/
 │   ├── week-01/
 │   │   ├── README.md
-│   │   ├── lectures/
-│   │   ├── lab/
-│   │   ├── extensions/
-│   │   │   └── cheme-5800/
-│   │   └── release.toml
+│   │   ├── release.toml
+│   │   ├── L1a/
+│   │   │   ├── Include.jl
+│   │   │   ├── CHEME-5800-L1a-Lecture-Topic-Fall-2026.ipynb
+│   │   │   ├── CHEME-5800-L1a-Example-Application-Fall-2026.ipynb
+│   │   │   ├── data/
+│   │   │   └── src/
+│   │   └── L1b/
 │   ├── week-02/
 │   └── ...
-├── assignments/
-│   ├── templates/
-│   ├── tests/
-│   ├── rubrics/
-│   └── solutions/
 ├── instructor/
 │   ├── notes/
 │   └── release-checklists/
@@ -90,33 +82,42 @@ CHEME-5800-CourseRepository-Fall-2026/
 
 ### Visibility rule
 
-Student release archives must never contain `assignments/solutions`, instructor notes, hidden tests, unreleased assessments, notebook checkpoints, or other instructor-only material. If the repository is public during the semester, future solutions and assessments cannot be stored anywhere in it, because excluding them from release archives does not prevent students from browsing the repository.
+Weekly course-content archives contain the week's class-meeting folders, approved
+data, and supporting code. They do not contain problem sets or problem-set
+solutions because those artifacts live in separate repositories and are released
+together. Instructor notes, notebook checkpoints, and other authoring-only files
+remain excluded from weekly archives.
 
 ## 4. Julia environment and local package design
 
 ### 4.1 One environment
 
-- Place the only course `Project.toml` and `Manifest.toml` at repository root.
-- Merge the dependencies required by the local package, lectures, labs, and assignment tests into the root `Project.toml`.
+- Place the only course-environment `Project.toml` and `Manifest.toml` at repository root. The vendored package retains its own `code/Project.toml` as package metadata, not as a student environment.
+- Merge the dependencies required by the local package, lectures, labs, and instructional validation tests into the root `Project.toml`.
 - Commit `Manifest.toml` because the course is an application with a reproducible environment, not a reusable package release.
-- Pin and document the supported Julia version.
-- Remove all lecture-level and lab-level `Project.toml` and `Manifest.toml` files during migration.
+- Track the latest stable Julia release; record the exact version used to validate each published course release.
+- Remove all class-meeting-level `Project.toml` and `Manifest.toml` files during migration.
 - Standardize notebook startup so every notebook activates the bundle/repository root, not the current notebook directory.
 - Provide one environment smoke test that imports all required dependencies and loads the local module.
 
 ### 4.2 Vendor the package; do not use a student-facing submodule
 
-The preferred model is a pinned source snapshot under `local/`, with its upstream identity recorded in `UPSTREAM.toml`. Do not require students to initialize a Git submodule. A synchronization script should:
+The preferred model is a pinned source snapshot under `code/`, matching the CHEME 5660 local-code model, with its upstream identity recorded in `code/UPSTREAM.toml`. Do not require students to initialize a Git submodule. A synchronization script should:
 
 1. Fetch a specified upstream tag or commit.
-2. Copy the approved source files into `local/VLDataScienceMachineLearningPackage/src`.
+2. Copy the approved source files into `code/src`.
 3. Copy only approved data resources according to the data policy below.
 4. Record the upstream repository, commit SHA, package version, and synchronization date in `UPSTREAM.toml`.
 5. Refuse to continue if the local snapshot contains unexpected files or if validation fails.
 
-The vendored package's own `Project.toml`, `Manifest.toml`, `.git` directory, documentation build output, and development configuration should not be copied into the course tree. Its dependencies belong in the single root `Project.toml`.
+Retain `code/Project.toml` so Julia can identify the local package and record `path = "code"` in the root manifest. Do not retain a second package manifest, `.git` directory, documentation build output, or development-only configuration. Dependencies used directly by course notebooks belong in the root `Project.toml`; package implementation dependencies remain declared in `code/Project.toml` and resolve through the root manifest.
 
-Notebooks should load the vendored module through one shared bootstrap file. Avoid custom `Include.jl` copies in every lecture and lab directory.
+The root `Include.jl` owns environment activation and local-package loading. Each
+class-meeting folder carries a local `Include.jl`, following the CHEME 5660 Fall
+2026 convention. The local file delegates environment setup to the root, contains
+all `using` statements required by that meeting's notebooks, and includes the
+meeting's source. Notebooks and authoring tests do not repeat package-loading
+statements. A local file must not create another Julia environment.
 
 ### 4.3 Data policy must be explicit
 
@@ -146,15 +147,50 @@ Decision to make after measuring the actual course dependency graph: either make
 
 Each `weeks/week-NN` directory should contain the complete student-facing instructional unit:
 
-- a short `README.md` stating objectives, preparation, lecture sequence, lab instructions, required data, and submission link;
-- all lecture notebooks and supporting assets for that week;
-- the lab starter notebook and supporting assets;
-- a clearly labeled `extensions/cheme-5800` path when the week has a graduate implementation/testing requirement;
-- a machine-readable `release.toml` listing included paths, required datasets, entry notebooks, assignment identifier, and release version.
+- a short `README.md` stating objectives, preparation, class-meeting sequence, and required data;
+- one folder per scheduled class meeting, named by its course identifier (`L3b`, `L3c`, and so on);
+- notebooks whose filenames state their actual role: `Lecture`, `Lab`, `Example`, `Advanced`, `Derivation`, or `Algorithm`;
+- a local `Include.jl` plus only the `data/`, `figs/`, and `src/` subdirectories actually required by that meeting;
+- a machine-readable `release.toml` listing included paths, required datasets, entry notebooks, validation commands, and release version.
 
-Adopt consistent names that do not require students to decode internal lecture codes. Internal identifiers such as `L7a` may remain in metadata, but student-facing files and links should make week and purpose obvious.
+Do not expose authoring vocabulary such as `fixtures` or `extensions`, or create
+generic `lectures` and `lab` subdirectories inside a week. An intentionally
+invalid file is a clearly named data example. A deeper notebook uses an accurate
+role such as `Advanced`, `Derivation`, or `Algorithm` and lives with the meeting
+it supports. The course identifiers remain visible because they
+match the schedule, recordings, and the established 5660/5820 repository pattern;
+the remainder of each filename states its purpose and topic.
 
-CHEME 4800 and CHEME 5800 share one weekly archive and common instructional path. Encode the CHEME 5800 extension entry point and grading track in release metadata rather than duplicating the entire week tree.
+CHEME 4800 and CHEME 5800 share one weekly archive and common instructional path.
+Encode any additional CHEME 5800-specific notebook in release metadata rather
+than duplicating the week tree or creating an `extensions` hierarchy.
+
+### 5.1 Notebook presentation standard
+
+Use the CHEME 5820 Spring 2026 notebooks as a presentation reference, not as a
+mandatory notebook decomposition:
+
+- a descriptive title and opening paragraph;
+- a blockquoted `Learning Objectives` panel followed by a horizontal rule;
+- conceptual development, executable code, and examples combined or separated
+  according to what best serves the class meeting;
+- `Setup, Data, and Prerequisites`, numbered tasks, explanatory transitions around
+  code, and interpreted outputs when the notebook is computational;
+- `Lecture`, `Lab`, `Example`, `Advanced`, `Derivation`, or `Algorithm` labels only
+  when that role is accurate;
+- a closing `Summary` with a blockquoted `Key Takeaways` panel and horizontal rule.
+
+Execution tests remain necessary but do not substitute for instructional writing,
+mathematical development, task structure, or output interpretation.
+
+### 5.2 Historical-content-first rule
+
+Before authoring a notebook, inspect the corresponding CHEME 5800 Fall 2025
+lecture and lab repositories and other approved course instances. Adapt the
+highest-quality existing explanation, example, code, and figure assets when they
+fit the Fall 2026 topic boundary. Write new material only for a genuine gap or a
+substantive correction. Record what was retained, corrected, omitted, or newly
+authored in the week's README.
 
 ## 6. Release system
 
@@ -166,8 +202,8 @@ CHEME 4800 and CHEME 5800 share one weekly archive and common instructional path
 - a bundle-specific `README.md`;
 - the vendored local source needed by the week;
 - approved common and week-specific data;
-- `weeks/week-NN/lectures` and `weeks/week-NN/lab`;
-- the week's `extensions/cheme-5800` path, when present;
+- the selected `weeks/week-NN/LNx` class-meeting folders;
+- notebooks labeled `Advanced`, `Derivation`, or `Algorithm` when selected for the release;
 - license and attribution files;
 - optional validation scripts.
 
@@ -181,7 +217,7 @@ The build must exclude at least:
 
 - `.git`, `.github`, `.vscode`, and `.DS_Store`;
 - `.ipynb_checkpoints` and temporary notebook files;
-- solutions, hidden tests, rubrics, and instructor notes;
+- problem-set repositories, instructor notes, and authoring-only validation material;
 - generated HTML and duplicate figures unless deliberately required;
 - unused datasets and model checkpoints;
 - development-only package files.
@@ -221,58 +257,29 @@ The validation workflow should run on every pull request and main-branch change.
    - `.ipynb_checkpoints`;
    - redundant rendered HTML trees;
    - obsolete Keynote/source assets not used during class;
-   - duplicate student/solution notebook outputs;
+   - duplicate rendered notebook variants and outputs;
    - generated model-state files that can be reproduced.
 4. Strip large cell outputs from student notebooks where the output is not instructionally necessary.
 5. Consolidate all Julia dependencies into the root environment.
 6. Replace per-directory bootstrap and include files with the shared course bootstrap.
 7. Update paths so notebooks work from the extracted weekly bundle, not only from the authoring repository.
-8. Move all solutions and hidden grading material outside student-visible release paths.
+8. Exclude problem-set materials, which are managed in separate repositories, from this migration and its release paths.
 9. Validate each migrated week independently in a clean directory.
 10. Preserve the 2025 repositories as read-only historical archives; do not merge their Git histories into the new repository unless there is a specific archival need.
 
-## 8. Assignment system after GitHub Classroom
+## 8. Problem-set repository boundary
 
-The replacement must separately solve six functions that Classroom previously bundled together:
+Problem-set operations are deliberately handled outside this repository:
 
-1. distribute starter files;
-2. associate submissions with the roster;
-3. record deadlines and extensions;
-4. collect submissions reliably;
-5. run automated checks where appropriate;
-6. return grades and feedback.
+1. each problem set uses a separate repository;
+2. the problem and solution are released at the same time;
+3. weekly course-content archives do not package either artifact;
+4. this repository does not define problem-set collection, grading, or feedback workflows; and
+5. weekly documentation may link to a problem-set repository after that separate workflow is finalized.
 
-### Recommended default for Fall 2026
-
-Use the institutional LMS as the system of record for roster, due dates, extensions, submission receipts, grades, and feedback. Distribute each starter assignment inside the corresponding weekly release. Have students upload one deliberately constrained artifact—preferably a single notebook when possible, otherwise a ZIP with a required structure.
-
-Build a local/instructor-side grading harness that:
-
-- downloads or ingests the LMS submissions;
-- validates filenames and archive structure;
-- preserves the original submission unchanged;
-- runs tests in an isolated working copy with time and resource limits;
-- produces a machine-readable result plus an instructor-readable report;
-- never executes untrusted student code with instructor credentials or secrets;
-- supports manual rubric items and documented overrides.
-
-This model is consistent with the no-Git student workflow and has the lowest dependency on another vendor transition.
-
-### Alternatives to evaluate in a short pilot
-
-- **Classroom 50:** GitHub identifies this as a partner replacement using GitHub repositories and Actions. Evaluate only if per-student repositories and Git-based feedback remain pedagogically valuable; it may recreate the Git friction the weekly-download model is intended to remove.
-- **Codio:** Evaluate if existing Codio activities, roster integration, and autograding materially reduce staff work. Measure exportability and avoid locking the authoritative course content inside Codio.
-- **Manually scripted GitHub organization:** Template repositories plus GitHub API/CLI automation can reproduce much of Classroom, but this creates a custom service that the course staff must own. Use only if repository-based submissions are a firm requirement.
-- **Gradescope or another Cornell-supported submission service:** Evaluate notebook/ZIP handling, autograder support, LMS grade synchronization, group work, late-day handling, and accessibility through institutional support.
-
-### Assignment-system pilot and decision gate
-
-Before committing, test two representative assignments:
-
-- one individual notebook with deterministic tests;
-- one larger assignment with supporting files, manual rubric components, and a late/extension case.
-
-Score each candidate on student setup burden, instructor setup burden, TA grading workflow, Julia support, security isolation, roster/LMS integration, handling of extensions and groups, feedback quality, exportability, cost, and risk of service change. Select and document the Fall 2026 system before assignment templates are finalized.
+This boundary keeps lecture/lab release engineering independent from problem-set
+repository operations. Decisions about those repositories belong in their own
+documentation, not in this course-content plan.
 
 ## 9. Validation and acceptance criteria
 
@@ -280,15 +287,13 @@ The redesign is ready for students when all of the following are true:
 
 - A student can start from a clean machine, follow one setup document, and run a week bundle without Git.
 - Every notebook activates the same root environment and loads the local module.
-- No weekly directory contains another `Project.toml` or `Manifest.toml`.
+- No weekly directory contains another `Project.toml` or `Manifest.toml`; `code/Project.toml` is package metadata rather than a second course environment.
 - A clean `Pkg.instantiate()` succeeds on supported macOS, Windows, and Linux configurations.
 - Each release archive is reproducible from its tag and has a published checksum.
-- Release validation detects missing data and prohibited instructor files.
-- A solution or hidden test cannot be found in the public repository or any student archive.
+- Release validation detects missing data, problem-set artifacts, and prohibited authoring files.
 - A correction creates a new versioned release and leaves the previous release intact.
-- The assignment pipeline has been tested end to end with a mock roster, ordinary submission, late submission, extension, malformed submission, and code that times out.
-- The release and grading harness distinguish the CHEME 4800 common path from the CHEME 5800 extension without duplicating the weekly archive.
-- A TA who did not build the system can execute the documented release and grading procedures.
+- Release metadata distinguishes the CHEME 4800 common path from the CHEME 5800 extension without duplicating the weekly archive.
+- A TA who did not build the system can execute the documented setup, validation, and release procedures.
 
 ## 10. Implementation phases
 
@@ -296,7 +301,6 @@ The redesign is ready for students when all of the following are true:
 
 - Decide repository visibility during the semester.
 - Decide whether unreleased weeks may be visible.
-- Identify Cornell-supported LMS/submission and sandboxing options.
 - Define supported Julia and operating-system versions.
 - Decide whether weekly bundles are standalone or depend on one setup/data bundle.
 
@@ -310,11 +314,10 @@ The redesign is ready for students when all of the following are true:
 
 ### Phase 2 — Build the Week 13 vertical prototype
 
-- Use the selected REST/MCP unit to exercise the cross-language environment, recorded fixtures, tests, student/instructor separation, and release packaging.
-- Migrate that week as a complete unit containing lectures, a lab, local source use, data, an assignment, and a CHEME 5800 extension.
+- Use the selected REST/MCP unit to exercise the cross-language environment, recorded response examples, tests, and release packaging.
+- Migrate that week as a complete unit containing lectures, a lab, local source use, data, and a CHEME 5800 extension.
 - Build and unzip its release artifact.
 - Test it on clean macOS and Windows environments.
-- Run a mock submission through the proposed grading workflow.
 - Revise the structure before bulk migration.
 
 ### Phase 3 — Migrate and normalize the semester
@@ -322,7 +325,7 @@ The redesign is ready for students when all of the following are true:
 - Import remaining lecture and lab weeks.
 - Consolidate dependencies and paths.
 - Inventory and place data.
-- Separate student, solution, and instructor materials.
+- Separate student-facing instructional content from instructor authoring materials.
 - Create week manifests and README files.
 
 ### Phase 4 — Automate validation and releases
@@ -333,30 +336,27 @@ The redesign is ready for students when all of the following are true:
 - Add checksums, inventories, and release notes.
 - Test a patch-release correction without replacing the original.
 
-### Phase 5 — Finalize assignment operations
+### Phase 5 — Confirm the problem-set boundary
 
-- Select the submission platform after the pilot.
-- Finalize starter templates, rubrics, tests, and secure grading harness.
-- Document roster setup, extensions, late submissions, regrades, group work, and grade export.
-- Export/archive any historical GitHub Classroom data needed before shutdown.
+- Document the external problem-set repository link convention when that workflow is ready.
+- Verify that weekly build scripts reject embedded problem-set and solution artifacts.
+- Keep problem-set operations out of the course-content release automation.
 
 ### Phase 6 — Student and staff usability test
 
-- Ask one TA and one person unfamiliar with the repository to perform setup, weekly download, lab work, submission, grading, and correction workflows from the written instructions.
+- Ask one TA and one person unfamiliar with the repository to perform setup, weekly download, lab work, validation, and correction workflows from the written instructions.
 - Fix every point where either tester requires undocumented instructor help.
 
 ## 11. Immediate next actions
 
-1. Review and approve the rebalanced session-level schedule derived from `COURSE-TOPIC-BOUNDARY-FALL-2026.md`.
-2. Adapt and run-validate the 20-item deeper-dive launch set backed by verified historical sources; unselected ideas remain backlog only.
-3. Build the selected Week 13 REST/MCP unit as the first vertical prototype, then test a complete weekly ZIP for both course paths.
-4. Filter the 2024/2025 content and data inventory against the selected common-core, launch deeper dives, and CHEME 5820 boundary.
+1. Retrofit Weeks 1 and 2 to the validated Week 3 class-meeting layout and CHEME 5820 notebook presentation standard.
+2. Run the cross-course cleanup and release-quality pass across the completed Weeks 1–16 instructional build.
+3. Implement clean weekly ZIP packaging, checksum generation, inventory checks, and rejection of problem-set artifacts.
+4. Test extracted weekly releases on supported clean macOS and Windows environments.
 5. Confirm whether the authoring repository will be public or private during Fall 2026.
-6. Generate the root environment against the current Julia release and document the update/committed-manifest policy without pinning the course to an older Julia version.
-7. Decide how the merged local module under `code/` will be loaded and record its provenance.
-8. Pilot the LMS-first submission workflow and at least one alternative before choosing the assignment platform.
-9. Export any GitHub Classroom roster, assignment, grade, and repository mapping data that must be retained before August 28, 2026.
+6. Document the external problem-set repository link convention when that separate workflow is ready.
+7. Conduct the TA and unfamiliar-user setup and usability test, then repair every undocumented dependency.
 
 ## 12. Reuse for CHEME 5820 Spring 2027
 
-Build the repository scripts and conventions so they are course-parameterized rather than hard-coded to 5800. At minimum, course number, semester, archive prefix, module path, week count, and release title should come from a small configuration file. After the 5800 vertical prototype is stable, extract the generic synchronization, validation, release, and grading components for reuse in the 5820 repository. Do not create a shared framework prematurely; first prove the workflow with one real 5800 week.
+Build the repository scripts and conventions so they are course-parameterized rather than hard-coded to 5800. At minimum, course number, semester, archive prefix, module path, week count, and release title should come from a small configuration file. After the 5800 vertical prototype is stable, extract the generic synchronization, validation, and release components for reuse in the 5820 repository. Do not create a shared framework prematurely; first prove the workflow with one real 5800 week.

@@ -1,0 +1,16 @@
+schema_version = 2
+week = 14
+version = "1.0-prototype"
+status = "prototype"
+title = "Integration clinic and practicum launch"
+languages = ["Julia", "Python"]
+entry_notebooks = [
+  "L14a/CHEME-5800-L14a-Lecture-IntegrationClinic-Fall-2026.ipynb",
+]
+supporting_notebooks = []
+datasets = []
+student_paths = ["README.md", "L14a", "src"]
+instructor_only_paths = ["../../instructor/validation/week-14"]
+[validation]
+julia = "julia --startup-file=no --project=. instructor/validation/week-14/runtests.jl"
+network_required = false

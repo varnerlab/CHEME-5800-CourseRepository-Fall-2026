@@ -1,0 +1,15 @@
+{
+  "@context": [],
+  "id": "https://api.weather.gov/points/42.443961,-76.501881",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [-76.501881, 42.443961]
+  },
+  "properties": {
+    "gridId": "BGM",
+    "gridX": 52,
+    "gridY": 99,
+    "forecast": "https://api.weather.gov/gridpoints/BGM/52,99/forecast",
+    "forecastHourly": "https://api.weather.gov/gridpoints/BGM/52,99/forecast/hourly"
+  }
+}

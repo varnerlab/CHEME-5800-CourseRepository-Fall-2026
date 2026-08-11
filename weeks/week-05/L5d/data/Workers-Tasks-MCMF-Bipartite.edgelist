@@ -1,0 +1,33 @@
+# Corrected synthetic worker-task minimum-cost-flow network for Fall 2026.
+# Record: source,target,cost,lower capacity,upper capacity
+
+# Source to workers
+1,2,0,0,1
+1,3,0,0,1
+1,4,0,0,1
+
+# Tasks to task-completion nodes
+5,9,1,0,1
+6,10,1,0,1
+7,11,1,0,1
+8,12,1,0,1
+
+# Task-completion nodes to sink
+9,13,0,0,1
+10,13,0,0,1
+11,13,0,0,1
+12,13,0,0,1
+
+# Worker-task assignment costs
+2,5,1,0,1
+2,6,4,0,1
+2,7,6,0,1
+2,8,3,0,1
+3,5,5,0,1
+3,6,1,0,1
+3,7,4,0,1
+3,8,2,0,1
+4,5,4,0,1
+4,6,3,0,1
+4,7,1,0,1
+4,8,5,0,1

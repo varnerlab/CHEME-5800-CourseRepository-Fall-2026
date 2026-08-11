@@ -1,0 +1,31 @@
+schema_version = 2
+week = 3
+version = "1.0-prototype"
+status = "prototype"
+title = "Data provenance, recursion, and sorting as a testable algorithm"
+
+languages = ["Julia", "Python"]
+entry_notebooks = [
+  "L3b/CHEME-5800-L3b-Lab-DataValidation-Provenance-Fall-2026.ipynb",
+  "L3c/CHEME-5800-L3c-Lecture-RecursionConcept-Fall-2026.ipynb",
+  "L3d/CHEME-5800-L3d-Lab-AnotherLookAtSorting-Fall-2026.ipynb",
+]
+supporting_notebooks = [
+  "L3c/CHEME-5800-L3c-Example-RecursiveFibonacci-Fall-2026.ipynb",
+  "L3d/CHEME-5800-L3d-Algorithm-Bubblesort-Fall-2026.ipynb",
+  "L3d/CHEME-5800-L3d-Algorithm-Quicksort-Fall-2026.ipynb",
+]
+datasets = [
+  "L3b/data/README.md",
+  "L3b/data/reactor-runs.csv",
+  "L3b/data/reactor-metadata.json",
+  "L3b/data/reactor-runs-invalid-example.csv",
+]
+student_paths = ["README.md", "L3b", "L3c", "L3d"]
+instructor_only_paths = ["../../instructor/validation/week-03"]
+
+[validation]
+julia = "julia --startup-file=no --project=. instructor/validation/week-03/runtests.jl"
+python = "python -m unittest discover -s weeks/week-03/L3b/src -p 'test_*.py'"
+external_packages_required = true
+network_required = false

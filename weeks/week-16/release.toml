@@ -1,0 +1,16 @@
+schema_version = 2
+week = 16
+version = "1.0-prototype"
+status = "prototype"
+title = "Course synthesis and transition to CHEME 5820"
+languages = ["Julia"]
+entry_notebooks = [
+  "L16a/CHEME-5800-L16a-Lecture-CourseSynthesis-Fall-2026.ipynb",
+]
+supporting_notebooks = []
+datasets = []
+student_paths = ["README.md", "L16a", "src"]
+instructor_only_paths = ["../../instructor/validation/week-16"]
+[validation]
+julia = "julia --startup-file=no --project=. instructor/validation/week-16/runtests.jl"
+network_required = false

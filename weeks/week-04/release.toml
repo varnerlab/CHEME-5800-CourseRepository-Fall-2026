@@ -1,0 +1,33 @@
+schema_version = 2
+week = 4
+version = "1.0-prototype"
+status = "prototype"
+title = "Graph representations, traversal, and shortest paths"
+
+languages = ["Julia"]
+entry_notebooks = [
+  "L4a/CHEME-5800-L4a-Lecture-GraphAndTreeRepresentations-Fall-2026.ipynb",
+  "L4b/CHEME-5800-L4b-Lab-BreadthFirstAndDepthFirstSearch-Fall-2026.ipynb",
+  "L4c/CHEME-5800-L4c-Lecture-ShortestPathAlgorithms-Fall-2026.ipynb",
+  "L4d/CHEME-5800-L4d-Lab-ProductionPlanningShortestPath-Fall-2026.ipynb",
+]
+supporting_notebooks = [
+  "L4b/CHEME-5800-L4b-Algorithm-BreadthFirstSearch-Fall-2026.ipynb",
+  "L4b/CHEME-5800-L4b-Algorithm-DepthFirstSearch-Fall-2026.ipynb",
+]
+datasets = [
+  "L4a/data/README.md",
+  "L4a/data/SimpleGraph.txt",
+  "L4b/data/README.md",
+  "L4b/data/SimpleGraph.txt",
+  "L4d/data/README.md",
+  "L4d/data/Production-Process.edgelist",
+]
+student_paths = ["README.md", "L4a", "L4b", "L4c", "L4d"]
+instructor_only_paths = ["../../instructor/validation/week-04"]
+
+[validation]
+julia = "julia --startup-file=no --project=. instructor/validation/week-04/runtests.jl"
+external_packages_required = true
+network_required = false
+

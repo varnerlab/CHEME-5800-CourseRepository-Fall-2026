@@ -1,0 +1,20 @@
+schema_version = 2
+week = 12
+version = "1.0-prototype"
+status = "prototype"
+title = "Tabular Q-learning and sequential-decision integration"
+languages = ["Julia"]
+entry_notebooks = [
+  "L12a/CHEME-5800-L12a-Lecture-TabularQLearning-Fall-2026.ipynb",
+  "L12b/CHEME-5800-L12b-Lab-QLearningGridWorld-Fall-2026.ipynb",
+  "L12c/CHEME-5800-L12c-Lab-ValueIterationVsQLearning-Fall-2026.ipynb",
+  "L12d/CHEME-5800-L12d-Lab-ExplorationAndReproducibility-Fall-2026.ipynb",
+]
+supporting_notebooks = []
+datasets = []
+student_paths = ["README.md", "L12a", "L12b", "L12c", "L12d", "src"]
+instructor_only_paths = ["../../instructor/validation/week-12"]
+[validation]
+julia = "julia --startup-file=no --project=. instructor/validation/week-12/runtests.jl"
+external_packages_required = true
+network_required = false

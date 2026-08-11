@@ -1,0 +1,25 @@
+schema_version = 1
+week = 1
+version = "1.0-prototype"
+status = "prototype"
+title = "Values, types, tools, and a first tested calculation"
+
+languages = ["Julia"]
+entry_notebooks = [
+  "L1a/CHEME-5800-L1a-Lecture-WorkingWithTypes-Fall-2026.ipynb",
+  "L1b/CHEME-5800-L1b-Lab-ToolchainSmokeTest-Fall-2026.ipynb",
+  "L1c/CHEME-5800-L1c-Lab-FirstTestedCalculation-Fall-2026.ipynb",
+  "L1d/CHEME-5800-L1d-Lab-WorkingWithFloatingPointTypes-Fall-2026.ipynb",
+]
+supporting_notebooks = [
+  "L1d/CHEME-5800-L1d-Example-Float32Representation-Fall-2026.ipynb",
+]
+datasets = []
+student_paths = ["README.md", "release.toml", "L1a", "L1b", "L1c", "L1d"]
+instructor_only_paths = ["instructor/validation/week-01"]
+
+[validation]
+julia = "julia --startup-file=no --project=. instructor/validation/week-01/runtests.jl"
+external_packages_required = true
+network_required = false
+

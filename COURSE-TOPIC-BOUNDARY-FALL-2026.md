@@ -121,7 +121,7 @@ Nothing in these lists requires deleting good historical notebooks. Non-core mat
 | 12 | Tabular Q-learning and sequential-decision integration |
 | 13 | HTTP/JSON/REST clients and MCP servers |
 | 14 | Integration, practicum launch, and Thanksgiving break |
-| 15 | Numerical dynamics/solver choice, practicum studio, and CHEME 5820 bridge |
+| 15 | Numerical dynamics, solver choice, two engineering labs, and the CHEME 5820 bridge |
 | 16 | Course synthesis and transition to CHEME 5820 |
 
 ## 6. Communications and MCP unit contract

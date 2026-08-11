@@ -1,0 +1,20 @@
+schema_version = 2
+week = 7
+version = "1.0-prototype"
+status = "prototype"
+title = "SVD, data reduction, and ordinary least squares"
+languages = ["Julia"]
+entry_notebooks = [
+  "L7a/CHEME-5800-L7a-Lecture-SVDAndDataReduction-Fall-2026.ipynb",
+  "L7b/CHEME-5800-L7b-Lab-SP500DataReduction-Fall-2026.ipynb",
+  "L7c/CHEME-5800-L7c-Lecture-OrdinaryLeastSquares-Fall-2026.ipynb",
+  "L7d/CHEME-5800-L7d-Lab-HousingPriceOLS-Fall-2026.ipynb",
+]
+supporting_notebooks = []
+datasets = ["L7b/data/README.md", "L7b/data/SP500-Reduced-LogReturns-2024.csv"]
+student_paths = ["README.md", "L7a", "L7b", "L7c", "L7d", "src"]
+instructor_only_paths = ["../../instructor/validation/week-07"]
+[validation]
+julia = "julia --startup-file=no --project=. instructor/validation/week-07/runtests.jl"
+external_packages_required = true
+network_required = false

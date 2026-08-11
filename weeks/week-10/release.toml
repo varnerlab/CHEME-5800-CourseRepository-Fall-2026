@@ -1,0 +1,20 @@
+schema_version = 2
+week = 10
+version = "1.0-prototype"
+status = "prototype"
+title = "Online learning and ordinary multiarm bandits"
+languages = ["Julia"]
+entry_notebooks = [
+  "L10a/CHEME-5800-L10a-Lecture-OnlineLearningAndRegret-Fall-2026.ipynb",
+  "L10b/CHEME-5800-L10b-Lab-MultiplicativeWeights-Fall-2026.ipynb",
+  "L10c/CHEME-5800-L10c-Lecture-StochasticMultiarmBandits-Fall-2026.ipynb",
+  "L10d/CHEME-5800-L10d-Lab-UCBAndThompsonSampling-Fall-2026.ipynb",
+]
+supporting_notebooks = []
+datasets = []
+student_paths = ["README.md", "L10a", "L10b", "L10c", "L10d", "src"]
+instructor_only_paths = ["../../instructor/validation/week-10"]
+[validation]
+julia = "julia --startup-file=no --project=. instructor/validation/week-10/runtests.jl"
+external_packages_required = true
+network_required = false

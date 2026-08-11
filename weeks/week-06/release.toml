@@ -1,0 +1,20 @@
+schema_version = 2
+week = 6
+version = "1.0-prototype"
+status = "prototype"
+title = "Duality, flux balance, and iterative linear solvers"
+languages = ["Julia"]
+entry_notebooks = [
+  "L6a/CHEME-5800-L6a-Lecture-DualityAndSensitivity-Fall-2026.ipynb",
+  "L6b/CHEME-5800-L6b-Lab-UreaCycleFluxBalance-Fall-2026.ipynb",
+  "L6c/CHEME-5800-L6c-Lecture-StationaryIterativeMethods-Fall-2026.ipynb",
+  "L6d/CHEME-5800-L6d-Lab-IterativeLinearSolvers-Fall-2026.ipynb",
+]
+supporting_notebooks = []
+datasets = ["L6b/data/README.md", "L6b/data/Network.net"]
+student_paths = ["README.md", "L6a", "L6b", "L6c", "L6d", "src"]
+instructor_only_paths = ["../../instructor/validation/week-06"]
+[validation]
+julia = "julia --startup-file=no --project=. instructor/validation/week-06/runtests.jl"
+external_packages_required = true
+network_required = false
