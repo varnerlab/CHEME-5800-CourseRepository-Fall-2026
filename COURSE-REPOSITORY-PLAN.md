@@ -54,6 +54,11 @@ CHEME-5800-CourseRepository-Fall-2026/
 │       ├── VLDataScienceMachineLearningPackage.jl
 │       └── ...
 ├── weeks/
+│   ├── week-00/
+│   │   ├── README.md
+│   │   ├── release.toml
+│   │   ├── W0a/
+│   │   └── W0b/
 │   ├── week-01/
 │   │   ├── README.md
 │   │   ├── release.toml
@@ -152,6 +157,11 @@ Each `weeks/week-NN` directory should contain the complete student-facing instru
 - notebooks whose filenames state their actual role: `Lecture`, `Lab`, `Example`, `Advanced`, `Derivation`, or `Algorithm`;
 - a local `Include.jl` plus only the `data/`, `figs/`, and `src/` subdirectories actually required by that meeting;
 - a machine-readable `release.toml` listing included paths, required datasets, entry notebooks, validation commands, and release version.
+
+`week-00` is the one structural exception: it is an asynchronous onboarding unit,
+so its `W0a` and `W0b` identifiers denote a required system check and an optional
+bridge rather than scheduled class meetings. It otherwise follows the same release,
+environment, and validation rules as instructional weeks.
 
 Do not expose authoring vocabulary such as `fixtures` or `extensions`, or create
 generic `lectures` and `lab` subdirectories inside a week. An intentionally

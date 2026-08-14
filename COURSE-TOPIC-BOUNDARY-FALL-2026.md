@@ -105,9 +105,14 @@ Nothing in these lists requires deleting good historical notebooks. Non-core mat
 
 ## 5. Rebalanced Fall sequence
 
+System installation and the end-to-end toolchain smoke test live in an asynchronous
+Week 0 onboarding unit. Week 0 is preparation rather than a scheduled instructional
+meeting; its optional ideal-gas bridge previews functions and tests without making
+them prerequisites for Week 1.
+
 | Week | Core topic boundary |
 |---:|---|
-| 1 | Toolchain, values/types, floating-point behavior, and a first tested calculation |
+| 1 | Primitive values/types, collection and composite representations, and floating-point behavior |
 | 2 | Functions, interfaces, arrays/tables, errors, tests, and debugging |
 | 3 | Files/structured data plus selected iteration, recursion, sorting, and complexity |
 | 4 | Graph representations, traversal, and shortest paths |

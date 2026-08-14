@@ -1,4 +1,4 @@
-module L1bToolchain
+module Week00Toolchain
 
 export printgreeting
 
@@ -6,4 +6,3 @@ export printgreeting
 printgreeting()::String = "Hello World!"
 
 end
-

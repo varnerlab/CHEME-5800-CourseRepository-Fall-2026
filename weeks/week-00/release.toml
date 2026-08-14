@@ -1,0 +1,24 @@
+schema_version = 2
+week = 0
+version = "1.0-prototype"
+status = "prototype"
+title = "Course setup and system check"
+
+languages = ["Julia"]
+entry_notebooks = [
+  "W0a/CHEME-5800-W0a-Onboarding-SystemCheck-Fall-2026.ipynb",
+]
+supporting_notebooks = [
+  "W0b/CHEME-5800-W0b-Optional-FirstTestedCalculation-Fall-2026.ipynb",
+]
+datasets = []
+student_paths = ["README.md", "release.toml", "W0a", "W0b"]
+instructor_only_paths = [
+  "../../instructor/validation/week-00",
+  "W0b/src/Compute-solution.jl",
+]
+
+[validation]
+julia = "julia --startup-file=no --project=. instructor/validation/week-00/runtests.jl"
+external_packages_required = true
+network_required = false

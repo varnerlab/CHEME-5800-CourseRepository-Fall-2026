@@ -1,4 +1,4 @@
-module L1bCalculation
+module Week00Bridge
 
 export ideal_gas_pressure
 

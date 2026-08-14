@@ -1,13 +1,13 @@
-schema_version = 1
+schema_version = 2
 week = 1
 version = "1.0-prototype"
 status = "prototype"
-title = "Values, types, tools, and a first tested calculation"
+title = "Primitive types, data representations, and floating point"
 
 languages = ["Julia"]
 entry_notebooks = [
   "L1a/CHEME-5800-L1a-Lecture-WorkingWithTypes-Fall-2026.ipynb",
-  "L1b/CHEME-5800-L1b-Lab-ToolchainAndFirstCalculation-Fall-2026.ipynb",
+  "L1b/CHEME-5800-L1b-Lab-ChoosingDataRepresentations-Fall-2026.ipynb",
   "L1c/CHEME-5800-L1c-Lecture-WorkingWithFloatingPointTypes-Fall-2026.ipynb",
   "L1d/CHEME-5800-L1d-Lab-FloatingPointReport-Fall-2026.ipynb",
 ]
@@ -17,10 +17,9 @@ supporting_notebooks = [
 datasets = []
 student_paths = ["README.md", "release.toml", "L1a", "L1b", "L1c", "L1d"]
 instructor_only_paths = [
-  "instructor/validation/week-01",
-  # L1b and L1d ship as stubs students complete in class; the reference solutions
-  # must not be bundled with them.
-  "L1b/src/Compute-solution.jl",
+  "../../instructor/validation/week-01",
+  # L1d ships as a stub students complete in class; its reference solution must
+  # not be bundled with it.
   "L1d/src/Compute-solution.jl",
 ]
 
@@ -28,4 +27,3 @@ instructor_only_paths = [
 julia = "julia --startup-file=no --project=. instructor/validation/week-01/runtests.jl"
 external_packages_required = true
 network_required = false
-

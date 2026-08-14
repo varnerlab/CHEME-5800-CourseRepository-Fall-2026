@@ -2,32 +2,44 @@ const WEEK01 = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-01")
 
 include(joinpath(WEEK01, "L1c", "Include.jl"))
 
-# L1b and L1d ship deliberately unimplemented stubs that students complete in class,
-# so validation runs against the reference solutions rather than the student-facing
-# files. We do not load their Include.jl, because the stubs define the same modules.
-include(joinpath(WEEK01, "L1b", "src", "HelloWorld.jl"))
-include(joinpath(WEEK01, "L1b", "src", "Compute-solution.jl"))
+# L1d ships with an unimplemented student stub, so validation uses the reference
+# solution. L1b is a notebook-only guided lab and has no hidden implementation.
 include(joinpath(WEEK01, "L1d", "src", "Compute-solution.jl"))
-using .L1bToolchain
-using .L1bCalculation
 using .L1dFloatingPoint
-using Random, Statistics
+using Random, Test
 
-@testset "Week 1 toolchain" begin
-    @test printgreeting() == "Hello World!"
-    samples = randn(10_000)
-    @test length(samples) == 10_000
-    @test abs(mean(samples)) < 0.1
-    @test abs(std(samples) - 1.0) < 0.1
+@testset "Week 1 primitive and collection representations" begin
+    example_tuple = (18, 36.6)
+    @test example_tuple isa Tuple{Int64,Float64}
+    @test_throws MethodError setindex!(example_tuple, 6, 1)
+
+    values = rand(10)
+    values[3] = π
+    @test values isa Vector{Float64}
+    @test values[3] == Float64(π)
+
+    lines = Dict(1 => "first", 2 => "second")
+    flags = Set([:calibrated, :finite, :finite])
+    @test lines[2] == "second"
+    @test length(flags) == 2
 end
 
-@testset "Week 1 engineering calculation" begin
-    pressure = ideal_gas_pressure(1.0, 273.15, 0.02241396954)
-    @test isapprox(pressure, 101_325.0; rtol = 1e-8)
-    @test ideal_gas_pressure(2, 300, 0.05) isa Float64
-    @test_throws ArgumentError ideal_gas_pressure(0, 300, 0.05)
-    @test_throws ArgumentError ideal_gas_pressure(1, -1, 0.05)
-    @test_throws ArgumentError ideal_gas_pressure(1, 300, Inf)
+@testset "Week 1 instructional boundary" begin
+    l1a = read(
+        joinpath(WEEK01, "L1a", "CHEME-5800-L1a-Lecture-WorkingWithTypes-Fall-2026.ipynb"),
+        String,
+    )
+    l1b = read(
+        joinpath(WEEK01, "L1b", "CHEME-5800-L1b-Lab-ChoosingDataRepresentations-Fall-2026.ipynb"),
+        String,
+    )
+    @test occursin("Values and Primitive Data Types", l1a)
+    @test !occursin("Collection Types", l1a)
+    @test occursin("Choosing and Building Data Representations", l1b)
+    @test occursin("Task 1: Tuples as fixed records", l1b)
+    @test occursin("Task 4: Custom composite types", l1b)
+    @test !occursin("Toolchain and Notebook Smoke Test", l1b)
+    @test !occursin("ideal_gas_pressure", l1b)
 end
 
 @testset "Week 1 floating-point report" begin
@@ -44,14 +56,10 @@ end
     @test isapprox(0.1 + 0.2, 0.3)
 end
 
-@testset "Week 1 labs ship unimplemented stubs" begin
-    # Guards against a reference solution being copied into the student tree.
-    # Each marker must appear in the solution but NOT in the stub's hint comments.
-    for (lab, leaked) in (("L1b", "amount_mol * gas_constant"), ("L1d", "bits[13:64]"))
-        stub = read(joinpath(WEEK01, lab, "src", "Compute.jl"), String)
-        @test occursin("TODO 1", stub)
-        @test occursin("Oooops!", stub)
-        @test occursin("implemented yet", stub)
-        @test !occursin(leaked, stub)
-    end
+@testset "Week 1 lab ships an unimplemented stub" begin
+    stub = read(joinpath(WEEK01, "L1d", "src", "Compute.jl"), String)
+    @test occursin("TODO 1", stub)
+    @test occursin("Oooops!", stub)
+    @test occursin("implemented yet", stub)
+    @test !occursin("bits[13:64]", stub)
 end

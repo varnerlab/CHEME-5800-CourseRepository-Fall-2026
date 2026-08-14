@@ -1,7 +1,7 @@
-module L1bCalculation
+module Week00Bridge
 
-# Reference solution for L1b. The student-facing `Compute.jl` in this folder ships as
-# a stub; this file is excluded from the student bundle by release.toml.
+# Reference solution for the optional Week 0 bridge. The student-facing `Compute.jl`
+# in this folder ships as a stub; this file is excluded from the student bundle.
 
 
 export ideal_gas_pressure

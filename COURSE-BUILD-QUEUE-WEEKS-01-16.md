@@ -1,4 +1,4 @@
-# CHEME 4800/5800 Weeks 1–16 Build Queue
+# CHEME 4800/5800 Week 0 Onboarding and Weeks 1–16 Build Queue
 
 **Status:** Initial chronological build complete  
 **Priority:** Preserve the common path while beginning the cross-course cleanup pass
@@ -11,7 +11,8 @@ supporting code/data, tests, metadata, and clean execution checks all pass.
 
 | Order | Week | Common-core build target | Selected advanced notebook or key dependency | Status |
 |---:|---:|---|---|---|
-| 1 | 1 | Values, types, toolchain smoke test, first tested calculation, and floating-point behavior | Float32 rounding and precision | **Curated and validated** |
+| 0 | 0 | Julia installation, shared-environment setup, notebook kernel, and end-to-end smoke test | Optional first tested calculation | **Onboarding package created; validation pending local environment** |
+| 1 | 1 | Primitive types, collection/composite representations, and floating-point behavior | Float32 rounding and precision | **Split into focused L1a lecture and L1b lab; validation pending local environment** |
 | 2 | 2 | Functions/interfaces/scope; errors, tests, and debugging; collections; defensive Fibonacci program | Hexadecimal and text representation | **Curated and validated** |
 | 3 | 3 | CSV/JSON reading, validation, and provenance; iteration/recursion; sorting as a testable algorithm | Bubble-sort and quicksort comparison | **Curated from 2025 plus new L3b; validation passing** |
 | 4 | 4 | Trees and graphs; BFS/DFS; Dijkstra and Bellman–Ford; production-planning shortest path | BFS/DFS implementation detail | **Curated from 2025, corrected, and validated** |
@@ -30,7 +31,8 @@ supporting code/data, tests, metadata, and clean execution checks all pass.
 
 ## Immediate handoff
 
-The chronological Weeks 1–16 build is complete. Begin the cleanup phase with a
+The Week 0 onboarding package and chronological Weeks 1–16 build are complete.
+Begin the cleanup phase with a
 cross-week presentation audit, duplicated-code review, provenance resolution,
 notebook-output size review, release-bundle smoke tests, and syllabus/calendar
 alignment. Do not expand the topic list during cleanup unless a verified gap blocks
