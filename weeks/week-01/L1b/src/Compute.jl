@@ -1,4 +1,4 @@
-module L1cCalculation
+module L1bCalculation
 
 export ideal_gas_pressure
 

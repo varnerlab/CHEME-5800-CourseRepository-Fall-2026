@@ -7,20 +7,21 @@ title = "Values, types, tools, and a first tested calculation"
 languages = ["Julia"]
 entry_notebooks = [
   "L1a/CHEME-5800-L1a-Lecture-WorkingWithTypes-Fall-2026.ipynb",
-  "L1b/CHEME-5800-L1b-Lab-ToolchainSmokeTest-Fall-2026.ipynb",
-  "L1c/CHEME-5800-L1c-Lab-FirstTestedCalculation-Fall-2026.ipynb",
-  "L1d/CHEME-5800-L1d-Lab-WorkingWithFloatingPointTypes-Fall-2026.ipynb",
+  "L1b/CHEME-5800-L1b-Lab-ToolchainAndFirstCalculation-Fall-2026.ipynb",
+  "L1c/CHEME-5800-L1c-Lecture-WorkingWithFloatingPointTypes-Fall-2026.ipynb",
+  "L1d/CHEME-5800-L1d-Lab-FloatingPointReport-Fall-2026.ipynb",
 ]
 supporting_notebooks = [
-  "L1d/CHEME-5800-L1d-Example-Float32Representation-Fall-2026.ipynb",
+  "L1c/CHEME-5800-L1c-Example-Float32Representation-Fall-2026.ipynb",
 ]
 datasets = []
 student_paths = ["README.md", "release.toml", "L1a", "L1b", "L1c", "L1d"]
 instructor_only_paths = [
   "instructor/validation/week-01",
-  # L1c ships as a stub students complete in class; the reference solution must not
-  # be bundled with it.
-  "L1c/src/Compute-solution.jl",
+  # L1b and L1d ship as stubs students complete in class; the reference solutions
+  # must not be bundled with them.
+  "L1b/src/Compute-solution.jl",
+  "L1d/src/Compute-solution.jl",
 ]
 
 [validation]

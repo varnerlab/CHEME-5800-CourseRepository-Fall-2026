@@ -1,6 +1,6 @@
-module L1cCalculation
+module L1bCalculation
 
-# Reference solution for L1c. The student-facing `Compute.jl` in this folder ships as
+# Reference solution for L1b. The student-facing `Compute.jl` in this folder ships as
 # a stub; this file is excluded from the student bundle by release.toml.
 
 

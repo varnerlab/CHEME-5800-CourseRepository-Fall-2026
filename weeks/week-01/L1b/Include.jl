@@ -14,6 +14,9 @@ using UnicodePlots
 if !isdefined(@__MODULE__, :L1bToolchain)
     include(joinpath(CHEME5800_L1B_ROOT, "src", "HelloWorld.jl"))
 end
+if !isdefined(@__MODULE__, :L1bCalculation)
+    include(joinpath(CHEME5800_L1B_ROOT, "src", "Compute.jl"))
+end
 
 using .L1bToolchain
-
+using .L1bCalculation

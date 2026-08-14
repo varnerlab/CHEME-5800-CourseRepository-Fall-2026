@@ -7,10 +7,3 @@ end
 include(normpath(joinpath(CHEME5800_L1C_ROOT, "..", "..", "..", "Include.jl")))
 
 using Test
-
-if !isdefined(@__MODULE__, :L1cCalculation)
-    include(joinpath(CHEME5800_L1C_ROOT, "src", "Compute.jl"))
-end
-
-using .L1cCalculation
-

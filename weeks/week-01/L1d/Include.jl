@@ -13,4 +13,3 @@ if !isdefined(@__MODULE__, :L1dFloatingPoint)
 end
 
 using .L1dFloatingPoint
-

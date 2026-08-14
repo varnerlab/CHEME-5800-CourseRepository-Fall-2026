@@ -1,13 +1,17 @@
-include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-01", "L1b", "Include.jl"))
-include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-01", "L1d", "Include.jl"))
+const WEEK01 = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-01"))
 
-# L1c ships a deliberately unimplemented stub: students complete it during class and
-# the notebook stays red until they do. Validation therefore runs against the reference
-# solution, Compute-solution.jl, which release.toml keeps out of the student bundle.
-# We do not load L1c/Include.jl here, because the stub defines the same module.
-include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-01", "L1c", "src",
-                 "Compute-solution.jl"))
-using .L1cCalculation
+include(joinpath(WEEK01, "L1c", "Include.jl"))
+
+# L1b and L1d ship deliberately unimplemented stubs that students complete in class,
+# so validation runs against the reference solutions rather than the student-facing
+# files. We do not load their Include.jl, because the stubs define the same modules.
+include(joinpath(WEEK01, "L1b", "src", "HelloWorld.jl"))
+include(joinpath(WEEK01, "L1b", "src", "Compute-solution.jl"))
+include(joinpath(WEEK01, "L1d", "src", "Compute-solution.jl"))
+using .L1bToolchain
+using .L1bCalculation
+using .L1dFloatingPoint
+using Random, Statistics
 
 @testset "Week 1 toolchain" begin
     @test printgreeting() == "Hello World!"
@@ -26,24 +30,28 @@ end
     @test_throws ArgumentError ideal_gas_pressure(1, 300, Inf)
 end
 
-@testset "Week 1 L1c ships an unimplemented stub" begin
-    # Guards against the reference solution being copied into the student tree.
-    stub = read(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-01", "L1c",
-                         "src", "Compute.jl"), String)
-    @test occursin("TODO 1", stub)
-    @test occursin("TODO 2", stub)
-    @test occursin("Oooops!", stub)
-    @test occursin("implemented yet", stub) # split across a line in the source string
-    # the solution's return expression must not have leaked into the student file
-    @test !occursin("amount_mol * gas_constant", stub)
-end
-
-@testset "Week 1 floating-point inspection" begin
+@testset "Week 1 floating-point report" begin
     report = float64_report(-0.1)
     @test report.sign_bit == '1'
     @test length(report.exponent_bits) == 11
     @test length(report.fraction_bits) == 52
     @test report.spacing > 0
+    for value in (1.0, -1.0, 0.1, -0.1, 3.1415926535897, -65.78912, 1234.5)
+        @test float64_report(value).reconstructed == value
+    end
+    @test float64_report(1.0e12).spacing > float64_report(1.0).spacing
     @test 0.1 + 0.2 != 0.3
     @test isapprox(0.1 + 0.2, 0.3)
+end
+
+@testset "Week 1 labs ship unimplemented stubs" begin
+    # Guards against a reference solution being copied into the student tree.
+    # Each marker must appear in the solution but NOT in the stub's hint comments.
+    for (lab, leaked) in (("L1b", "amount_mol * gas_constant"), ("L1d", "bits[13:64]"))
+        stub = read(joinpath(WEEK01, lab, "src", "Compute.jl"), String)
+        @test occursin("TODO 1", stub)
+        @test occursin("Oooops!", stub)
+        @test occursin("implemented yet", stub)
+        @test !occursin(leaked, stub)
+    end
 end
