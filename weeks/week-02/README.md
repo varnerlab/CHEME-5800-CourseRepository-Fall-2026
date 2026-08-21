@@ -80,6 +80,14 @@ markers and none of the solution's distinctive expressions.
 - L2d keeps the Fall 2025 defensive-programming objective while replacing the
   comment/uncomment workflow with one deterministic, fully tested interface. It is now
   framed as productionizing Monday's calculation rather than re-teaching the recurrence,
-  because Fibonacci also carries Week 3's iteration-versus-recursion comparison. Week 3
-  should reuse this implementation as its baseline rather than introducing a third one.
+  because Fibonacci also carries Week 3's iteration-versus-recursion comparison.
+
+  Open item: the intent was that Week 3 reuse `fibonacci_sequence` as its iterative
+  baseline rather than introduce a third implementation. That has not happened.
+  `L3c/src/Compute.jl` defines its own `fibonacci(n)::Dict{Int64,Int64}`, which is the
+  same iterative algorithm with the same 92 bound and the same `checked_add`, differing
+  only in returning a dictionary rather than a vector, and nothing in Week 3 references
+  the Week 2 function. Resolve this in the Week 3 pass, either by consolidating or by
+  recording why the two representations should stay separate. Note that Week 3's
+  recursive methods take a `Dict` accumulator, so the dictionary return is not gratuitous.
 
