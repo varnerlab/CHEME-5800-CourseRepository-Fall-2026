@@ -26,7 +26,8 @@ cell-id       nbformat 4.5 requires a unique `id` on every cell. Cells added by
               editing the JSON directly are easy to create without one.
 double-rule   A bare `___` cell immediately after a cell that already ends in
               `___` renders two horizontal lines.
-empty-code    An empty code cell.
+empty-cell    An empty cell of either kind. Empty markdown renders as nothing,
+              so it is easy to leave behind.
 
 Usage
 -----
@@ -198,10 +199,12 @@ def check_double_rules(notebook):
             yield "double-rule", index, "bare `___` follows a cell already ending in `___`"
 
 
-def check_empty_code(notebook):
+def check_empty_cells(notebook):
+    """An empty cell of either kind. Empty markdown renders as nothing at all,
+    which is how one sat unnoticed at the end of a notebook."""
     for index, cell in enumerate(notebook["cells"]):
-        if cell["cell_type"] == "code" and not "".join(cell["source"]).strip():
-            yield "empty-code", index, "empty code cell"
+        if not "".join(cell["source"]).strip():
+            yield "empty-cell", index, f"empty {cell['cell_type']} cell"
 
 
 def findings_for(notebook, vocabulary):
@@ -209,7 +212,7 @@ def findings_for(notebook, vocabulary):
     yield from check_em_dash(notebook)
     yield from check_cell_ids(notebook)
     yield from check_double_rules(notebook)
-    yield from check_empty_code(notebook)
+    yield from check_empty_cells(notebook)
 
 
 def load_from_git(ref, path):
