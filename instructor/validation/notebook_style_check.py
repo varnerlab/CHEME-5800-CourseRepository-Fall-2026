@@ -13,7 +13,13 @@ api-link      A Julia function, macro, or error type named in markdown prose is
               worth linking is harvested from the notebooks themselves, so the
               repository defines its own vocabulary and no list needs updating
               here. Bare backticked *type* names in running prose (`String`,
-              `Bool`, `Int`) are widespread and deliberately not flagged.
+              `Bool`, `Int`) are widespread and deliberately not flagged. Every
+              occurrence is reported, including repeats within one cell.
+sentence-start
+              The same, but the bare name also opens a sentence. A sentence must
+              never begin with a bare function name; write "The [`bitstring(...)`
+              function](url) always prints ..." instead of "`bitstring` always
+              prints ...".
 em-dash       Em dashes are not used in notebook prose. (Week README titles do
               use them; this only reads notebooks.)
 cell-id       nbformat 4.5 requires a unique `id` on every cell. Cells added by
@@ -58,6 +64,25 @@ MACRO = re.compile(r"^@\w+$")
 # Function-shaped: lowercase start, may carry dots and a trailing !
 FUNCTION = re.compile(r"^[a-z][\w.!]*$")
 
+# Language keywords are not API. The notebooks link a few of them once, on
+# introduction, which is enough to put them in the harvested vocabulary; that is
+# not a reason to demand a link at every later mention of `let` or `end`.
+KEYWORDS = {
+    "let", "end", "function", "struct", "mutable", "return", "if", "else",
+    "elseif", "for", "while", "try", "catch", "finally", "begin", "do", "module",
+    "using", "import", "export", "const", "local", "global", "quote", "macro",
+    "where", "in", "isa", "new", "abstract", "primitive", "type",
+}
+
+# Exceptions from other languages appear in the Julia-versus-Python comparisons.
+# They are still worth linking, but to that language's documentation.
+FOREIGN_ERRORS = {
+    "TypeError": "https://docs.python.org/3/library/exceptions.html#TypeError",
+    "ValueError": "https://docs.python.org/3/library/exceptions.html#ValueError",
+    "KeyError": "https://docs.python.org/3/library/exceptions.html#KeyError",
+    "IndexError": "https://docs.python.org/3/library/exceptions.html#IndexError",
+}
+
 NOTEBOOK_GLOB = "weeks/**/*.ipynb"
 
 
@@ -95,29 +120,56 @@ def link_spans(source):
     return [(m.start(), m.end()) for m in LINK.finditer(source)]
 
 
+def is_linkable(name, vocabulary):
+    if name in KEYWORDS:
+        return False
+    return bool(
+        ERRORISH.match(name)
+        or MACRO.match(name)
+        or (FUNCTION.match(name) and name in vocabulary)
+    )
+
+
+def starts_sentence(source, position):
+    """True when `position` begins a sentence.
+
+    Counts the start of the text, the start of a line (looking past blockquote
+    markers, list bullets, and a bold lead-in such as `__Careful:__ `), and any
+    position following sentence-ending punctuation.
+    """
+    prefix = source[:position]
+    line_start = prefix.rfind("\n") + 1
+    before_on_line = prefix[line_start:]
+    # strip blockquote markers, list bullets, and a bold lead-in
+    stripped = re.sub(r"^(\s*>\s*)*(\s*[-*+]\s+)?(\s*\d+\.\s+)?", "", before_on_line)
+    stripped = re.sub(r"^__[^_]+:__\s*", "", stripped)
+    stripped = re.sub(r"^\*\*[^*]+:\*\*\s*", "", stripped)
+    if stripped.strip() == "":
+        return True
+    return bool(re.search(r"[.!?]\s+$", before_on_line))
+
+
 def check_api_links(notebook, vocabulary):
-    """Flag function / macro / error names that should be links but are not."""
+    """Flag function / macro / error names that should be links but are not.
+
+    Every occurrence is reported, not just the first per cell. A repeated bare
+    mention is exactly the case a per-name filter would hide, and it is the case
+    that actually shows up when a paragraph is rewritten around an existing one.
+    """
     for index, source in markdown_cells(notebook):
         spans = link_spans(source)
-        reported = set()
         for match in BACKTICK.finditer(source):
             raw = match.group(1).strip()
             name = normalize(raw)
-            if name in reported:
-                continue
             if any(start <= match.start() < end for start, end in spans):
                 continue
-            linkable = (
-                ERRORISH.match(name)
-                or MACRO.match(name)
-                or (FUNCTION.match(name) and name in vocabulary)
-            )
-            if not linkable:
+            if not is_linkable(name, vocabulary):
                 continue
-            reported.add(name)
-            url = vocabulary.get(name, "")
+            url = FOREIGN_ERRORS.get(name) or vocabulary.get(name, "")
             hint = f" -> {url}" if url else " (no URL used elsewhere; find one)"
-            yield "api-link", index, f"`{raw}` is not linked{hint}"
+            where = "opens a sentence and " if starts_sentence(source, match.start()) else ""
+            kind = "sentence-start" if where else "api-link"
+            yield kind, index, f"`{raw}` {where}is not linked{hint}"
 
 
 def check_em_dash(notebook):
@@ -207,8 +259,20 @@ def main():
         if args.baseline:
             previous = load_from_git(args.baseline, path)
             if previous is not None:
-                before = {(kind, message) for kind, _, message in findings_for(previous, vocabulary)}
-                current = [f for f in current if (f[0], f[2]) not in before]
+                # Compare COUNTS per (kind, message), not set membership. A name
+                # already mentioned bare somewhere in the file must not mask a new
+                # bare mention of the same name added elsewhere.
+                before = collections.Counter(
+                    (kind, message) for kind, _, message in findings_for(previous, vocabulary)
+                )
+                kept, budget = [], collections.Counter(before)
+                for finding in current:
+                    key = (finding[0], finding[2])
+                    if budget[key] > 0:
+                        budget[key] -= 1
+                    else:
+                        kept.append(finding)
+                current = kept
 
         if not current:
             continue
