@@ -329,6 +329,21 @@ documentation, not in this course-content plan.
 
 ## 9. Validation and acceptance criteria
 
+Two validation layers run against the weekly content. The Julia suites under
+`instructor/validation/week-NN/runtests.jl` check that the code is correct.
+`instructor/validation/notebook_style_check.py` checks the prose conventions around it:
+that Julia functions, macros, and error types named in markdown are linked as
+`[the `name(...)` function](url)`, that no em dashes appear in notebook prose, that every
+cell carries the `id` nbformat 4.5 requires, and that no doubled horizontal rules or empty
+code cells are left behind. It is standard library only and runs from the repository root:
+
+```bash
+python3 instructor/validation/notebook_style_check.py --baseline HEAD
+```
+
+The `--baseline` form reports only findings introduced since a given git ref, which is the
+mode to use while editing; a bare run reports pre-existing findings as well.
+
 The redesign is ready for students when all of the following are true:
 
 - A student can start from a clean machine, follow one setup document, and run a week bundle without Git.
