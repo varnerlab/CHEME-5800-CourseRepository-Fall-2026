@@ -31,7 +31,7 @@ function fibonacci_sequence(n::Integer)::Vector{Int64}
 
     # TODO 3: store the base cases.
     #   F_0 = 0 goes in position 1. If n == 0 you are already done -- return early,
-    #   otherwise position 2 would be read before it is written.
+    #   because the vector has only one slot and writing position 2 would be out of bounds.
     #   F_1 = 1 goes in position 2.
 
     # TODO 4: fill the remaining positions from the two before each one, then return.

@@ -9,7 +9,7 @@ Return the time in min needed to load `cargo_tonnes` tonnes of freight at a
 sustained rate of `loading_rate_kg_min` kilograms per minute.
 
 The contract: both arguments must be finite and strictly positive; anything else
-raises an `ArgumentError` naming the offending argument. Note the unit mismatch —
+raises an `ArgumentError` naming the offending argument. Note the unit mismatch:
 cargo arrives in tonnes and the rate in kg/min, so a conversion is required before
 dividing.
 """
