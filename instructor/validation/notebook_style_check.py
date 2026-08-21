@@ -28,6 +28,14 @@ double-rule   A bare `___` cell immediately after a cell that already ends in
               `___` renders two horizontal lines.
 empty-cell    An empty cell of either kind. Empty markdown renders as nothing,
               so it is easy to leave behind.
+kernel        Notebooks of one language must agree on their kernelspec and
+              language version. Jupyter rewrites this metadata to whatever
+              interpreter happened to be running on save, so it drifts every time
+              a notebook is opened. The expected value is the one most notebooks
+              in the corpus already use, so this check follows the course to a new
+              Julia release rather than pinning a version here. Note this is
+              cosmetic: kernel selection uses kernelspec.name, which a mismatched
+              display_name does not affect.
 
 Usage
 -----
@@ -199,6 +207,44 @@ def check_double_rules(notebook):
             yield "double-rule", index, "bare `___` follows a cell already ending in `___`"
 
 
+def kernel_signature(notebook):
+    """(language, kernel name, display name, language version) for one notebook."""
+    meta = notebook.get("metadata", {})
+    spec = meta.get("kernelspec", {})
+    info = meta.get("language_info", {})
+    return (
+        spec.get("language"),
+        spec.get("name"),
+        spec.get("display_name"),
+        info.get("version"),
+    )
+
+
+def build_kernel_expectations(paths):
+    """language -> the (name, display_name, version) most notebooks use."""
+    seen = collections.defaultdict(collections.Counter)
+    for path in paths:
+        try:
+            notebook = json.load(open(path))
+        except (OSError, ValueError):
+            continue
+        language, *rest = kernel_signature(notebook)
+        if language:
+            seen[language][tuple(rest)] += 1
+    return {lang: counts.most_common(1)[0][0] for lang, counts in seen.items()}
+
+
+def check_kernel(notebook, expectations):
+    language, *actual = kernel_signature(notebook)
+    expected = expectations.get(language)
+    if expected is None or tuple(actual) == expected:
+        return
+    labels = ("kernelspec.name", "kernelspec.display_name", "language_info.version")
+    for label, got, want in zip(labels, actual, expected):
+        if got != want:
+            yield "kernel", 0, f"{label} is {got!r}; the other {language} notebooks use {want!r}"
+
+
 def check_empty_cells(notebook):
     """An empty cell of either kind. Empty markdown renders as nothing at all,
     which is how one sat unnoticed at the end of a notebook."""
@@ -207,8 +253,10 @@ def check_empty_cells(notebook):
             yield "empty-cell", index, f"empty {cell['cell_type']} cell"
 
 
-def findings_for(notebook, vocabulary):
+def findings_for(notebook, vocabulary, kernels=None):
     yield from check_api_links(notebook, vocabulary)
+    if kernels is not None:
+        yield from check_kernel(notebook, kernels)
     yield from check_em_dash(notebook)
     yield from check_cell_ids(notebook)
     yield from check_double_rules(notebook)
@@ -248,6 +296,7 @@ def main():
     # The vocabulary always comes from the full corpus, so that checking one
     # notebook still knows what the rest of the repository links.
     vocabulary = build_link_vocabulary(corpus)
+    kernels = build_kernel_expectations(corpus)
 
     targets = [os.path.relpath(p) for p in (args.paths or corpus)]
     total = 0
@@ -258,7 +307,7 @@ def main():
             print(f"{path}: cannot read ({error})", file=sys.stderr)
             continue
 
-        current = list(findings_for(notebook, vocabulary))
+        current = list(findings_for(notebook, vocabulary, kernels))
         if args.baseline:
             previous = load_from_git(args.baseline, path)
             if previous is not None:
@@ -266,7 +315,7 @@ def main():
                 # already mentioned bare somewhere in the file must not mask a new
                 # bare mention of the same name added elsewhere.
                 before = collections.Counter(
-                    (kind, message) for kind, _, message in findings_for(previous, vocabulary)
+                    (kind, message) for kind, _, message in findings_for(previous, vocabulary, kernels)
                 )
                 kept, budget = [], collections.Counter(before)
                 for finding in current:
