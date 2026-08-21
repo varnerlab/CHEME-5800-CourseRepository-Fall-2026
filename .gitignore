@@ -37,6 +37,9 @@ JuliaLocalPreferences.toml
 .ipynb_checkpoints/
 *-checkpoint.ipynb
 
+# Anaconda Notebook writes a per-directory project db next to whatever notebook it opens
+anaconda_projects/
+
 # Python
 __pycache__/
 *.py[cod]
