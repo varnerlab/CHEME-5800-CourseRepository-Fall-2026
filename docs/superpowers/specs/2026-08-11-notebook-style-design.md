@@ -119,6 +119,7 @@ would create diff churn across two repos for zero reader-visible benefit.
 | F7 | `$$`/`$` delimiters balanced; every `\begin{…}` has a matching `\end{…}` |
 | F8 | A code-bearing notebook has a `## Setup, Data, and Prerequisites` section |
 | F9 | The notebook has exactly one H1, and it is the first line of the first cell |
+| F10 | Prose states each idea or action directly instead of referring to its position in the notebook or course timeline. Avoid phrases such as “above,” “below,” “previous,” “next cell,” “following cell,” “earlier,” “later,” “in the lecture,” and “the rest of the course.” Use a direct prompt such as “Let's calculate…” when introducing an action. |
 
 **F1 repair policy:** when a notebook has more than three objectives or takeaways,
 **merge related items or rewrite the set** so that three items cover the same ground.
