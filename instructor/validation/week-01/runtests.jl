@@ -37,7 +37,7 @@ end
     @test !occursin("Collection Types", l1a)
     @test occursin("Choosing and Building Data Representations", l1b)
     @test occursin("Task 1: Tuples as fixed records", l1b)
-    @test occursin("Task 4: Custom composite types", l1b)
+    @test occursin("Task 3: Sets and dictionaries for membership and lookup", l1b)
     @test !occursin("Toolchain and Notebook Smoke Test", l1b)
     @test !occursin("ideal_gas_pressure", l1b)
 end

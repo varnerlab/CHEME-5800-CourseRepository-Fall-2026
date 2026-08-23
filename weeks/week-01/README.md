@@ -12,8 +12,7 @@ By the end of the week, students should be able to:
 1. inspect primitive values by type, storage size, and bit pattern;
 2. distinguish character code points from stored character bytes;
 3. choose tuples, arrays, sets, and dictionaries by the operations required;
-4. construct and compare immutable and mutable composite types; and
-5. explain and report how floating-point representation affects precision and comparison.
+4. explain and report how floating-point representation affects precision and comparison.
 
 ## Class-meeting sequence
 
@@ -67,9 +66,9 @@ L1d carries two source files in its `src/` folder:
 - L1a retains the current Fall 2026 primitive-type development through characters
   and now ends before collections. Its opening objectives and summary match the
   narrower lecture boundary.
-- L1b contains the former second half of L1a, reframed as a lab with four tasks,
-  prediction and modification checkpoints, a student measurement record, and an
-  executable representation check. It introduces representation choice and
+- L1b contains the former second half of L1a, reframed as a lab with three tasks,
+  prediction and modification checkpoints, and an executable representation
+  check. It introduces representation choice and
   mutability; Week 2 retains responsibility for table operations, grouping, and
   summarization.
 - The former L1b toolchain smoke test now lives in required Week 0 onboarding. Its

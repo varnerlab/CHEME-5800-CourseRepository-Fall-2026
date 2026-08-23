@@ -28,14 +28,10 @@ double-rule   A bare `___` cell immediately after a cell that already ends in
               `___` renders two horizontal lines.
 empty-cell    An empty cell of either kind. Empty markdown renders as nothing,
               so it is easy to leave behind.
-kernel        Notebooks of one language must agree on their kernelspec and
-              language version. Jupyter rewrites this metadata to whatever
-              interpreter happened to be running on save, so it drifts every time
-              a notebook is opened. The expected value is the one most notebooks
-              in the corpus already use, so this check follows the course to a new
-              Julia release rather than pinning a version here. Note this is
-              cosmetic: kernel selection uses kernelspec.name, which a mismatched
-              display_name does not affect.
+kernel        Notebooks of one language must agree on `kernelspec.name`, the
+              stable identifier Jupyter uses to select a kernel. Display names and
+              patch-level language versions are deliberately ignored because the
+              local notebook runtime rewrites them whenever a notebook is saved.
 
 Usage
 -----
@@ -208,41 +204,44 @@ def check_double_rules(notebook):
 
 
 def kernel_signature(notebook):
-    """(language, kernel name, display name, language version) for one notebook."""
+    """(language, kernel name) for one notebook.
+
+    Display names and language_info.version describe the local runtime that last
+    saved the file. They are not stable course metadata and do not control kernel
+    selection, so they are intentionally excluded from the signature.
+    """
     meta = notebook.get("metadata", {})
     spec = meta.get("kernelspec", {})
-    info = meta.get("language_info", {})
     return (
         spec.get("language"),
         spec.get("name"),
-        spec.get("display_name"),
-        info.get("version"),
     )
 
 
 def build_kernel_expectations(paths):
-    """language -> the (name, display_name, version) most notebooks use."""
+    """language -> the kernel name most notebooks use."""
     seen = collections.defaultdict(collections.Counter)
     for path in paths:
         try:
             notebook = json.load(open(path))
         except (OSError, ValueError):
             continue
-        language, *rest = kernel_signature(notebook)
-        if language:
-            seen[language][tuple(rest)] += 1
+        language, name = kernel_signature(notebook)
+        if language and name:
+            seen[language][name] += 1
     return {lang: counts.most_common(1)[0][0] for lang, counts in seen.items()}
 
 
 def check_kernel(notebook, expectations):
-    language, *actual = kernel_signature(notebook)
+    language, actual = kernel_signature(notebook)
     expected = expectations.get(language)
-    if expected is None or tuple(actual) == expected:
+    if expected is None or actual == expected:
         return
-    labels = ("kernelspec.name", "kernelspec.display_name", "language_info.version")
-    for label, got, want in zip(labels, actual, expected):
-        if got != want:
-            yield "kernel", 0, f"{label} is {got!r}; the other {language} notebooks use {want!r}"
+    yield (
+        "kernel",
+        0,
+        f"kernelspec.name is {actual!r}; the other {language} notebooks use {expected!r}",
+    )
 
 
 def check_empty_cells(notebook):
