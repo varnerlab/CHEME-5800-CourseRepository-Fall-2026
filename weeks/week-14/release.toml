@@ -2,10 +2,10 @@ schema_version = 2
 week = 14
 version = "1.0-prototype"
 status = "prototype"
-title = "Integration clinic and practicum launch"
-languages = ["Julia", "Python"]
+title = "Dominant eigenpairs and practicum launch"
+languages = ["Julia"]
 entry_notebooks = [
-  "L14a/CHEME-5800-L14a-Lecture-IntegrationClinic-Fall-2026.ipynb",
+  "L14a/CHEME-5800-L14a-Lecture-DominantEigenpairs-PowerIteration-Fall-2026.ipynb",
 ]
 supporting_notebooks = []
 datasets = []

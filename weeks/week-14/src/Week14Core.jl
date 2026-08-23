@@ -1,49 +1,84 @@
 module Week14Core
 
-import SHA
+using LinearAlgebra
 
-export DeliveryRecord, audit_delivery, fingerprint, integration_checklist
+export eigenpair_residual, explicit_euler_stable, power_iteration
 
-"""Minimal record for an artifact crossing a computational-system boundary."""
-Base.@kwdef struct DeliveryRecord
-    name::String
-    path::String
-    provenance::String
-    expected_sha256::String
-    interface::Symbol
-    mutates_state::Bool = false
+"""Return ``||A * v - lambda * v||_2`` for a proposed eigenpair."""
+function eigenpair_residual(
+    A::AbstractMatrix,
+    value::Number,
+    vector::AbstractVector,
+)::Float64
+    size(A, 1) == size(A, 2) || throw(ArgumentError("A must be square"))
+    length(vector) == size(A, 2) || throw(DimensionMismatch("vector length must match A"))
+    return Float64(norm(A * vector - value * vector))
 end
 
-"""Return the lowercase SHA-256 fingerprint for a local file."""
-function fingerprint(path::AbstractString)::String
-    isfile(path) || throw(ArgumentError("artifact does not exist: $(path)"))
-    return bytes2hex(SHA.sha256(read(path)))
-end
+"""
+    power_iteration(A, initial; tolerance=1e-10, max_iterations=1_000)
 
-"""Audit presence, provenance, integrity, interface, and side-effect policy."""
-function audit_delivery(record::DeliveryRecord)
-    allowed_interfaces = (:local_file, :https, :stdio)
-    checks = (
-        exists = isfile(record.path),
-        provenance = !isempty(strip(record.provenance)),
-        checksum = isfile(record.path) && fingerprint(record.path) == lowercase(record.expected_sha256),
-        interface = record.interface in allowed_interfaces,
-        least_privilege = !record.mutates_state,
+Estimate the dominant right eigenpair of a real square matrix by repeated matrix-vector
+multiplication. The result reports the Rayleigh-quotient eigenvalue estimate, a unit-norm
+eigenvector, its residual, the iteration count, and whether the requested tolerance was met.
+"""
+function power_iteration(
+    A::AbstractMatrix{<:Real},
+    initial::AbstractVector{<:Real};
+    tolerance::Real = 1e-10,
+    max_iterations::Integer = 1_000,
+)
+    size(A, 1) == size(A, 2) || throw(ArgumentError("A must be square"))
+    length(initial) == size(A, 2) || throw(DimensionMismatch("initial length must match A"))
+    isempty(initial) && throw(ArgumentError("initial must not be empty"))
+    all(isfinite, A) || throw(ArgumentError("A must contain only finite values"))
+    all(isfinite, initial) || throw(ArgumentError("initial must contain only finite values"))
+    tolerance > 0 || throw(ArgumentError("tolerance must be positive"))
+    max_iterations > 0 || throw(ArgumentError("max_iterations must be positive"))
+
+    matrix = Matrix{Float64}(A)
+    vector = Vector{Float64}(initial)
+    initial_norm = norm(vector)
+    initial_norm > 0 || throw(ArgumentError("initial must have nonzero norm"))
+    vector ./= initial_norm
+
+    value = dot(vector, matrix * vector)
+    residual = eigenpair_residual(matrix, value, vector)
+
+    for iteration in 1:max_iterations
+        candidate = matrix * vector
+        candidate_norm = norm(candidate)
+        candidate_norm > eps(Float64) || throw(ArgumentError("A maps the iterate to zero"))
+        vector = candidate ./ candidate_norm
+        value = dot(vector, matrix * vector)
+        residual = eigenpair_residual(matrix, value, vector)
+
+        if residual <= tolerance
+            return (
+                value = value,
+                vector = vector,
+                residual_norm = residual,
+                iterations = iteration,
+                converged = true,
+            )
+        end
+    end
+
+    return (
+        value = value,
+        vector = vector,
+        residual_norm = residual,
+        iterations = Int(max_iterations),
+        converged = false,
     )
-    return merge(checks, (ready = all(values(checks)),))
 end
 
-"""Reusable integration questions accumulated across the semester."""
-function integration_checklist()
-    return [
-        (layer = "representation", question = "Are types, dimensions, units, and identifiers explicit?"),
-        (layer = "computation", question = "Does the algorithm match the problem assumptions?"),
-        (layer = "validation", question = "Are invariants, failure paths, and reference cases tested?"),
-        (layer = "data", question = "Are provenance and integrity recorded?"),
-        (layer = "interface", question = "Is the input/output contract documented and typed?"),
-        (layer = "security", question = "Are side effects and authority intentionally bounded?"),
-        (layer = "interpretation", question = "Can the result support the claimed engineering decision?"),
-    ]
+"""Return whether explicit Euler's amplification factor satisfies `abs(1 + step * value) <= 1`."""
+function explicit_euler_stable(value::Number, step::Real)::Bool
+    step > 0 || throw(ArgumentError("step must be positive"))
+    isfinite(step) || throw(ArgumentError("step must be finite"))
+    isfinite(value) || throw(ArgumentError("value must be finite"))
+    return abs(1 + step * value) <= 1
 end
 
 end

@@ -6,21 +6,21 @@ import LinearAlgebra: dot
 import Random
 import Statistics: mean, std
 
-export classification_metrics, fit_logistic, fit_perceptron, load_ai4i,
-    predict_logistic, predict_perceptron, prepare_ai4i, standardize_from_training,
+export classification_metrics, fit_logistic, fit_perceptron, load_predictive_maintenance,
+    predict_logistic, predict_perceptron, prepare_predictive_maintenance, standardize_from_training,
     stratified_split
 
-function load_ai4i(path::AbstractString)
-    isfile(path) || throw(ArgumentError("AI4I file does not exist: $(path)"))
+function load_predictive_maintenance(path::AbstractString)
+    isfile(path) || throw(ArgumentError("predictive-maintenance file does not exist: $(path)"))
     frame = CSV.read(path, DataFrames.DataFrame)
-    DataFrames.nrow(frame) == 10_000 || throw(ArgumentError("expected 10,000 AI4I observations"))
+    DataFrames.nrow(frame) == 10_000 || throw(ArgumentError("expected 10,000 predictive-maintenance observations"))
     return frame
 end
 
-function prepare_ai4i(frame::DataFrames.AbstractDataFrame)
+function prepare_predictive_maintenance(frame::DataFrames.AbstractDataFrame)
     required = ["Type", "Air temperature [K]", "Process temperature [K]",
         "Rotational speed [rpm]", "Torque [Nm]", "Tool wear [min]", "Machine failure"]
-    all(name -> name in DataFrames.names(frame), required) || throw(ArgumentError("AI4I columns are incomplete"))
+    all(name -> name in DataFrames.names(frame), required) || throw(ArgumentError("predictive-maintenance columns are incomplete"))
     type = String.(frame[!, "Type"])
     all(value -> value in ("L", "M", "H"), type) || throw(ArgumentError("unexpected product type"))
     X = hcat(

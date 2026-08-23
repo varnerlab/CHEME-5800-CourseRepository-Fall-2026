@@ -125,7 +125,7 @@ them prerequisites for Week 1.
 | 11 | Markov models, MDPs, value iteration, and policy reasoning |
 | 12 | Tabular Q-learning and sequential-decision integration |
 | 13 | HTTP/JSON/REST clients and MCP servers |
-| 14 | Integration, practicum launch, and Thanksgiving break |
+| 14 | Dominant eigenpairs and power iteration; practicum launch; Thanksgiving break |
 | 15 | Numerical dynamics, solver choice, two engineering labs, and the CHEME 5820 bridge |
 | 16 | Course synthesis and transition to CHEME 5820 |
 
@@ -155,9 +155,9 @@ Topic selection precedes final data placement.
 
 ## 8. Selected implementation cases and next actions
 
-The classification, communications/MCP, and Week 15 cases are specified in [CHEME 4800/5800 Fall 2026 Content Selections](COURSE-CONTENT-SELECTIONS-FALL-2026.md):
+The classification, communications/MCP, Week 14, and Week 15 cases are specified in [CHEME 4800/5800 Fall 2026 Content Selections](COURSE-CONTENT-SELECTIONS-FALL-2026.md):
 
-- AI4I predictive maintenance for the shared perceptron/logistic-regression case;
+- predictive maintenance for the shared perceptron/logistic-regression case;
 - NWS plus deterministic fixtures for REST;
 - a local, read-only urea-cycle flux-balance MCP server;
 - numerical time integration and solver choice for Week 15.

@@ -1,0 +1,98 @@
+Week,Session,Type,Date,DoW,Topic,DeeperDives,Notes
+1,1a,L,8/24/26,M,Course introduction; values and primitive Julia types,,Students write and run code in this session.
+,1b,D,8/25/26,T,Choosing and building data representations,,Everyone leaves with a working environment and a notebook that runs end to end.
+,1c,L,8/26/26,W,Floating-point representation and machine precision,,Students author and test the calculation rather than only running completed notebooks.
+,1d,D,8/27/26,Th,Build and test a floating-point report,float32-rounding-and-precision,
+,,,,,,,
+2,2a,L,8/31/26,M,"Functions, interfaces, and scope",,
+,2b,D,9/1/26,T,"Errors, tests, and debugging a small numerical program",hexadecimal-and-text-representation,Replaces Base-16 as the common lab; representation material remains a deeper dive.
+,2c,L,9/2/26,W,"Arrays, dictionaries, tables, and operations on collections",stacks-queues-and-linked-lists,Custom data structures move to deeper dives or a CHEME 5800 extension.
+,2d,D,9/3/26,Th,Building and testing a defensive program to compute the Fibonacci sequence,recursive-fibonacci,"The common task emphasizes interface, error handling, and tests."
+,2e,PS1,9/5/26,S,Let's build a Wolfram cellular automata model,,
+,2f,OH,9/6/26,Su,Office hours 3 - 5 PM in GSH G20,,
+,,,,,,,
+3,3a,L,9/7/26,M,Labor Day - no class,,
+,3b,D,9/8/26,T,"Reading, validating, and recording provenance for CSV and JSON data",,Restores practical file/data work early.
+,3c,L,9/9/26,W,"Iteration, recursion, and choosing an algorithmic representation",,
+,3d,D,9/10/26,Th,"Sorting algorithms, recursion, and performance",bubble-sort-and-quicksort-reference-implementations,Prerecorded activity for JV travel to the Cornell Financial Engineering Manhattan conference (Sep 10-11); students work asynchronously.
+,3e,OH,9/13/26,Su,Office hours 3 - 5 PM in GSH G20,,
+,,,,,,,
+4,4a,L,9/14/26,M,"Trees, graphs, and graph traversal: breadth-first and depth-first traversal",bfs-and-dfs-reference-implementations,
+,4b,D,9/15/26,T,Implement and test depth-first and breadth-first graph traversal,,
+,4c,L,9/16/26,W,Dijkstra and Bellman-Ford shortest-path algorithms,,
+,4d,D,9/17/26,Th,Production-planning example using a shortest-path model,,
+,4e,PS2,9/19/26,S,Bellman-Ford shortest-path problem,,
+,4f,OH,9/20/26,Su,Office hours 3 - 5 PM in GSH G20,,
+,,,,,,,
+5,5a,L,9/21/26,M,"Network-flow models: capacity, conservation, and maximum flow",,The common lecture emphasizes representation and invariants rather than a survey of implementations.
+,5b,D,9/22/26,T,Implement and validate one maximum-flow calculation,,
+,5c,L,9/23/26,W,"Linear-program formulation, solution, and engineering interpretation",revised-simplex-method; interior-point-method,Solver mechanics are optional depth.
+,5d,D,9/24/26,Th,Assignment and minimum-cost-flow problems as linear programs,,Formulate the engineering decision and verify the solver output.
+,5e,OH,9/27/26,Su,Office hours 3 - 5 PM in GSH G20,,
+,,,,,,,
+6,6a,L,9/28/26,M,"Duality, sensitivity, and flux-balance interpretation",,Proof material remains optional deeper-dive content.
+,6b,D,9/29/26,T,HL-60 Urea Cycle Flux Balance Analysis,fba-constraint-derivation,
+,6c,L,9/30/26,W,"Iteratively solving systems of linear algebraic equations: Jacobi, Gauss-Seidel, and successive overrelaxation",jacobi-gauss-seidel-and-sor-reference-implementations; iterative-method-convergence,Attendance 1.
+,6d,D,10/1/26,Th,Testing iterative solvers for square and non-square systems,,
+,6e,PS3,10/3/26,S,Formulate and validate a network-flow or flux-balance decision,,Avoid a second assignment centered only on primal/dual mechanics.
+,6f,OH,10/4/26,Su,Office hours 3 - 5 PM in GSH G20,,
+,,,,,,,
+7,7a,L,10/5/26,M,Data reduction and singular value decomposition (SVD),svd-image-compression,
+,7b,D,10/6/26,T,Decompose the daily log growth rate of components of the SP500,,"Attendance 2; uses the committed reduced, documented dataset."
+,7c,L,10/7/26,W,Linear models and ordinary least squares,normal-equations-vs-qr-vs-svd; confidence-interval-derivation,
+,7d,D,10/8/26,Th,Solve and validate ordinary least-squares problems using SVD,,Use a documented train/test split and verify the regression contracts. Attendance 3.
+,,,,,,,
+8,8a,L,10/12/26,M,Fall break - no class,,
+,8b,D,10/13/26,T,Fall break - no class,,
+,8c,L,10/14/26,W,"Regularization, generalization, and ridge coefficient shrinkage",,
+,8d,D,10/15/26,Th,Cross-validation and residual model checking for ridge regression,,Attendance 4.
+,8e,OH,10/18/26,Su,Office hours 3 - 5 PM in GSH G20,,
+,,,,,,,
+9,9a,L,10/19/26,M,Linear classification and perceptron updates,xor-and-linear-separability,
+,9b,D,10/20/26,T,Build and evaluate a perceptron for predictive-maintenance classification,,Attendance 5; use the shared predictive-maintenance split. XOR remains an optional feature-representation example.
+,9c,L,10/21/26,W,Logistic regression and numerical optimization,,
+,9d,D,10/22/26,Th,Predictive-maintenance model comparison: missed failures versus false alarms,,Use the same documented split as 9b and interpret the engineering tradeoff. Attendance 6.
+,9e,PS4,10/24/26,S,Build a portfolio optimizer using simulated annealing,,
+,9f,OH,10/25/26,Su,Office hours 3 - 5 PM in GSH G20,,
+,,,,,,,
+10,10a,L,10/26/26,M,Online learning and multiplicative-weights update,mwa-for-zero-sum-games-and-linear-programs,MWA-as-LP and game-theory depth are no longer common-core sessions.
+,10b,D,10/27/26,T,"Build, test, and interpret one multiplicative-weights calculation",,
+,10c,L,10/28/26,W,Exploration versus exploitation in ordinary multiarm bandit problems,thompson-sampling; combinatorial-bandits,
+,10d,D,10/29/26,Th,Develop a bandit to estimate an unknown experimental success probability,,Attendance 7; replaces the common-core MWA-for-LP/RPS session.
+,10e,OH,11/1/26,Su,Office hours 3 - 5 PM in GSH G20,,JV at the INFORMS Annual Meeting in San Francisco (Nov 1-4); no live office hours; asynchronous questions.
+,,,,,,,
+11,11a,L,11/2/26,M,Introduction to the Markov property and Markov models,hidden-markov-models,Prerecorded lecture for JV travel to the INFORMS Annual Meeting in San Francisco (Nov 1-4).
+,11b,D,11/3/26,T,Markov model for word and text generation,,Prerecorded lab for JV travel to the INFORMS Annual Meeting in San Francisco (Nov 1-4); students work asynchronously.
+,11c,L,11/4/26,W,"Markov decision processes, policy, and value iteration",,Prerecorded lecture for JV travel to the INFORMS Annual Meeting in San Francisco (Nov 1-4).
+,11d,D,11/5/26,Th,Solve the grid-world lava problem using value iteration and random rollout,,Prerecorded activity for JV return travel; a short Canvas completion quiz records Attendance 8.
+,11e,PS5,11/7/26,S,Solve the grid-world Apple versus Oranges problem using value iteration,,
+,11f,OH,11/8/26,Su,Office hours 3 - 5 PM in GSH G20,,
+,,,,,,,
+12,12a,L,11/9/26,M,Q-learning and temporal-difference updates,,
+,12b,D,11/10/26,T,Learn a grid-world policy with tabular Q-learning,,Students implement and analyze the tabular learner.
+,12c,L,11/11/26,W,Value iteration versus Q-learning: model-based and model-free control,,"Policy gradients, actor-critic, and Deep Q belong to CHEME 5820."
+,12d,D,11/12/26,Th,"Exploration, reproducibility, and policy diagnosis",,Attendance 9; compare exploration choices and reproducibility across seeded runs.
+,12e,OH,11/15/26,Su,Office hours 3 - 5 PM in GSH G20,,
+,,,,,,,
+13,13a,L,11/16/26,M,"Communicating with computational systems: HTTP, JSON, REST, and schemas",bigg-api-extension,
+,13b,D,11/17/26,T,Build and test a defensive National Weather Service API client,,Uses the committed National Weather Service response fixtures. Attendance 10.
+,13c,L,11/18/26,W,"Model Context Protocol: hosts, clients, servers, tools, resources, and trust boundaries",,Teach stable abstractions; use an official SDK rather than hand-writing the wire protocol.
+,13d,D,11/19/26,Th,Build and inspect a local MCP server around an existing course computation,,"Test discovery, a valid call, malformed input, and an unsupported action without requiring a paid model account. Attendance 11."
+,13e,PS6,11/21/26,S,Develop a program to learn optimal choices using reinforcement learning,,Sequential-decision assignment remains tied to Week 12.
+,13f,OH,11/22/26,Su,Office hours 3 - 5 PM in GSH G20,,
+,,,,,,,
+14,14a,L,11/23/26,M,"Dominant eigenpairs and power iteration: convergence, long-run behavior, and stability",,"CHEME 5800 prerequisite bridge; full eigendecomposition, QR iteration, Gram-Schmidt, and PCA remain in CHEME 5820."
+,14b,Practicum,11/24/26,T,2026 practicum release and QA session,,Released before Thanksgiving break; no new lab content is expected.
+,14c,L,11/25/26,W,Thanksgiving break - no class,,
+,14d,D,11/26/26,Th,Thanksgiving break - no class,,
+,,,,,,,
+15,15a,L,11/30/26,M,"Dynamics as algorithms: explicit Euler, stability, and build-versus-buy ODE solvers",,Uses the three-gene and fermentation cases; no separate graded lab.
+,15b,D,12/1/26,T,Implement and test explicit Euler on a three-gene dynamic model,,Three-gene explicit-Euler implementation. Attendance 12.
+,15c,L,12/2/26,W,Integration and CHEME 5820 bridge: from time stepping to state-space and learned dynamics,,Connect prerequisites without teaching a Spring architecture.
+,15d,D,12/3/26,Th,Solve and validate a mixed-sugar fermentation model with a maintained ODE solver,,Maintained-solver fermentation activity. Attendance 13.
+,15e,OH,12/6/26,Su,Office hours 3 - 5 PM in GSH G20,,
+,,,,,,,
+16,16a,L,12/7/26,M,The end: synthesis of Fall methods and transition to CHEME 5820,,Sync Zoom lecture.
+,16b,D,12/8/26,T,Semester is over - no class,,
+,16c,L,12/9/26,W,Semester is over - no class,,
+,16d,D,12/10/26,Th,Semester is over - no class,,

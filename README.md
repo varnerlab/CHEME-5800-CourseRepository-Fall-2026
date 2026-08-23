@@ -75,7 +75,7 @@ for published student bundles.
 | 11 | Markov models, Markov decision processes, and value iteration | [Week 11](weeks/week-11/) |
 | 12 | Tabular Q-learning and sequential-decision integration | [Week 12](weeks/week-12/) |
 | 13 | REST clients and Model Context Protocol servers | [Week 13](weeks/week-13/) |
-| 14 | Integration clinic and practicum launch | [Week 14](weeks/week-14/) |
+| 14 | Dominant eigenpairs and practicum launch | [Week 14](weeks/week-14/) |
 | 15 | Dynamics as algorithms and the CHEME 5820 bridge | [Week 15](weeks/week-15/) |
 | 16 | Course synthesis and transition to CHEME 5820 | [Week 16](weeks/week-16/) |
 

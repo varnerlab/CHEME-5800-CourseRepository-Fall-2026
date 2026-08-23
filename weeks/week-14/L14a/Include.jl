@@ -53,12 +53,8 @@ end
 #   VLDataScienceMachineLearningPackage   the course package
 #
 # Standard library:
-using SHA           # SHA-256 digests for file integrity
+using LinearAlgebra # eigen, eigvals, norm, and matrix-vector products
 using Test          # @test / @testset for the checks in the notebook
-#
-# Packages:
-using DataFrames    # tabular records held as columns
-using PrettyTables  # formatted table output in the notebook
 #
 # This meeting's own source, included above. The leading dot means "a module
 # defined here", as opposed to an installed package of the same name:

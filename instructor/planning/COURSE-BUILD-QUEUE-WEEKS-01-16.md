@@ -20,12 +20,12 @@ supporting code/data, tests, metadata, and clean execution checks all pass.
 | 6 | 6 | Duality/sensitivity/FBA; HL-60 urea-cycle model; Jacobi, Gauss–Seidel, and SOR | FBA derivation and iterative-method convergence | **Curated, corrected, and validated** |
 | 7 | 7 | SVD/data reduction and ordinary least squares | Confirm and document a reduced S&P 500 dataset | **Curated, corrected, and validated** |
 | 8 | 8 | Regularized least squares, cross-validation, and model checking | One compact model-selection extension if warranted | **Curated, corrected, and validated** |
-| 9 | 9 | Perceptron, nonlinear optimization, and logistic regression on the shared AI4I case | XOR and linear separability | **AI4I replacement built and validated** |
+| 9 | 9 | Perceptron, nonlinear optimization, and logistic regression on the shared predictive-maintenance case | XOR and linear separability | **Predictive-maintenance replacement built and validated** |
 | 10 | 10 | Multiplicative weights and ordinary multiarm bandits | Thompson sampling | **Rebundled and validated** |
 | 11 | 11 | Markov models, Markov decision processes, value iteration, and grid world | Hidden Markov models | **Curated, corrected, and validated** |
 | 12 | 12 | Tabular Q-learning and comparison with value iteration | CHEME 5800 learner implementation/analysis | **New integration built and validated** |
 | 13 | 13 | HTTP/JSON/REST clients and a local read-only MCP server | BiGG remains an optional extension | **Prototype converted, corrected, and validated** |
-| 14 | 14 | Integration clinic and practicum launch | Assessment artifact remains in its separate repository | **Common instructional meeting built and validated** |
+| 14 | 14 | Dominant eigenpairs, power iteration, and spectral reasoning | Full eigendecomposition and QR iteration remain in CHEME 5820 | **Substantive lecture rebuilt and validated** |
 | 15 | 15 | Explicit Euler, stability, dynamic engineering models, and solver choice | Three-gene and mixed-sugar fermentation cases | **Expanded to a full instructional week and validated** |
 | 16 | 16 | Course synthesis and transition to CHEME 5820 | Explicit Fall-to-Spring prerequisite map | **Built and validated** |
 

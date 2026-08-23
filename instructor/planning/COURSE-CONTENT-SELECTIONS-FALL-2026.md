@@ -2,22 +2,23 @@
 
 **Status:** Working implementation selections, ready for row-level review  
 **Depends on:** [CHEME 4800/5800 Fall 2026 Topic Boundary](COURSE-TOPIC-BOUNDARY-FALL-2026.md)  
-**Purpose:** Resolve the remaining classification, communications/MCP, and Week 15 choices without reopening the whole course design.
+**Purpose:** Resolve the remaining classification, communications/MCP, Week 14, and Week 15 choices without reopening the whole course design.
 
 ## 1. Selected cases
 
 | Course location | Working selection | Disposition of older material |
 |---|---|---|
-| Week 9 classification | AI4I 2020 predictive-maintenance data | Replace banknote as the common case; retain XOR as an optional linear-separability demonstration |
+| Week 9 classification | UCI 2020 predictive-maintenance data | Replace banknote as the common case; retain XOR as an optional linear-separability demonstration |
 | Week 13 REST | National Weather Service API plus committed response fixtures | Adapt the strong 2024/2025 NWS client; retain BiGG as an optional domain extension |
 | Week 13 MCP | Local, read-only urea-cycle network resource and flux-balance checking tool | Reuse the small 2025 FBA case, not the 15 MB genome-scale save state |
+| Week 14 advanced topic | Dominant eigenpairs, power iteration, and spectral reasoning | Adapt the CHEME 5820 Spring 2026 prerequisite material; leave full eigendecomposition, QR iteration, Gram–Schmidt, and PCA to Spring |
 | Week 15 advanced topic | Dynamics as algorithms: explicit Euler, stability, and build-versus-buy ODE solvers | Replace Fall Hopfield/FNN; adapt the 2024 three-gene and fermentation examples |
 
 These selections preserve the useful historical material while giving each new or revised block a distinct reason to exist.
 
 ## 2. Week 9: predictive-maintenance classification
 
-Use the [UCI AI4I 2020 Predictive Maintenance Dataset](https://archive.ics.uci.edu/dataset/601/ai4i%2B2020%2Bpredictive%2Bmaint) for both the perceptron and logistic-regression meetings.
+Use the [UCI 2020 Predictive Maintenance Dataset](https://archive.ics.uci.edu/dataset/601/ai4i%2B2020%2Bpredictive%2Bmaint) for both the perceptron and logistic-regression meetings.
 
 The dataset is a good Fall case because it is small enough to distribute directly, has an engineering interpretation, and exposes a real validation issue: machine failures are uncommon enough that raw accuracy can be misleading. UCI reports 10,000 observations, six feature variables, no missing values, a 509.8 KB CSV, and a CC BY 4.0 license.
 
@@ -132,7 +133,7 @@ Proofs and advanced topics from the earlier draft that are not represented by a 
 
 | Artifact | Work type |
 |---|---|
-| AI4I data/provenance record | New small data asset and attribution |
+| Predictive-maintenance data/provenance record | New small data asset and attribution |
 | Week 9 common notebooks | Adapt existing classifier scaffolding to a shared engineering case |
 | NWS fixtures and client tests | Adapt existing client and add deterministic tests |
 | Urea-cycle JSON fixture | Derive a small inspectable representation from the 2025 FBA source |

@@ -13,10 +13,10 @@ include(joinpath(WEEK_ROOT, "L9d", "Include.jl"))
     @test classification_metrics(y, predict_perceptron(interaction, hcat(X, X[:, 1] .* X[:, 2]))).accuracy == 1.0
 end
 
-@testset "L9 AI4I data contract" begin
+@testset "L9 predictive-maintenance data contract" begin
     path = joinpath(WEEK_ROOT, "L9d", "data", "ai4i2020.csv")
-    frame = load_ai4i(path)
-    data = prepare_ai4i(frame)
+    frame = load_predictive_maintenance(path)
+    data = prepare_predictive_maintenance(frame)
     @test size(data.X) == (10_000, 7)
     @test sum(data.y) == 339
     @test data.feature_names == ["air_temperature", "process_temperature", "rotational_speed",
@@ -28,12 +28,12 @@ end
     @test split == stratified_split(data.y; seed = 5800)
     scaled = standardize_from_training(data.X[split.train, :], data.X[split.test, :])
     @test maximum(abs, mean(scaled.train; dims = 1)) < 1e-10
-    @test_throws ArgumentError load_ai4i(joinpath(WEEK_ROOT, "missing.csv"))
+    @test_throws ArgumentError load_predictive_maintenance(joinpath(WEEK_ROOT, "missing.csv"))
 end
 
 @testset "L9 classifier comparison" begin
-    frame = load_ai4i(joinpath(WEEK_ROOT, "L9d", "data", "ai4i2020.csv"))
-    data = prepare_ai4i(frame)
+    frame = load_predictive_maintenance(joinpath(WEEK_ROOT, "L9d", "data", "ai4i2020.csv"))
+    data = prepare_predictive_maintenance(frame)
     split = stratified_split(data.y; seed = 5800)
     scaled = standardize_from_training(data.X[split.train, :], data.X[split.test, :])
     y_train, y_test = data.y[split.train], data.y[split.test]
