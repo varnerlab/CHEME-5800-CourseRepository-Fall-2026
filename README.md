@@ -1,211 +1,104 @@
-# CHEME 4800/5800 - Fall 2026
+# CHEME 4800/5800: Principles of Computational Thinking for Engineers (Fall 2026)
 
-This repository is the authoring source for **Principles of Computational Thinking for Engineers** in Fall 2026. It will combine lectures and labs into curated weekly releases that students can download and run without using Git.
+This course develops practical computational habits for engineers: represent a
+problem, compute a result, test the implementation, and interpret what the result
+means. Using Julia and a small amount of Python, we apply that workflow to data
+representations, graph algorithms, optimization, data-driven modeling, sequential
+decision-making, scientific communication, and dynamical systems.
 
-The selective rebalance preserves varied examples while using a consistent computational workflow: represent a problem, compute a result, test it, and interpret what it means.
+## Getting the course material
 
-## Requirements
+There are two ways to use the course materials:
 
-| Tool | Version | Needed for |
-|---|---|---|
-| [Julia](https://julialang.org) | 1.12 | Every week of the course |
-| [VS Code](https://code.visualstudio.com) | current | The supported editor and notebook front end |
-| VS Code Julia extension | current | Julia language support and the integrated REPL |
-| VS Code Jupyter extension | current | Opening `.ipynb` files and connecting them to the Julia kernel |
-| [GitHub Desktop](https://desktop.github.com) + a GitHub account | current | Problem sets, which live in their own repositories |
-| [Python](https://www.python.org) | 3.11 or newer | Weeks 2 and 3 (standard library only) and the Week 13 MCP unit |
+1. **Download the weekly bundle (recommended; no Git required).** When a week is
+   published, download its `.zip` file from the
+   [Releases page](https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/releases),
+   extract it, and open the extracted folder in VS Code. Published bundles are
+   versioned snapshots; corrections are issued as new releases rather than silently
+   replacing files.
+2. **Clone the repository (for Git users).** The complete authoring repository is
+   available at
+   [varnerlab/CHEME-5800-CourseRepository-Fall-2026](https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026).
+   Current instructional materials are organized under [`weeks/`](weeks/).
 
-Lectures and labs are distributed as weekly `.zip` bundles that you download and
-extract, so you do not need Git to run any of the weekly material. **Problem sets are
-different**: each one lives in its own repository, so you do need a GitHub account and
-GitHub Desktop before the first problem set is released.
+Problem sets and the practicum are distributed through separate repositories; see
+[Assignments and practicum](#assignments-and-practicum) below.
 
-You do not need to install Jupyter or `IJulia` separately; step 4 below handles both.
+## One-time setup
 
-## Installation
+The supported environment is Julia 1.12 in VS Code with the Julia and Jupyter
+extensions. The complete installation guide, system check, and troubleshooting
+table are in the [Week 0 onboarding guide](weeks/week-00/README.md).
 
-### 1. Install Julia 1.12
+In brief:
 
-Use [`juliaup`](https://github.com/JuliaLang/juliaup), the official Julia installer
-and version manager.
+1. Install Julia 1.12 with
+   [`juliaup`](https://github.com/JuliaLang/juliaup).
+2. Install [VS Code](https://code.visualstudio.com/download), then install the
+   `julialang.language-julia` and `ms-toolsai.jupyter` extensions.
+3. From the repository root or an extracted bundle root—the directory containing
+   `Project.toml`—instantiate the course environment and run the package smoke test:
 
-**Windows** (PowerShell):
+   ```bash
+   julia --project=. -e 'using Pkg; Pkg.instantiate()'
+   julia --project=. -e 'using VLDataScienceMachineLearningPackage; println("SETUP-OK")'
+   ```
 
-```powershell
-winget install -e --id Julia.Juliaup
-```
+4. Open and complete the
+   [Week 0 system-check notebook](weeks/week-00/W0a/CHEME-5800-W0a-Onboarding-SystemCheck-Fall-2026.ipynb).
+   A green final test means the installation is ready for class.
 
-**macOS** (Terminal; the installer selects the right build for Apple Silicon or Intel):
+Python 3.11 or newer is used only in Weeks 2, 3, and 13. A GitHub account and
+[GitHub Desktop](https://desktop.github.com) are needed for problem sets, but not
+for downloaded weekly lecture and lab bundles. The Week 0 guide explains both.
 
-```bash
-curl -fsSL https://install.julialang.org | sh
-```
+## Weekly materials
 
-Close and reopen the terminal so it picks up the new path, then select the course
-release:
+Each weekly guide gives the learning objectives, class-meeting sequence, required
+data, and validation instructions for that unit. The links below point to the
+current source materials; use the [Releases page](https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/releases)
+for published student bundles.
 
-```bash
-juliaup add 1.12
-juliaup default 1.12
-julia --version
-```
+| Week | Topic | Materials |
+|---:|---|---|
+| 0 | Course setup and system check | [Week 0](weeks/week-00/) |
+| 1 | Primitive types, data representations, and floating point | [Week 1](weeks/week-01/) |
+| 2 | Functions, errors, collections, and defensive programs | [Week 2](weeks/week-02/) |
+| 3 | Data provenance, recursion, and testable algorithms | [Week 3](weeks/week-03/) |
+| 4 | Graph representations, traversal, and shortest paths | [Week 4](weeks/week-04/) |
+| 5 | Maximum flow and linear programming | [Week 5](weeks/week-05/) |
+| 6 | Duality, flux balance, and iterative linear solvers | [Week 6](weeks/week-06/) |
+| 7 | SVD, data reduction, and ordinary least squares | [Week 7](weeks/week-07/) |
+| 8 | Regularization, cross-validation, and model checking | [Week 8](weeks/week-08/) |
+| 9 | Binary classification and numerical optimization | [Week 9](weeks/week-09/) |
+| 10 | Online learning and multi-armed bandits | [Week 10](weeks/week-10/) |
+| 11 | Markov models, Markov decision processes, and value iteration | [Week 11](weeks/week-11/) |
+| 12 | Tabular Q-learning and sequential-decision integration | [Week 12](weeks/week-12/) |
+| 13 | REST clients and Model Context Protocol servers | [Week 13](weeks/week-13/) |
+| 14 | Integration clinic and practicum launch | [Week 14](weeks/week-14/) |
+| 15 | Dynamics as algorithms and the CHEME 5820 bridge | [Week 15](weeks/week-15/) |
+| 16 | Course synthesis and transition to CHEME 5820 | [Week 16](weeks/week-16/) |
 
-The last command must report a `1.12` release. If `juliaup` will not run on your
-machine, direct installers are at
-[julialang.org/downloads](https://julialang.org/downloads/); you are then
-responsible for keeping Julia 1.12 on your path.
-
-### 2. Install VS Code
-
-Download it from
-[code.visualstudio.com/download](https://code.visualstudio.com/download), which
-offers both the Windows and macOS builds.
-
-**On macOS**, also register the `code` command: open the Command Palette
-(`Cmd+Shift+P`), type `Shell Command`, and run
-**Shell Command: Install 'code' command in PATH**. Windows installers add `code`
-automatically.
-
-### 3. Install the two VS Code extensions
-
-From a terminal:
-
-```bash
-code --install-extension julialang.language-julia
-code --install-extension ms-toolsai.jupyter
-```
-
-Or from the Extensions view (`Ctrl+Shift+X`, `Cmd+Shift+X` on macOS), searching for
-the identifiers below.
-
-| Extension | Identifier |
-|---|---|
-| [Julia](https://marketplace.visualstudio.com/items?itemName=julialang.language-julia) | `julialang.language-julia` |
-| [Jupyter](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) | `ms-toolsai.jupyter` |
-
-### 4. Instantiate the course environment
+## Course environment and library
 
 The course uses one Julia 1.12 environment at the repository or extracted-bundle
-root. The manifest pins `VLDataScienceMachineLearningPackage` to the vendored source
-under `code/`; no remote course package is installed during class.
+root. `Project.toml` and `Manifest.toml` pin the dependencies, including the
+semester snapshot of `VLDataScienceMachineLearningPackage` vendored under
+[`code/`](code/). No remote course package or Julia registry is needed during
+class.
 
-Download and extract a weekly bundle, then open a terminal in its top-level
-directory, the one holding `Project.toml`:
+Every notebook loads its meeting-local `Include.jl`, which activates the supplied
+root environment and imports the code needed for that meeting. After the one-time
+setup, notebooks can be run directly. The
+[course library documentation](https://varnerlab.github.io/CHEME-5800-CourseRepository-Fall-2026/)
+describes the reusable types and computational routines.
 
-```bash
-julia --project=. -e 'using Pkg; Pkg.instantiate()'
-julia --project=. -e 'using VLDataScienceMachineLearningPackage; println("SETUP-OK")'
-```
+## Assignments and practicum
 
-The first command takes several minutes on a new machine: it downloads every package
-the course uses and precompiles them. It also builds `IJulia`, which is what
-registers the `Julia 1.12` notebook kernel, so there is no separate Jupyter or kernel
-installation step.
-
-### 5. Install GitHub Desktop (before the first problem set)
-
-Lectures and labs need none of this, so you can leave it until the first problem set
-is announced. Problem sets are released as separate repositories, and
-[GitHub Desktop](https://desktop.github.com) is the supported way to get them without
+Problem sets, the practicum, and their solutions are managed in separate
+repositories rather than this course-content repository. Assignment links and
+release instructions will be distributed through the course communication
+channels. GitHub Desktop is the supported way to obtain those repositories without
 using Git from a terminal.
 
-1. Create a [GitHub account](https://github.com/signup) if you do not have one.
-2. Install [GitHub Desktop](https://desktop.github.com) and sign in.
-3. Set VS Code as its editor: **File > Options > Integrations** on Windows, or
-   **GitHub Desktop > Settings > Integrations** on macOS, then choose
-   **Visual Studio Code** as the external editor.
-
-To pick up a problem set, use **File > Clone repository** with the URL from the
-assignment, then open the cloned folder in VS Code.
-
-### 6. Install Python (only before Weeks 2, 3, and 13)
-
-Weeks 2 and 3 run a short Julia/Python comparison that uses only the Python standard
-library, so any Python 3.11 or newer will do: the
-[python.org installer](https://www.python.org/downloads/), Anaconda, or the one your
-operating system supplies. Week 13 creates its own local virtual environment from the
-repository root:
-
-```bash
-python3 -m venv .venv
-.venv/bin/python -m pip install -r weeks/week-13/python/requirements.txt
-```
-
-Those requirements include `ipykernel`, so VS Code can select the repository-local
-`.venv` interpreter for the Week 13 notebooks.
-
-## Smoke test
-
-Confirm the three commands resolve:
-
-```bash
-julia --version     # must report 1.12
-code --version
-python3 --version   # only needed before Weeks 2, 3, and 13
-```
-
-Then run the real check. [Week 0](weeks/week-00/README.md) is the asynchronous
-onboarding unit, and completing it is the definition of a working installation:
-open the extracted bundle folder in VS Code (`File > Open Folder`), open
-[the W0a notebook](weeks/week-00/W0a/CHEME-5800-W0a-Onboarding-SystemCheck-Fall-2026.ipynb),
-choose the `Julia 1.12` kernel from the picker in the upper right, and run every cell
-in order. It exercises the environment, an installed package, meeting-local source,
-plotting, and tests. A completely green test cell means you are ready for the first
-class meeting.
-
-Weekly notebooks then load their local `Include.jl`, which delegates to the shared
-root bootstrap and activates this environment. There are no lecture- or lab-specific
-Julia environments.
-
-## Common issues
-
-| Symptom | Fix |
-|---|---|
-| `julia` is not found | Close and reopen the terminal so it picks up the new path. On macOS, confirm `~/.juliaup/bin` is on your path; see the appendix below. |
-| Julia reports the wrong version | Run `juliaup default 1.12`, reopen the terminal, and check `julia --version` again. |
-| `code` is not found (macOS) | Run **Shell Command: Install 'code' command in PATH** from the VS Code Command Palette. |
-| `Pkg.instantiate()` fails | Confirm the terminal is at the extracted bundle root containing `Project.toml` and `Manifest.toml`, then retry on a working network connection. |
-| The kernel picker offers no `Julia 1.12` entry | Step 4 registers that kernel by building `IJulia`. Re-run it, or run `julia --project=. -e 'using Pkg; Pkg.build("IJulia")'`, then restart VS Code. |
-| A notebook opens with no run buttons | The Jupyter extension (`ms-toolsai.jupyter`) is not installed. |
-| A notebook's first cell cannot find `Include.jl` | Open the notebook from inside the extracted bundle, without moving it out of its meeting folder. |
-
-The [Week 0 README](weeks/week-00/README.md#troubleshooting) carries the longer
-troubleshooting table, including the failure modes specific to the W0a system check.
-
-## Appendix: putting Julia on the path by hand
-
-`juliaup` normally edits your shell profile for you. If `julia` is still not found
-after reopening the terminal, add its directory yourself.
-
-**macOS** (`~/.zshrc` for the default shell):
-
-```bash
-export PATH="$HOME/.juliaup/bin:$PATH"
-```
-
-Reload with `source ~/.zshrc`, or open a new terminal.
-
-**Windows**: `juliaup` installs to `%USERPROFILE%\.julia\juliaup\bin`. Add it under
-Settings > System > About > Advanced system settings > Environment Variables > Path,
-then open a new PowerShell window.
-
-## Design documents
-
-- [Fall 2026 topic boundary](COURSE-TOPIC-BOUNDARY-FALL-2026.md): approved selective rebalance, CHEME 5820 prerequisite boundary, topic disposition, and communications/MCP unit.
-- [Fall 2026 content selections](COURSE-CONTENT-SELECTIONS-FALL-2026.md): concrete Week 9 classification, Week 13 REST/MCP, Week 15 dynamics, and deeper-dive scope choices.
-- [Week 0 onboarding and Weeks 1–16 build queue](COURSE-BUILD-QUEUE-WEEKS-01-16.md): chronological authoring order, completion status, and cleanup handoff.
-- [Course repository plan](COURSE-REPOSITORY-PLAN.md): environment, packaging, releases, validation, repository boundaries, and implementation phases.
-
-## Current status
-
-The rebalanced session schedule is the working Fall 2026 schedule. Week 0 owns
-asynchronous system setup, and the initial chronological build through instructional
-Weeks 1–16 is complete. Every instructional week uses
-the approved structural pattern: one top-level weekly package, class-meeting
-folders (`L1a`, `L1b`, and so on), and a local `Include.jl` in each Julia meeting.
-Notebook roles follow the material rather than a mandatory Lecture/Example split.
-Week 15 is a full instructional dynamics block rather than two practicum work
-sessions. The next phase is the cross-course cleanup and release-quality review.
-
-Problem sets, the practicum, and their simultaneously released solutions are
-managed in separate repositories and are outside this course-content repository.
+Course materials are provided under the [MIT License](LICENSE).
