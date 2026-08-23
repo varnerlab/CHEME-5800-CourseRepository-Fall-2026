@@ -1,7 +1,7 @@
 schema_version = 2
 week = 1
-version = "1.0-prototype"
-status = "prototype"
+version = "1.0"
+status = "ready"
 title = "Primitive types, data representations, and floating point"
 
 languages = ["Julia"]
