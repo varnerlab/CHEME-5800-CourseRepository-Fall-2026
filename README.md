@@ -10,12 +10,12 @@ decision-making, scientific communication, and dynamical systems.
 
 There are two ways to use the course materials:
 
-1. **Download the weekly bundle (recommended; no Git required).** When a week is
-   published, download its `.zip` file from the
+1. **Download the weekly bundle (recommended; no Git required).** On the
    [Releases page](https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/releases),
-   extract it, and open the extracted folder in VS Code. Published bundles are
-   versioned snapshots; corrections are issued as new releases rather than silently
-   replacing files.
+   open the release for the week, expand **Assets**, and download the file named
+   `CHEME-4800-5800-Fall-2026-Week-XX.Y.zip`. Do not download either automatically
+   generated **Source code** archive. Published bundles are versioned snapshots;
+   corrections are issued as new releases rather than silently replacing files.
 2. **Clone the repository (for Git users).** The complete authoring repository is
    available at
    [varnerlab/CHEME-5800-CourseRepository-Fall-2026](https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026).
@@ -34,8 +34,15 @@ In brief:
 
 1. Install Julia 1.12 with
    [`juliaup`](https://github.com/JuliaLang/juliaup).
-2. Install [VS Code](https://code.visualstudio.com/download), then install the
-   `julialang.language-julia` and `ms-toolsai.jupyter` extensions.
+2. Install [VS Code](https://code.visualstudio.com/download). Open its Extensions
+   view (`Ctrl+Shift+X` on Windows/Linux or `Cmd+Shift+X` on macOS), then find and
+   install both official extensions below. Reload VS Code if it asks you to.
+
+   | Search for | Publisher | Extension identifier |
+   |---|---|---|
+   | [Julia](https://marketplace.visualstudio.com/items?itemName=julialang.language-julia) | julialang | `julialang.language-julia` |
+   | [Jupyter](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) | Microsoft | `ms-toolsai.jupyter` |
+
 3. From the repository root or an extracted bundle root—the directory containing
    `Project.toml`—instantiate the course environment and run the package smoke test:
 
@@ -51,6 +58,37 @@ In brief:
 Python 3.11 or newer is used only in Weeks 2, 3, and 13. A GitHub account and
 [GitHub Desktop](https://desktop.github.com) are needed for problem sets, but not
 for downloaded weekly lecture and lab bundles. The Week 0 guide explains both.
+
+## Opening and running a weekly bundle
+
+Follow this sequence for each new weekly release:
+
+1. **Extract the ZIP completely.** Move the resulting
+   `CHEME-4800-5800-Fall-2026-Week-XX.Y` folder somewhere you can keep and edit it,
+   such as `Documents/CHEME-5800`. Do not open or run files from inside the ZIP.
+2. **Open the bundle, not an individual file.** In VS Code, choose
+   **File > Open Folder** and select the extracted top-level folder. The correct
+   folder contains `Project.toml`, `Manifest.toml`, `README.md`, and `weeks/`.
+   Accept the Workspace Trust prompt for this course folder if VS Code displays it.
+3. **Prepare this copy of the bundle.** Choose **Terminal > New Terminal** in VS
+   Code. Its prompt should be at the bundle root. Run the two setup commands from
+   [One-time setup](#one-time-setup); `SETUP-OK` confirms that the environment is
+   ready. The first setup on a machine may spend several minutes downloading and
+   precompiling packages. Let it finish—later starts are much faster.
+4. **Open the notebook.** In the Explorer sidebar, expand `weeks`, the current
+   `week-XX` folder, and the meeting folder (`L1a`, `L1b`, and so on). Open the
+   `.ipynb` file listed in that week's `README.md`.
+5. **Select Julia and run from the top.** Click **Select Kernel** in the notebook's
+   upper-right corner and choose **Julia 1.12**. Run the first code cell, which
+   loads the meeting's `Include.jl`, and then execute the remaining cells in order
+   with the cell run button or `Shift+Enter`.
+
+Messages about downloading or precompiling packages are normal on the first run.
+A tan or yellow informational notice is not a failure by itself; investigate only
+if a notebook cell reports an error or a course test fails. If **Julia 1.12** is
+missing from the kernel picker, confirm that both extensions above are enabled,
+rerun the setup commands, and restart VS Code. The full troubleshooting table is
+in the [Week 0 onboarding guide](weeks/week-00/README.md#troubleshooting).
 
 ## Weekly materials
 

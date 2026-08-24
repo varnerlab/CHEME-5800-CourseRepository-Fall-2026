@@ -130,7 +130,7 @@ troubleshooting table below assumes VS Code.
 | The kernel picker offers no `Julia 1.12` entry | Step 3 registers that kernel by building `IJulia`. Re-run it, or run `julia --project=. -e 'using Pkg; Pkg.build("IJulia")'`, then restart VS Code. |
 | The notebook opens but has no run buttons | The Jupyter extension (`ms-toolsai.jupyter`) is not installed. Install it, then reopen the file. |
 | The first notebook cell cannot find `Include.jl` | Open the notebook from inside the extracted course bundle without moving it away from its `W0a` folder. |
-| The first cell stops with `Setup resolved the wrong Include.jl` | VS Code started in a directory other than the notebook's own folder, so the first cell loaded the bundle root setup file instead. Open the folder holding the notebook (`W0a` or `W0b`), then restart the kernel and run from the top. |
+| The first cell stops with `Setup resolved the wrong Include.jl` | Keep the notebook in its original meeting folder inside the extracted bundle. Open the bundle's top-level folder—the one containing `Project.toml`—in VS Code, restart the kernel, and run from the top. |
 | Only the histogram-flag test fails | Confirm that the histogram rendered, set the flag to `true`, and rerun the test cell. |
 
 Do not diagnose W0b until W0a is completely green. If W0a worked previously,
