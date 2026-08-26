@@ -11,7 +11,7 @@ export cargo_loading_time_minutes
 """
     cargo_loading_time_minutes(cargo_tonnes, loading_rate_kg_min) -> Float64
 
-Return the time in min needed to load `cargo_tonnes` tonnes of freight at a
+Return the time in min needed to load `cargo_tonnes` metric tonnes of freight at a
 sustained rate of `loading_rate_kg_min` kilograms per minute.
 """
 function cargo_loading_time_minutes(cargo_tonnes::Real, loading_rate_kg_min::Real)::Float64

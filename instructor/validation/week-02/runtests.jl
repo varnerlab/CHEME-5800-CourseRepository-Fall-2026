@@ -47,10 +47,13 @@ end
 @testset "Week 2 labs ship unimplemented stubs" begin
     # Guards against a reference solution being copied into the student tree.
     # Each marker must appear in the solution but NOT in the stub's hint comments.
-    for (lab, leaked) in (("L2b", "1000.0 * cargo_tonnes"), ("L2d", "sequence[index - 1]"))
+    for (lab, leaked, incomplete_marker) in (
+        ("L2b", "1000.0 * cargo_tonnes", "Complete TODO 1 and TODO 2"),
+        ("L2d", "sequence[index - 1]", "Oooops!"),
+    )
         stub = read(joinpath(WEEK02, lab, "src", "Compute.jl"), String)
         @test occursin("TODO 1", stub)
-        @test occursin("Oooops!", stub)
+        @test occursin(incomplete_marker, stub)
         @test occursin("implemented yet", stub)
         @test !occursin(leaked, stub)
     end
