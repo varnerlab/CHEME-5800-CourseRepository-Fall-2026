@@ -35,11 +35,10 @@ end
 # the course package. It is the only place environment handling lives.
 include(normpath(joinpath(CHEME5800_L2C_ROOT, "..", "..", "..", "Include.jl")))
 
-# `L2cCollections` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :L2cCollections)
+# `L2cTextRepresentation` holds this meeting's local code-point formatter. The
+# module keeps the helper name separate from notebook variables, and the guard
+# makes re-running the setup cell safe.
+if !isdefined(@__MODULE__, :L2cTextRepresentation)
     include(joinpath(CHEME5800_L2C_ROOT, "src", "Compute.jl"))
 end
 
@@ -53,7 +52,6 @@ end
 #   VLDataScienceMachineLearningPackage   the course package
 #
 # Standard library:
-using Statistics       # mean, std, and friends
 using Test             # @test / @testset for the checks in the notebook
 using Unicode          # Unicode normalization utilities
 #
@@ -63,4 +61,4 @@ using PrettyTables     # formatted table output in the notebook
 #
 # This meeting's own source, included above. The leading dot means "a module
 # defined here", as opposed to an installed package of the same name:
-using .L2cCollections  # from the include in section 2
+using .L2cTextRepresentation  # from the include in section 2

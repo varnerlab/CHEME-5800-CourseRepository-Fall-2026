@@ -35,11 +35,11 @@ end
 # the course package. It is the only place environment handling lives.
 include(normpath(joinpath(CHEME5800_L2B_ROOT, "..", "..", "..", "Include.jl")))
 
-# `L2bDebugging` holds this meeting's own source. It is wrapped in a module so that
+# `L2bFibonacci` holds this meeting's own source. It is wrapped in a module so that
 # the guard below has a name meaning "this file's contents", and so that a
 # student stub and a reference solution declaring the same module name stay
 # drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :L2bDebugging)
+if !isdefined(@__MODULE__, :L2bFibonacci)
     include(joinpath(CHEME5800_L2B_ROOT, "src", "Compute.jl"))
 end
 
@@ -57,4 +57,4 @@ using Test           # @test / @testset for the checks in the notebook
 #
 # This meeting's own source, included above. The leading dot means "a module
 # defined here", as opposed to an installed package of the same name:
-using .L2bDebugging  # from the include in section 2
+using .L2bFibonacci  # from the include in section 2

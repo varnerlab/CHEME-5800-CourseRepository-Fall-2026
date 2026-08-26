@@ -1,26 +1,20 @@
-module L2cCollections
+module L2cTextRepresentation
 
-import Statistics: mean
+export codepoint_hex
 
-export codepoint_hex, measurement_summary
+"""
+    codepoint_hex(character::Char) -> String
 
-"""Summarize a nonempty finite numerical vector without changing it."""
-function measurement_summary(values::AbstractVector{<:Real})::NamedTuple
-    isempty(values) && throw(ArgumentError("values may not be empty"))
-    all(isfinite, values) || throw(ArgumentError("values must be finite"))
-    return (
-        count = length(values),
-        minimum = Float64(minimum(values)),
-        maximum = Float64(maximum(values)),
-        mean = Float64(mean(values)),
-    )
-end
-
-"""Format a character's Unicode code point as uppercase U+XXXX."""
+Return a character's Unicode code point in uppercase `U+XXXX` notation. Code
+points above `U+FFFF` use the additional hexadecimal digits they require.
+"""
 function codepoint_hex(character::Char)::String
+    # Convert the numerical code point to hexadecimal and pad values below
+    # U+1000 to the four digits required by standard Unicode notation.
     hexadecimal = uppercase(string(UInt32(character); base = 16, pad = 4))
+
+    # Add the U+ prefix used in Unicode character tables and documentation.
     return "U+$(hexadecimal)"
 end
 
 end
-

@@ -2,18 +2,16 @@ schema_version = 1
 week = 2
 version = "1.0-prototype"
 status = "prototype"
-title = "Functions, errors, collections, and defensive programs"
+title = "Functions, tests, and text representation"
 
 languages = ["Julia", "Python", "C", "Octave"]
 entry_notebooks = [
   "L2a/CHEME-5800-L2a-Lecture-IntroductionToFunctions-Fall-2026.ipynb",
-  "L2b/CHEME-5800-L2b-Lab-ErrorsTestsDebugging-Fall-2026.ipynb",
-  "L2c/CHEME-5800-L2c-Lecture-CollectionsAndTables-Fall-2026.ipynb",
-  "L2d/CHEME-5800-L2d-Lab-DefensiveFibonacci-Fall-2026.ipynb",
+  "L2b/CHEME-5800-L2b-Lab-DefensiveFibonacci-Fall-2026.ipynb",
+  "L2c/CHEME-5800-L2c-Lecture-HexadecimalAndTextRepresentation-Fall-2026.ipynb",
+  "L2d/CHEME-5800-L2d-Lab-UnicodeCharacterTable-Fall-2026.ipynb",
 ]
-supporting_notebooks = [
-  "L2c/CHEME-5800-L2c-Example-HexadecimalAndTextRepresentation-Fall-2026.ipynb",
-]
+supporting_notebooks = []
 datasets = []
 student_paths = ["README.md", "release.toml", "L2a", "L2b", "L2c", "L2d"]
 instructor_only_paths = [
