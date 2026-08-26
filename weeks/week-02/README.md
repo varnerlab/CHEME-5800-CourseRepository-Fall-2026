@@ -43,9 +43,10 @@ julia --startup-file=no --project=. instructor/validation/week-02/runtests.jl
 python -m unittest discover -s weeks/week-02/L2b/src -p 'test_*.py'
 ```
 
-The Python comparison uses only the standard library supplied with Anaconda. It is an
-optional appendix in L2b, not part of the required path, and the Julia tests do not
-depend on it.
+The L2a syntax comparison includes small, optional Julia, Python, C, and Octave programs.
+Python uses only the standard library supplied with Anaconda; the C and Octave examples
+require their respective local tools. The required lecture path and its tests do not
+depend on the optional comparison programs.
 
 Problem sets and their simultaneously released solutions use separate repositories.
 
@@ -69,7 +70,9 @@ markers and none of the solution's distinctive expressions.
 ## Source adaptation
 
 - L2a directly adapts the detailed Fall 2025 functions lecture. Its executable
-  error demonstration is now caught so the notebook can run deterministically.
+  error demonstration is now caught so the notebook can run deterministically, and
+  its concise syntax comparison links to matching runnable Julia, Python, C, and Octave
+  examples.
 - L2b is new for Fall 2026 and uses a freight-loading unit defect (tonnes versus kilograms) to distinguish a
   crashing program from a program that silently returns the wrong answer. The topic was
   reconfirmed against the 2025 and 2024 alternatives; the Julia/Python comparison was
@@ -90,4 +93,3 @@ markers and none of the solution's distinctive expressions.
   the Week 2 function. Resolve this in the Week 3 pass, either by consolidating or by
   recording why the two representations should stay separate. Note that Week 3's
   recursive methods take a `Dict` accumulator, so the dictionary return is not gratuitous.
-
