@@ -5,19 +5,29 @@ export float64_report
   """
       float64_report(value::Float64) -> NamedTuple
 
-  Take a `Float64` apart into the three fields IEEE-754 actually stores, then put it
-  back together from those fields alone.
+  Decompose a binary64 value into its IEEE 754 sign, biased-exponent, and fraction
+  fields, then reconstruct the value from those fields.
 
-  Returns a named tuple with:
+  # Arguments
 
-    * `value` — the argument, unchanged
-    * `sign_bit` — the single leading bit, as a `Char`
-    * `exponent_bits` — the 11 biased-exponent bits, as a `String`
-    * `fraction_bits` — the 52 stored fraction bits, as a `String`
-    * `spacing` — the gap to the next representable value near `value`
-    * `reconstructed` — the value rebuilt from the three fields
+  - `value::Float64`: finite normalized value whose 64-bit representation will be
+    inspected.
 
-  For a finite normalized `value`, `reconstructed` must equal `value` exactly.
+  # Returns
+
+  A `NamedTuple` containing:
+
+  - `value::Float64`: the input value, returned unchanged.
+  - `sign_bit::Char`: the sign bit at position 1 of the bit pattern.
+  - `exponent_bits::String`: the 11 biased-exponent bits at positions 2 through 12.
+  - `fraction_bits::String`: the 52 stored fraction bits at positions 13 through 64.
+  - `spacing::Float64`: the local unit in the last place (ULP), computed as
+    `eps(value)`.
+  - `reconstructed::Float64`: the value rebuilt from the sign, exponent, and
+    fraction fields.
+
+  The reconstruction formula used here assumes a finite normalized input. Under
+  that assumption, `reconstructed` must equal `value` exactly.
   """
   function float64_report(value::Float64)::NamedTuple
 
