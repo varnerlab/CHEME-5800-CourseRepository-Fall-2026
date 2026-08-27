@@ -22,19 +22,19 @@ end
 Run one temperature-conversion example and print the result.
 """
 function main()::Nothing
-    # Choose a sample temperature with a known Celsius equivalent.
+    # Use an exact reference case so the result is easy to verify: 68 °F = 20 °C.
     temperature_f = 68.0
 
-    # Call the conversion function and store its return value.
+    # Reuse the conversion interface instead of duplicating its formula in main.
     temperature_c = fahrenheit_to_celsius(temperature_f)
 
-    # Display the input and output values with their units.
+    # Label both physical units in the displayed result.
     println("$(temperature_f) F = $(temperature_c) C")
     return nothing
 end
 
-# Run main only when this file is executed from the command line. Loading the
-# file with include(...) in the Julia REPL defines the functions without running it.
+# Run the example only when this file is the command-line entry point. Calling
+# include(...) from a Julia session defines the functions without printing output.
 if abspath(PROGRAM_FILE) == @__FILE__
     main()
 end

@@ -23,13 +23,13 @@ double fahrenheit_to_celsius(double temperature_f)
  */
 int main(void)
 {
-    /* Choose a sample temperature with a known Celsius equivalent. */
+    /* Use an exact reference case so the result is easy to verify: 68 F = 20 C. */
     const double temperature_f = 68.0;
 
-    /* Call the conversion function and store its return value. */
+    /* Reuse the conversion interface instead of duplicating its formula in main. */
     const double temperature_c = fahrenheit_to_celsius(temperature_f);
 
-    /* Display the input and output values with their units. */
+    /* Keep one decimal place and label both physical units in the output. */
     printf("%.1f F = %.1f C\n", temperature_f, temperature_c);
     return 0;
 }

@@ -19,17 +19,17 @@ def fahrenheit_to_celsius(temperature_f: float) -> float:
 
 def main() -> None:
     """Run one temperature-conversion example and print the result."""
-    # Choose a sample temperature with a known Celsius equivalent.
+    # Use an exact reference case so the result is easy to verify: 68 F = 20 C.
     temperature_f = 68.0
 
-    # Call the conversion function and store its return value.
+    # Reuse the conversion interface instead of duplicating its formula in main.
     temperature_c = fahrenheit_to_celsius(temperature_f)
 
-    # Display the input and output values with their units.
+    # Keep one decimal place and label both physical units in the output.
     print(f"{temperature_f:.1f} F = {temperature_c:.1f} C")
 
 
-# Run main only when this file is executed from the command line. Importing the
-# file in the Python REPL defines the functions without running the example.
+# Run the example only when this file is the command-line entry point. Importing
+# the module defines the functions without printing output.
 if __name__ == "__main__":
     main()

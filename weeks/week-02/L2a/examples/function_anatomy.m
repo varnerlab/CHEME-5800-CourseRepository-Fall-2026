@@ -3,12 +3,12 @@
 function function_anatomy()
     % FUNCTION_ANATOMY Run one conversion example and print the result.
 
-    % Choose a sample temperature with a known Celsius equivalent.
+    % Use an exact reference case so the result is easy to verify: 68 F = 20 C.
     temperature_f = 68.0;
 
-    % Call the conversion function and store its return value.
+    % Reuse the conversion interface instead of duplicating its formula here.
     temperature_c = fahrenheit_to_celsius(temperature_f);
 
-    % Display the input and output values with their units.
+    % Keep one decimal place and label both physical units in the output.
     fprintf("%.1f F = %.1f C\n", temperature_f, temperature_c);
 end
