@@ -505,7 +505,7 @@ class Audit:
                 self.flag(i, "F6", f"{len(withmath)} {label} contain equations")
 
     def f10_f11_item_prose(self):
-        """Objectives are 1-2 complete sentences; takeaways are one complete sentence."""
+        """Objectives and takeaways are 2-3 complete sentences (claim, mechanism, implication)."""
         for head_re, label, rule in ((OBJ_HEAD, "objective", "F10"),
                                      (KEY_HEAD, "takeaway", "F11")):
             i, _, items = self._items(head_re)
