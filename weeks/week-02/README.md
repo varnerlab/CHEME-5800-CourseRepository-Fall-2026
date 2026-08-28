@@ -46,7 +46,8 @@ python -m unittest discover -s weeks/week-02/L2b/src -p 'test_*.py'
 
 The L2a syntax comparison includes small, optional Julia, Python, C, and Octave programs.
 The L2b lab also includes an optional Python implementation of the defensive Fibonacci
-interface. Python uses only the standard library supplied with Anaconda. The C and
+interface. The Python programs require only Python 3.11 or newer and its standard
+library. The C and
 Octave examples require their respective local tools.
 
 Problem sets and their simultaneously released solutions use separate repositories.

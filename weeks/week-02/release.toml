@@ -1,7 +1,7 @@
 schema_version = 1
 week = 2
-version = "1.0-prototype"
-status = "prototype"
+version = "1.0"
+status = "ready"
 title = "Functions, tests, and text representation"
 
 languages = ["Julia", "Python", "C", "Octave"]
