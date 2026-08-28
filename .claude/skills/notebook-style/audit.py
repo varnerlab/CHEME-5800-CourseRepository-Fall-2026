@@ -100,6 +100,18 @@ FORWARD_REF = re.compile(
     r")\b",
     re.I,
 )
+# A sentence that opens with a backticked code span leads with code where the
+# prose should name the thing: "The `Int(...)` constructor does exactly that",
+# never "`Int(c)` does exactly that"; "The `Float16` type halves the width",
+# never "`Float16` halves the width" (rule set 2026-08-28 for function spans,
+# tightened to all spans the same day). Complements A12, which puts "The"
+# inside a *linked* span that opens a sentence; F21 catches the unlinked case.
+# Two openers stay legal: a span immediately followed by a colon is a
+# definition entry (the Input/Output/Errors contract form), and a span that is
+# the entire line is a display, not a sentence.
+SENTENCE_CODE_SPAN = re.compile(r"`[^`]+`")
+SENTENCE_START = re.compile(r"(?:^|[.!?]\s+)")
+LINE_MARKER = re.compile(r"^\s*(?:>\s?|[*+-]\s+|\d+\.\s+)")
 
 
 def _known_functions():
@@ -811,6 +823,52 @@ class Audit:
                                         f"{body.split()[0]!r}; add a motivation "
                                         "sentence before it")
 
+    def f21_sentence_opens_with_span(self):
+        """A prose sentence never opens with a backticked code span.
+
+        Name the thing first ("The `Int(...)` constructor does exactly that",
+        "The `Float16` type halves the width"), then let the span carry the
+        rest of the sentence. Checked at line starts, after blockquote and
+        list markers, and after sentence-ending punctuation. Two openers stay
+        legal: a span immediately followed by a colon is a definition entry
+        (the Input/Output/Errors contract form), and a span that is the whole
+        line is a display, not a sentence. A span opening link text never
+        matches here because the sentence position holds '[' -- A12 and F20
+        govern links.
+        """
+        for i, c in enumerate(self.cells):
+            if c["cell_type"] != "markdown":
+                continue
+            fenced = False
+            for raw in src(c).splitlines():
+                if raw.lstrip().startswith("```"):
+                    fenced = not fenced
+                    continue
+                if fenced:
+                    continue
+                line = raw
+                while True:
+                    stripped = LINE_MARKER.sub("", line)
+                    if stripped == line:
+                        break
+                    line = stripped
+                line = line.strip()
+                if not line or line.startswith(("#", "|")) or HR.match(line):
+                    continue
+                for b in SENTENCE_START.finditer(line):
+                    m = SENTENCE_CODE_SPAN.match(line, b.end())
+                    if not m:
+                        continue
+                    rest = line[m.end():]
+                    if rest.startswith(":"):
+                        continue  # `name::Type`: definition entry, not a sentence
+                    if m.start() == 0 and not rest.strip():
+                        continue  # the span is the whole line: a display
+                    self.flag(i, "F21", f"sentence opens with the code span "
+                                        f"{m.group(0)[:40]}; name the thing "
+                                        "first ('The `x` type ...', 'The "
+                                        "`f(...)` function ...') and reword")
+
     # ---------------- driver ----------------
 
     def run(self):
@@ -831,7 +889,8 @@ class Audit:
                      self.f4_transition_before_code, self.f5_consecutive_blockquotes,
                      self.f7_latex, self.f8_setup_present, self.f9_single_h1,
                      self.f17_em_dashes, self.f18_forward_references,
-                     self.f19_task_motivation, self.f20_call_links):
+                     self.f19_task_motivation, self.f20_call_links,
+                     self.f21_sentence_opens_with_span):
             step()
         return self.findings, self.repairs
 

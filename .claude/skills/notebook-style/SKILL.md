@@ -81,6 +81,13 @@ reads as a value in its sentence, so A12's mechanical expansion would be wrong. 
 the prose so the link names the function — e.g. "exceeds the largest `Int64` value,
 which [the `typemax(...)` function](url) returns."
 
+**F21 — no sentence opens with a code span.** "`Int(c)` does exactly that" and
+"`Float16` halves the width again" lead with code. Reword so the prose names the thing
+first: "The `Int(...)` constructor does exactly that", "The `Float16` type halves the
+width again." The unlinked cousin of A12's sentence-opening "The". Two exemptions:
+definition entries whose span is immediately followed by a colon (the Input/Output/Errors
+contract form), and a span that is the entire line (a display). Links fall under A12/F20.
+
 ### 4. Verify
 
 Re-run the report until only accepted findings remain, then confirm the notebook still
