@@ -39,8 +39,8 @@ include(normpath(joinpath(CHEME5800_L3D_ROOT, "..", "..", "..", "Include.jl")))
 # a student stub and a reference solution declaring the same module name stay
 # drop-in interchangeable between the notebook and the validation suite. The
 # include is deliberately unguarded: students edit `src/Compute.jl` during the
-# lab, and re-running this file must reload those edits. Julia prints a
-# module-replacement warning when that happens, which is expected.
+# lab, and re-running this file must reload those edits. Julia 1.12 replaces
+# the module silently: the reload works even though nothing is printed.
 include(joinpath(CHEME5800_L3D_ROOT, "src", "Compute.jl"))
 
 
