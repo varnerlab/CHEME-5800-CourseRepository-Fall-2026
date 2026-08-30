@@ -2,11 +2,11 @@ schema_version = 2
 week = 3
 version = "1.0-prototype"
 status = "prototype"
-title = "Data provenance, recursion, and sorting as a testable algorithm"
+title = "Stacks, queues, recursion, and sorting as a testable algorithm"
 
-languages = ["Julia", "Python"]
+languages = ["Julia"]
 entry_notebooks = [
-  "L3b/CHEME-5800-L3b-Lab-DataValidation-Provenance-Fall-2026.ipynb",
+  "L3b/CHEME-5800-L3b-Lecture-StacksAndQueues-Fall-2026.ipynb",
   "L3c/CHEME-5800-L3c-Lecture-RecursionConcept-Fall-2026.ipynb",
   "L3d/CHEME-5800-L3d-Lab-AnotherLookAtSorting-Fall-2026.ipynb",
 ]
@@ -16,16 +16,18 @@ supporting_notebooks = [
   "L3d/CHEME-5800-L3d-Algorithm-Quicksort-Fall-2026.ipynb",
 ]
 datasets = [
-  "L3b/data/README.md",
-  "L3b/data/fulfillment-shifts.csv",
-  "L3b/data/fulfillment-metadata.json",
-  "L3b/data/fulfillment-shifts-invalid-example.csv",
+  # The 128 tone files ship alongside this README inside L3d/sounds.
+  "L3d/sounds/README.md",
 ]
 student_paths = ["README.md", "L3b", "L3c", "L3d"]
-instructor_only_paths = ["../../instructor/validation/week-03"]
+instructor_only_paths = [
+  "../../instructor/validation/week-03",
+  # The L3d lab ships as a stub students complete in class; the reference
+  # solution must not be bundled with it.
+  "L3d/src/Compute-solution.jl",
+]
 
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-03/runtests.jl"
-python = "python -m unittest discover -s weeks/week-03/L3b/src -p 'test_*.py'"
 external_packages_required = true
 network_required = false

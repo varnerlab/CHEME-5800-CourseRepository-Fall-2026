@@ -35,12 +35,12 @@ end
 # the course package. It is the only place environment handling lives.
 include(normpath(joinpath(CHEME5800_L3B_ROOT, "..", "..", "..", "Include.jl")))
 
-# `L3bData` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
+# `L3bStacksQueues` holds this meeting's own source. It is wrapped in a module
+# so that the guard below has a name meaning "this file's contents", and so that
+# a student stub and a reference solution declaring the same module name stay
 # drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :L3bData)
-    include(joinpath(CHEME5800_L3B_ROOT, "src", "Data.jl"))
+if !isdefined(@__MODULE__, :L3bStacksQueues)
+    include(joinpath(CHEME5800_L3B_ROOT, "src", "Compute.jl"))
 end
 
 
@@ -53,14 +53,8 @@ end
 #   VLDataScienceMachineLearningPackage   the course package
 #
 # Standard library:
-using SHA         # SHA-256 digests for file integrity
 using Test        # @test / @testset for the checks in the notebook
-#
-# Packages:
-using CSV         # reading delimited data files
-using DataFrames  # tabular records held as columns
-using JSON        # parsing and writing JSON
 #
 # This meeting's own source, included above. The leading dot means "a module
 # defined here", as opposed to an installed package of the same name:
-using .L3bData    # from the include in section 2
+using .L3bStacksQueues    # from the include in section 2

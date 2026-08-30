@@ -36,12 +36,12 @@ end
 include(normpath(joinpath(CHEME5800_L3D_ROOT, "..", "..", "..", "Include.jl")))
 
 # `L3dSorting` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :L3dSorting)
-    include(joinpath(CHEME5800_L3D_ROOT, "src", "Compute.jl"))
-end
+# a student stub and a reference solution declaring the same module name stay
+# drop-in interchangeable between the notebook and the validation suite. The
+# include is deliberately unguarded: students edit `src/Compute.jl` during the
+# lab, and re-running this file must reload those edits. Julia prints a
+# module-replacement warning when that happens, which is expected.
+include(joinpath(CHEME5800_L3D_ROOT, "src", "Compute.jl"))
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
@@ -61,6 +61,9 @@ using Test            # @test / @testset for the checks in the notebook
 using BenchmarkTools  # @benchmarkable timing measurements
 using DataFrames      # tabular records held as columns
 using Plots           # figures
+#
+# The L3dSorting module imports WAV internally for the optional bubble-sort
+# sound playback; the notebook itself never calls WAV directly.
 #
 # This meeting's own source, included above. The leading dot means "a module
 # defined here", as opposed to an installed package of the same name:

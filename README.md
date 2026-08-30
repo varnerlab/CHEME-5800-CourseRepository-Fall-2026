@@ -55,7 +55,7 @@ In brief:
    [Week 0 system-check notebook](weeks/week-00/W0a/CHEME-5800-W0a-Onboarding-SystemCheck-Fall-2026.ipynb).
    A green final test means the installation is ready for class.
 
-Python 3.11 or newer is used only in Weeks 2, 3, and 13. A GitHub account and
+Python 3.11 or newer is used only in Weeks 2 and 13. A GitHub account and
 [GitHub Desktop](https://desktop.github.com) are needed for problem sets, but not
 for downloaded weekly lecture and lab bundles. The Week 0 guide explains both.
 
@@ -102,7 +102,7 @@ for published student bundles.
 | 0 | Course setup and system check | [Week 0](weeks/week-00/) |
 | 1 | Primitive types, data representations, and floating point | [Week 1](weeks/week-01/) |
 | 2 | Functions, errors, collections, and defensive programs | [Week 2](weeks/week-02/) |
-| 3 | Data provenance, recursion, and testable algorithms | [Week 3](weeks/week-03/) |
+| 3 | Stacks, queues, recursion, and testable algorithms | [Week 3](weeks/week-03/) |
 | 4 | Graph representations, traversal, and shortest paths | [Week 4](weeks/week-04/) |
 | 5 | Maximum flow and linear programming | [Week 5](weeks/week-05/) |
 | 6 | Duality, flux balance, and iterative linear solvers | [Week 6](weeks/week-06/) |

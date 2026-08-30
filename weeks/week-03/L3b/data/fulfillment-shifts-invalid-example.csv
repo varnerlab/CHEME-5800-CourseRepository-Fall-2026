@@ -1,4 +1,0 @@
-shift_id,zone,orders_completed,labor_hours,picking_error_fraction
-S01,East,92,8.0,0.021
-S01,,88,0,1.07
-S03,North,-4,8.0,0.019

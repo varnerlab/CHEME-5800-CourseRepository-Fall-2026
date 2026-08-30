@@ -2,32 +2,46 @@ const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-0
 
 include(joinpath(WEEK_ROOT, "L3b", "Include.jl"))
 include(joinpath(WEEK_ROOT, "L3c", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L3d", "Include.jl"))
 
-@testset "L3b data validation and provenance" begin
-    data_root = joinpath(WEEK_ROOT, "L3b", "data")
-    csv_path = joinpath(data_root, "fulfillment-shifts.csv")
-    metadata_path = joinpath(data_root, "fulfillment-metadata.json")
-    bundle = load_shift_bundle(csv_path, metadata_path)
-    @test bundle.validation.valid
-    @test isempty(bundle.validation.errors)
-    @test nrow(bundle.shifts) == 8
-    @test occursin("synthetic", lowercase(bundle.metadata["provenance"]))
-    @test length(file_sha256(csv_path)) == 64
+# The L3d lab ships a deliberately incomplete student bubble sort. Validation
+# loads the reference solution directly instead of the lab's Include.jl, which
+# would load the student module of the same name.
+include(joinpath(WEEK_ROOT, "L3d", "src", "Compute-solution.jl"))
+using .L3dSorting
 
-    invalid = CSV.read(joinpath(data_root, "fulfillment-shifts-invalid-example.csv"), DataFrame)
-    report = validate_shift_records(invalid)
-    @test !report.valid
-    @test any(error -> occursin("unique", error), report.errors)
-    @test any(error -> occursin("zone", error), report.errors)
-    @test any(error -> occursin("orders_completed", error), report.errors)
-    @test any(error -> occursin("labor_hours", error), report.errors)
-    @test any(error -> occursin("picking_error_fraction", error), report.errors)
+@testset "L3b stacks and queues" begin
+    # Verify the LIFO discipline through the public Stack interface.
+    stack = Stack{Int64}()
+    @test isempty(stack)
+    push!(stack, 1)
+    push!(stack, 2)
+    push!(stack, 3)
+    @test length(stack) == 3
+    @test peek(stack) == 3
+    @test pop!(stack) == 3
+    @test pop!(stack) == 2
+    @test pop!(stack) == 1
+    @test isempty(stack)
 
-    @test !validate_shift_records(select(bundle.shifts, Not(:zone))).valid
-    @test !validate_shift_records(bundle.shifts[1:0, :]).valid
-    duplicates = vcat(bundle.shifts, bundle.shifts[1:1, :])
-    @test any(error -> occursin("unique", error), validate_shift_records(duplicates).errors)
+    # Verify the FIFO discipline through the public Queue interface.
+    queue = Queue{String}()
+    push!(queue, "a")
+    push!(queue, "b")
+    push!(queue, "c")
+    @test length(queue) == 3
+    @test peek(queue) == "a"
+    @test popfirst!(queue) == "a"
+    @test popfirst!(queue) == "b"
+    @test popfirst!(queue) == "c"
+    @test isempty(queue)
+
+    # Verify the balanced-delimiter checker, including every failure mode.
+    @test isbalanced("f(x[2]) + {a: (b)}")
+    @test isbalanced("no delimiters at all")
+    @test isbalanced("")
+    @test !isbalanced("f(x[2)]")
+    @test !isbalanced(")(")
+    @test !isbalanced("open( forever")
 end
 
 @testset "L3c iteration and recursion" begin
@@ -52,6 +66,13 @@ end
 @testset "L3d sorting contracts" begin
     values = [5, 1, 4, 2, 8, 2]
     @test bubblesort(values) == sort(values)
+    @test values == [5, 1, 4, 2, 8, 2] # the non-mutating wrapper sorts a copy
+    in_place = [3, 1, 2]
+    @test bubblesort!(in_place) == [1, 2, 3]
+    @test in_place == [1, 2, 3] # the mutating version sorts its argument
+    @test bubblesort(Int[]) == Int[]
+    @test bubblesort([7]) == [7]
+    @test bubblesort(collect(10:-1:1)) == collect(1:10)
     @test quicksort(values) == sort(values)
     report = bubble_sort_report(values)
     @test report.values == sort(values)
@@ -69,4 +90,31 @@ end
     end
     @test bubble_sort_report(["bbb", "a", "cc"]; lt = (a, b) -> length(a) < length(b)).values ==
           ["a", "cc", "bbb"]
+end
+
+@testset "L3d sound library" begin
+    library = load_sound_library(joinpath(WEEK_ROOT, "L3d", "sounds"))
+    @test length(library) == 128
+    @test all(haskey(library, index) for index in 1:128)
+    waveform, sampling_frequency = library[1]
+    @test waveform isa Matrix{Float64}
+    @test sampling_frequency > 0
+end
+
+@testset "L3d lab ships an incomplete student bubble sort" begin
+    stub = read(joinpath(WEEK_ROOT, "L3d", "src", "Compute.jl"), String)
+    @test occursin("TODO 1", stub)
+    @test occursin("TODO 2", stub)
+    @test occursin("TODO 3", stub)
+    @test occursin("Complete TODO 1 through TODO 3", stub)
+    @test occursin("not implemented yet", stub)
+    # The distinctive solution expression must be absent from the student stub.
+    @test !occursin("values[position], values[position + 1]", stub)
+
+    # The stub must also parse and actually throw when called. Loading it into a
+    # sandbox module leaves the reference solution loaded above untouched.
+    sandbox = Module(:L3dStubSandbox)
+    Base.include(sandbox, joinpath(WEEK_ROOT, "L3d", "src", "Compute.jl"))
+    @test_throws ErrorException sandbox.L3dSorting.bubblesort!([3, 1, 2])
+    @test_throws ErrorException sandbox.L3dSorting.bubblesort([3, 1, 2])
 end
