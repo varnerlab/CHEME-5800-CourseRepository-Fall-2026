@@ -65,6 +65,10 @@ using Plots           # figures
 # The L3dSorting module imports WAV internally for the optional bubble-sort
 # sound playback; the notebook itself never calls WAV directly.
 #
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .L3dSorting     # from the include in section 2
+# This meeting's own source (the include in section 2) stays behind its module
+# name: the notebook calls L3dSorting.bubblesort(...) and friends, qualified.
+# There is deliberately no `using .L3dSorting` here. Re-running this file
+# replaces the module, and on Julia 1.12 a second `using` of the replacement
+# makes every exported name ambiguous in Main (UndefVarError: two modules
+# export the name). Qualified lookup follows the replaced module, so the
+# edit-save-rerun loop in the lab works without restarting the kernel.

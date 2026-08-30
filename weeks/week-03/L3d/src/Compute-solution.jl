@@ -95,7 +95,7 @@ function quicksort_reference(values::AbstractVector; lt = isless)
     )
 end
 
-"""Sort a numerical vector using the recursive quicksort reference from Fall 2025."""
+"""Sort a numerical vector with the recursive quicksort reference above."""
 quicksort(values::AbstractVector{<:Number}) = quicksort_reference(values)
 
 end
