@@ -55,6 +55,11 @@ end
 # Standard library:
 using Test        # @test / @testset for the checks in the notebook
 #
+# Packages. The import is selective because DataStructures also exports Stack
+# and Queue; a blanket `using` would make those names ambiguous with the
+# course-built types from L3bStacksQueues below:
+using DataStructures: MutableLinkedList  # the linked-list section
+#
 # This meeting's own source, included above. The leading dot means "a module
 # defined here", as opposed to an installed package of the same name:
 using .L3bStacksQueues    # from the include in section 2

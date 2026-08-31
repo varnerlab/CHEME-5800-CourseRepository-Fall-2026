@@ -2,13 +2,14 @@
 <svg width="458px" height="156px" viewBox="0 0 458 156" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <title>Stack</title>
     <g id="Stack" stroke="none" fill="none">
-        <g id="Group-7" stroke-width="1" fill-rule="evenodd" transform="translate(131.5, 86)">
+        <g id="Group-7" stroke-width="1" fill-rule="evenodd" transform="translate(131.5, 85)">
             <rect id="Rectangle" stroke="#EF4035" x="63" y="0.5" width="23" height="23"></rect>
             <text id="16" font-family="ArialMT, Arial" font-size="12" font-weight="normal" fill="#040404">
                 <tspan x="67.8261719" y="16">16</tspan>
             </text>
             <text id="push!(s,-)" font-family="ArialMT, Arial" font-size="16" font-weight="normal" fill="#040404">
-                <tspan x="4.04296875" y="18">push!(s,      )</tspan>
+                <tspan x="4.04296875" y="18">push!(s,</tspan>
+                <tspan x="88.5" y="18">)</tspan>
             </text>
             <path id="Line-3" d="M89.3093429,26.3190816 L89.7451306,26.5642122 L97.7451306,31.0642122 L98.5198644,31.5 L97.7451306,31.9357878 L89.7451306,36.4357878 L89.3093429,36.6809184 L88.8190816,35.8093429 L89.2548694,35.5642122 L95.589,32 L-0.5,32 L-0.5,31 L95.593,31 L89.2548694,27.4357878 L88.8190816,27.1906571 L89.3093429,26.3190816 Z" fill="#000000" fill-rule="nonzero"></path>
         </g>
@@ -32,7 +33,7 @@
                 <tspan x="5.32617188" y="16">16</tspan>
             </text>
         </g>
-        <g id="Group-8" stroke-width="1" fill-rule="evenodd" transform="translate(154, 25)">
+        <g id="Group-8" stroke-width="1" fill-rule="evenodd" transform="translate(154, 26)">
             <g id="Group-14">
                 <g id="Group" transform="translate(13, 0)">
                     <rect id="Rectangle" stroke="#EF4035" x="0.5" y="0.5" width="23" height="23"></rect>
@@ -126,7 +127,7 @@
             </g>
             <path id="Line-3" d="M74.8093429,7.31908161 L75.2451306,7.56421223 L83.2451306,12.0642122 L84.0198644,12.5 L83.2451306,12.9357878 L75.2451306,17.4357878 L74.8093429,17.6809184 L74.3190816,16.8093429 L74.7548694,16.5642122 L81.98,12.5 L74.7548694,8.43578777 L74.3190816,8.19065715 L74.8093429,7.31908161 Z M29,12 L29,13 L23,13 L23,12 L29,12 Z M39,12 L39,13 L33,13 L33,12 L39,12 Z M49,12 L49,13 L43,13 L43,12 L49,12 Z M59,12 L59,13 L53,13 L53,12 L59,12 Z M69,12 L69,13 L63,13 L63,12 L69,12 Z M79,12 L79,13 L73,13 L73,12 L79,12 Z" fill="#000000" fill-rule="nonzero"></path>
         </g>
-        <g id="Group-8" stroke-width="1" fill-rule="evenodd" transform="translate(315, 49)">
+        <g id="Group-8" stroke-width="1" fill-rule="evenodd" transform="translate(315, 52)">
             <g id="Group-14">
                 <g id="Group" transform="translate(13, 0)">
                     <rect id="Rectangle" stroke="#EF4035" x="0.5" y="0.5" width="23" height="23"></rect>
