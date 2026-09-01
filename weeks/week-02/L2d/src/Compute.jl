@@ -35,7 +35,8 @@ function character_table(text::AbstractString)::DataFrame
     # TODO 3: Return the completed DataFrame. The same code should return an
     # empty table with the correct columns when text == "".
 
-    throw(ErrorException("The `character_table(...)` function is not implemented yet. Complete TODO 1 through TODO 3."))
+    throw(ErrorException("Oooops! The `character_table(...)` function is not implemented yet - " *
+                         "we'd better fix that. Complete TODO 1 through TODO 3."))
 end
 
 # Reject non-string inputs with the exception type documented by the interface.

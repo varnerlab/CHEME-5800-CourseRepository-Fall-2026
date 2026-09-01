@@ -101,6 +101,9 @@ From the corpus style guide, these govern all generated prose:
 - Plain words over writerly framing. Name the thing ("the corrected interface"), never
   a clever noun standing in for it ("the repair", "the ask", "the build"). Jeff flagged
   "the repair" as chippy, 2026-08-26.
+- In objectives and takeaways, no coined or stand-in jargon: say "stacks and queues",
+  not "both disciplines" (Jeff rejected the latter, 2026-08-31). A taught term is fine
+  in the body section that defines it.
 - Content must be supported by what is actually in the notebook. Do not invent claims.
 - Prefer short blockquote sections over long interpretive paragraphs.
 - When unsure, make a section shorter, not longer.

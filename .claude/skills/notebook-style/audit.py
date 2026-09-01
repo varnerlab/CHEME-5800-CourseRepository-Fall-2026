@@ -194,6 +194,24 @@ def find_block(cells, head_re):
     return None
 
 
+_ABBREVIATIONS = {"e.g", "i.e", "vs", "etc", "cf", "eq", "fig", "sec", "ch", "no"}
+
+
+def _sentence_count(text):
+    """Count sentences, ignoring punctuation inside code spans, link URLs,
+    decimals, and common abbreviations. Heuristic; feeds a FLAG rule only."""
+    text = re.sub(r"`[^`]*`", "CODE", text)   # push!(...) carries ! that is no boundary
+    text = re.sub(r"\]\([^)]*\)", "]", text)  # link URLs carry dots
+    count = 0
+    for m in re.finditer(r"[.!?]+(?=$|\s)", text):
+        before = text[:m.start()].rstrip()
+        word = before.rsplit(None, 1)[-1] if before else ""
+        if word.lower().rstrip(".") in _ABBREVIATIONS:
+            continue
+        count += 1
+    return count
+
+
 class Audit:
     def __init__(self, path, fix=False):
         self.path = path
@@ -515,9 +533,14 @@ class Audit:
             withmath = [t for t in items if "$" in t]
             if withmath:
                 self.flag(i, "F6", f"{len(withmath)} {label} contain equations")
+            withcode = [t for t in items if "`" in t]
+            if withcode:
+                self.flag(i, "F6", f"{len(withcode)} {label} contain code spans "
+                                   f"(plain words only)")
 
     def f10_f11_item_prose(self):
-        """Objectives and takeaways are 2-3 complete sentences (claim, mechanism, implication)."""
+        """Objectives and takeaways are exactly 2 crisp complete sentences,
+        directly supported by notebook content (JV, 2026-08-31)."""
         for head_re, label, rule in ((OBJ_HEAD, "objective", "F10"),
                                      (KEY_HEAD, "takeaway", "F11")):
             i, _, items = self._items(head_re)
@@ -532,6 +555,11 @@ class Audit:
                 elif len(body) < 60:
                     self.flag(i, rule, f"{label} {n} is a fragment "
                                        f"({len(body)} chars): {body[:44]!r}")
+                else:
+                    count = _sentence_count(body)
+                    if count != 2:
+                        self.flag(i, rule, f"{label} {n} has {count} sentence(s); "
+                                           f"the rule is exactly 2")
 
     def f12_unlinked_functions(self):
         """A function mentioned as a code span should be linked to its docs somewhere."""

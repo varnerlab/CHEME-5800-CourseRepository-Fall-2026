@@ -163,12 +163,12 @@ objectives and takeaways blockquotes.
 | F3 | Summary = one direct summary sentence, the takeaways blockquote, one concluding sentence |
 | F4 | A short transition sentence precedes every code cell. Checked as: the preceding cell is markdown and its last non-blank line is ordinary prose — not a blockquote (`>`), heading, list item, or `___`. Consecutive code cells are exempt. |
 | F5 | No two consecutive blockquotes without connective prose — both within a cell and across adjacent cells |
-| F6 | No equations inside objectives or takeaways |
+| F6 | No equations and no code inside objectives or takeaways — plain words only (JV, 2026-08-31). No backticked spans, function names, or type names; describe the thing in words ("the functions a type provides", not a list of calls). Plain notation that is not code, such as U+ notation written without backticks, is fine. |
 | F7 | `$$`/`$` balanced; every `\begin{…}` has a matching `\end{…}` |
 | F8 | A code-bearing notebook has a `## Setup, Data, and Prerequisites` section |
 | F9 | Exactly one H1, and it is the first line of the first cell |
-| F10 | Each learning objective is two to three **complete sentences** in the claim–mechanism–implication shape: the ability, the mechanism as the notebook actually does it, then why it matters or where it recurs (JV ratified the thorough shape 2026-08-27; week-02 is the reference). Never a fragment. |
-| F11 | Each key takeaway is two to three **complete sentences** in the same claim–mechanism–implication shape as F10. Every mechanism named must be supported by what the notebook actually does. |
+| F10 | Each learning objective is exactly two **crisp complete sentences**: the ability or claim first, then the mechanism or implication as the notebook actually does it. Every statement must be directly supported by notebook content (JV tightened from 2–3 sentences on 2026-08-31; week-03 L3b is the reference). Never a fragment. |
+| F11 | Each key takeaway is exactly two **crisp complete sentences** in the same shape as F10. Every mechanism named must be directly supported by what the notebook actually does. |
 | F12 | A function named as a code span is linked to its docs somewhere in the notebook. Two forms are detected: `` `name(...)` `` anywhere, and a bare `` `name` `` **used as the subject of a verb** ("`filter` returns selected rows") when `name` appears in `julia-functions.txt`. Functions and types the notebook defines itself are exempt. |
 
 ### Why the bare-name check is verb-anchored

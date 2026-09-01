@@ -33,7 +33,8 @@ function fibonacci_sequence(n::Integer)::Vector{Int64}
     # TODO 3: Compute F_2 through F_n from the two preceding values. Use
     # Base.Checked.checked_add so any unexpected overflow raises an error.
 
-    throw(ErrorException("The `fibonacci_sequence(...)` function is not implemented yet. Complete TODO 1 through TODO 3."))
+    throw(ErrorException("Oooops! The `fibonacci_sequence(...)` function is not implemented yet - " *
+                         "we'd better fix that. Complete TODO 1 through TODO 3."))
 end
 
 # Reject values that do not match the public Integer method with one clear error.

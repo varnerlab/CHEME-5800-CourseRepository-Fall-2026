@@ -58,7 +58,8 @@ function bubblesort!(values::AbstractVector{<:Number};
     # TODO 3: Track whether the pass performed any swap, stop early when a full
     # pass changes nothing, and return the (now sorted) values vector.
 
-    throw(ErrorException("The `bubblesort!(...)` function is not implemented yet. Complete TODO 1 through TODO 3."))
+    throw(ErrorException("Oooops! The `bubblesort!(...)` function is not implemented yet - " *
+                         "we'd better fix that. Complete TODO 1 through TODO 3."))
 end
 
 """
