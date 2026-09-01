@@ -1,11 +1,14 @@
-module L5cLinearPrograms
+# ------------------------------------------------------------------------------------------------ #
+# LinearPrograms.jl
+#
+# Fruit-allocation linear program used by the week-05 L5c lecture.
+# ------------------------------------------------------------------------------------------------ #
 
 import GLPK
 import JuMP
 import LinearAlgebra: dot
-import MathOptInterface as MOI
+const MOI = JuMP.MOI   # JuMP re-exports MathOptInterface, which is not a direct dependency
 
-export solve_fruit_problem
 
 """Solve the two-or-more-good budget allocation LP with nonnegative quantities."""
 function solve_fruit_problem(
@@ -39,6 +42,4 @@ function solve_fruit_problem(
         status = status,
         utility_per_dollar = u ./ p,
     )
-end
-
 end

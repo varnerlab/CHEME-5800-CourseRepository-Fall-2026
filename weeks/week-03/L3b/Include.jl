@@ -7,7 +7,7 @@
 # The file is in three sections, in this order:
 #
 #   1. PATHS   locate this folder, so nothing depends on the working directory
-#   2. CODE    load the root bootstrap and any source this meeting needs
+#   2. CODE    load the root bootstrap
 #   3. IMPORTS every `using` for this meeting, in one block
 #
 # Section 3 is deliberately the only place a `using` appears. To see what a
@@ -35,13 +35,9 @@ end
 # the course package. It is the only place environment handling lives.
 include(normpath(joinpath(CHEME5800_L3B_ROOT, "..", "..", "..", "Include.jl")))
 
-# `L3bStacksQueues` holds this meeting's own source. It is wrapped in a module
-# so that the guard below has a name meaning "this file's contents", and so that
-# a student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :L3bStacksQueues)
-    include(joinpath(CHEME5800_L3B_ROOT, "src", "Compute.jl"))
-end
+# This meeting carries no source of its own. The `MyStack` and `MyQueue` types and
+# the `isbalanced(...)` checker live in the course package, in `code/src/StacksQueues.jl`,
+# and arrive through the root bootstrap above.
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
@@ -55,11 +51,7 @@ end
 # Standard library:
 using Test        # @test / @testset for the checks in the notebook
 #
-# Packages. The import is selective because DataStructures also exports Stack
-# and Queue; a blanket `using` would make those names ambiguous with the
-# course-built types from L3bStacksQueues below:
+# Packages. DataStructures also exports `Stack` and `Queue`, which is why the
+# course-built types are named `MyStack` and `MyQueue`. The import stays
+# selective anyway, so only the name this meeting uses enters scope:
 using DataStructures: MutableLinkedList  # the linked-list section
-#
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .L3bStacksQueues    # from the include in section 2

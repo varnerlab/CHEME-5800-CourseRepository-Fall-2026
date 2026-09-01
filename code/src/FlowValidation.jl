@@ -1,9 +1,11 @@
-module L5aFlowValidation
+# ------------------------------------------------------------------------------------------------ #
+# FlowValidation.jl
+#
+# Maximum-flow graph construction and independent flow validation used by the week-05 L5a lecture.
+# ------------------------------------------------------------------------------------------------ #
 
-import VLDataScienceMachineLearningPackage: MyConstrainedGraphEdgeModels,
-    MyDirectedBipartiteGraphModel, build
-
-export build_flow_graph, parse_constrained_edge, validate_flow
+# `MyConstrainedGraphEdgeModels`, `MyDirectedBipartiteGraphModel` and `build` are defined
+# in Types.jl and Factory.jl, which this module's parent includes ahead of this file.
 
 """Parse `source,target,cost,lower,upper` from one edge-list record."""
 function parse_constrained_edge(record::String, delimiter::Char = ',')
@@ -60,6 +62,4 @@ function validate_flow(graph, flow::AbstractDict, source::Integer, sink::Integer
         balance_ok = balance_ok,
         residuals = residuals,
     )
-end
-
 end

@@ -10,8 +10,8 @@ include(joinpath(WEEK_ROOT, "L3d", "src", "Compute-solution.jl"))
 using .L3dSorting
 
 @testset "L3b stacks and queues" begin
-    # Verify the LIFO discipline through the public Stack interface.
-    stack = Stack{Int64}()
+    # Verify the LIFO discipline through the public MyStack interface.
+    stack = MyStack{Int64}()
     @test isempty(stack)
     push!(stack, 1)
     push!(stack, 2)
@@ -23,8 +23,8 @@ using .L3dSorting
     @test pop!(stack) == 1
     @test isempty(stack)
 
-    # Verify the FIFO discipline through the public Queue interface.
-    queue = Queue{String}()
+    # Verify the FIFO discipline through the public MyQueue interface.
+    queue = MyQueue{String}()
     push!(queue, "a")
     push!(queue, "b")
     push!(queue, "c")

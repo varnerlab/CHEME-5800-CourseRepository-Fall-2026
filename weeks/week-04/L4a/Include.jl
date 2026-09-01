@@ -7,7 +7,7 @@
 # The file is in three sections, in this order:
 #
 #   1. PATHS   locate this folder, so nothing depends on the working directory
-#   2. CODE    load the root bootstrap and any source this meeting needs
+#   2. CODE    load the root bootstrap
 #   3. IMPORTS every `using` for this meeting, in one block
 #
 # Section 3 is deliberately the only place a `using` appears. To see what a
@@ -39,13 +39,9 @@ end
 # the course package. It is the only place environment handling lives.
 include(normpath(joinpath(CHEME5800_L4A_ROOT, "..", "..", "..", "Include.jl")))
 
-# `L4aRepresentation` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :L4aRepresentation)
-    include(joinpath(CHEME5800_L4A_ROOT, "src", "Representation.jl"))
-end
+# This meeting carries no source of its own. The graph-representation functions it uses
+# live in the course package, in `code/src/GraphRepresentation.jl`, and arrive through the root
+# bootstrap above.
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
@@ -58,7 +54,3 @@ end
 #
 # Standard library:
 using Test                # @test / @testset for the checks in the notebook
-#
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .L4aRepresentation  # from the include in section 2

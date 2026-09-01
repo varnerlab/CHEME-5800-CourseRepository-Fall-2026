@@ -1,7 +1,16 @@
-module L3cRecursion
-
-export fibonacci, fibonacci!, iterative_fibonacci_report,
-       memoization_fibonacci!, recursive_fibonacci_report
+# ------------------------------------------------------------------------------------------------ #
+# Recursion.jl
+#
+# Iterative and recursive Fibonacci implementations used by the week-03 recursion material
+# (the L3c lecture and its companion example). The three public entry points are deliberately
+# near-identical so the notebooks can compare them:
+#
+#   fibonacci(n)                          a single for-loop
+#   fibonacci!(n, series)                 the plain recurrence; records but never consults `series`
+#   memoization_fibonacci!(n, series)     the same recurrence plus one lookup, so each index is solved once
+#
+# The two *_report helpers return operation counts and back the week-03 validation suite.
+# ------------------------------------------------------------------------------------------------ #
 
 """Compute `F₀` through `Fₙ` iteratively and return an index-to-value dictionary."""
 function fibonacci(n::Int64)::Dict{Int64, Int64}
@@ -75,6 +84,4 @@ function recursive_fibonacci_report(n)::NamedTuple
     end
 
     return (value = visit(index), calls = calls[])
-end
-
 end

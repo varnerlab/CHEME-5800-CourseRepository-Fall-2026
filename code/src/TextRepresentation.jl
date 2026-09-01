@@ -1,6 +1,8 @@
-module L2cTextRepresentation
-
-export codepoint_hex
+# ------------------------------------------------------------------------------------------------ #
+# TextRepresentation.jl
+#
+# Code-point formatting helper used by the week-02 L2c lecture on text representation.
+# ------------------------------------------------------------------------------------------------ #
 
 """
     codepoint_hex(character::Char) -> String
@@ -15,6 +17,4 @@ function codepoint_hex(character::Char)::String
 
     # Add the U+ prefix used in Unicode character tables and documentation.
     return "U+$(hexadecimal)"
-end
-
 end

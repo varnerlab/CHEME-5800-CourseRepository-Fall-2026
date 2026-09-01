@@ -1,8 +1,11 @@
-module L4cShortestPaths
+# ------------------------------------------------------------------------------------------------ #
+# ShortestPathAlgorithms.jl
+#
+# Dijkstra and Bellman-Ford implementations used by the week-04 L4c lecture.
+# ------------------------------------------------------------------------------------------------ #
 
 import DataStructures: PriorityQueue, dequeue!
 
-export WeightedEdge, bellman_ford, dijkstra, path_cost, reconstruct_path, weighted_edges
 
 struct WeightedEdge
     source::Int64
@@ -122,6 +125,3 @@ function path_cost(edges::AbstractVector{WeightedEdge}, path::AbstractVector{<:I
     end
     return total
 end
-
-end
-

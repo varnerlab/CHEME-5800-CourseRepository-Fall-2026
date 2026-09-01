@@ -7,7 +7,7 @@
 # The file is in three sections, in this order:
 #
 #   1. PATHS   locate this folder, so nothing depends on the working directory
-#   2. CODE    load the root bootstrap and any source this meeting needs
+#   2. CODE    load the root bootstrap
 #   3. IMPORTS every `using` for this meeting, in one block
 #
 # Section 3 is deliberately the only place a `using` appears. To see what a
@@ -35,12 +35,9 @@ end
 # the course package. It is the only place environment handling lives.
 include(normpath(joinpath(CHEME5800_L2C_ROOT, "..", "..", "..", "Include.jl")))
 
-# `L2cTextRepresentation` holds this meeting's local code-point formatter. The
-# module keeps the helper name separate from notebook variables, and the guard
-# makes re-running the setup cell safe.
-if !isdefined(@__MODULE__, :L2cTextRepresentation)
-    include(joinpath(CHEME5800_L2C_ROOT, "src", "Compute.jl"))
-end
+# This meeting carries no source of its own. The `codepoint_hex(...)` helper it uses
+# lives in the course package, in `code/src/TextRepresentation.jl`, and arrives through the root
+# bootstrap above.
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
@@ -58,7 +55,3 @@ using Unicode          # Unicode normalization utilities
 # Packages:
 using DataFrames       # tabular records held as columns
 using PrettyTables     # formatted table output in the notebook
-#
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .L2cTextRepresentation  # from the include in section 2

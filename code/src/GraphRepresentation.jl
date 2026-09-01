@@ -1,7 +1,8 @@
-module L4aRepresentation
-
-export adjacency_list, adjacency_matrix, directed_density, read_weighted_edges,
-       representation_report, vertex_ids
+# ------------------------------------------------------------------------------------------------ #
+# GraphRepresentation.jl
+#
+# Edge-list, adjacency-list and adjacency-matrix representations used by the week-04 L4a lecture.
+# ------------------------------------------------------------------------------------------------ #
 
 const WeightedEdgeRecord = NamedTuple{(:source, :target, :weight), Tuple{Int64, Int64, Float64}}
 
@@ -82,6 +83,3 @@ function representation_report(edges)::NamedTuple
         adjacency_list_entries = n + m,
     )
 end
-
-end
-

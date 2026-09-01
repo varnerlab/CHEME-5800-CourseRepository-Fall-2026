@@ -30,6 +30,13 @@ include(joinpath(_PATH_TO_SRC, "Types.jl"));
 include(joinpath(_PATH_TO_SRC, "Factory.jl"));
 include(joinpath(_PATH_TO_SRC, "Files.jl"));
 include(joinpath(_PATH_TO_SRC, "Compute.jl"));
+include(joinpath(_PATH_TO_SRC, "TextRepresentation.jl"));
+include(joinpath(_PATH_TO_SRC, "GraphRepresentation.jl"));
+include(joinpath(_PATH_TO_SRC, "ShortestPathAlgorithms.jl"));
+include(joinpath(_PATH_TO_SRC, "FlowValidation.jl"));
+include(joinpath(_PATH_TO_SRC, "LinearPrograms.jl"));
+include(joinpath(_PATH_TO_SRC, "StacksQueues.jl"));
+include(joinpath(_PATH_TO_SRC, "Recursion.jl"));
 include(joinpath(_PATH_TO_SRC, "Graphs.jl"));
 include(joinpath(_PATH_TO_SRC, "Solvers.jl"));
 include(joinpath(_PATH_TO_SRC, "Eigen.jl"));
@@ -114,6 +121,27 @@ export classify;
 export confusion;
 export vocabulary_transition_matrix;
 export sample_words;
+
+# L2c lecture material -
+export codepoint_hex;
+
+# L4a lecture material -
+export adjacency_list, adjacency_matrix, directed_density, read_weighted_edges, representation_report, vertex_ids;
+
+# L4c lecture material -
+export WeightedEdge, bellman_ford, dijkstra, path_cost, reconstruct_path, weighted_edges;
+
+# L5a lecture material -
+export build_flow_graph, parse_constrained_edge, validate_flow;
+
+# L5c lecture material -
+export solve_fruit_problem;
+
+# week-03 stack, queue and recursion material -
+export MyStack, MyQueue, isbalanced;
+
+export fibonacci, fibonacci!, memoization_fibonacci!;
+export iterative_fibonacci_report, recursive_fibonacci_report;
 
 # MDP and RL methods -
 export lookahead;

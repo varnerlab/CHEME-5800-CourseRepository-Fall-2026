@@ -40,7 +40,9 @@ and the queue returns as the breadth-first search frontier.
   or supporting `Algorithm` and `Derivation` notebooks.
 - `L3d/sounds` holds the optional bubble-sort tone library described in
   [`L3d/sounds/README.md`](L3d/sounds/README.md).
-- `src` contains the Julia functions used by that meeting.
+- `src` contains the Julia functions a **lab** meeting ships for students to complete.
+  Lecture meetings carry no `src` folder: the code they use lives in the course
+  package under [`code/src`](../../code/src) and arrives through `Include.jl`.
 
 There are no `fixtures`, `extensions`, or nested generic `lectures`/`lab`
 directories for students to interpret. Authoring-only Julia regression tests live
