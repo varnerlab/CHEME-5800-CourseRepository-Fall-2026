@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="620px" height="300px" viewBox="0 0 620 300" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Quicksort partition</title>
+    <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#040404"></path>
+        </marker>
+    </defs>
+    <g id="Quicksort-partition" stroke="none" fill="none">
+
+        <!-- row 1: the input array, last element is the pivot -->
+        <g id="input" stroke-width="1" fill-rule="evenodd" transform="translate(248, 40)">
+            <text font-family="ArialMT, Arial" font-size="14" fill="#040404"><tspan x="-38" y="17">input</tspan></text>
+            <rect stroke="#EF4035" x="0.5" y="0.5" width="23" height="23"></rect>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="8.663" y="16">8</tspan></text>
+            <rect stroke="#EF4035" x="24.5" y="0.5" width="23" height="23"></rect>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="32.663" y="16">2</tspan></text>
+            <rect stroke="#EF4035" fill="#FDD2AC" x="48.5" y="0.5" width="23" height="23"></rect>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="56.663" y="16">6</tspan></text>
+            <rect stroke="#EF4035" x="72.5" y="0.5" width="23" height="23"></rect>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="80.663" y="16">4</tspan></text>
+            <rect stroke="#EF4035" fill="#FDD2AC" x="96.5" y="0.5" width="23" height="23"></rect>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="104.663" y="16">6</tspan></text>
+        </g>
+        <text font-family="ArialMT, Arial" font-size="14" fill="#040404"><tspan x="384" y="22">pivot: the last element</tspan></text>
+        <path d="M390,27 L361,40" stroke="#040404" stroke-width="1" marker-end="url(#arrow)"></path>
+
+        <!-- row 1 to row 2 -->
+        <path d="M300,66 L128,124" stroke="#040404" stroke-width="1" marker-end="url(#arrow)"></path>
+        <path d="M310,66 L310,124" stroke="#040404" stroke-width="1" marker-end="url(#arrow)"></path>
+        <path d="M320,66 L490,124" stroke="#040404" stroke-width="1" marker-end="url(#arrow)"></path>
+
+        <!-- row 2: the three groups -->
+        <g id="lower" stroke-width="1" fill-rule="evenodd" transform="translate(104, 130)">
+            <rect stroke="#EF4035" x="0.5" y="0.5" width="23" height="23"></rect>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="8.663" y="16">2</tspan></text>
+            <rect stroke="#EF4035" x="24.5" y="0.5" width="23" height="23"></rect>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="32.663" y="16">4</tspan></text>
+            <text font-family="ArialMT, Arial" font-size="14" fill="#040404"><tspan x="-32" y="44">lower: x &lt; pivot</tspan></text>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="-20" y="62">sorted recursively</tspan></text>
+        </g>
+        <g id="equal" stroke-width="1" fill-rule="evenodd" transform="translate(286, 130)">
+            <rect stroke="#EF4035" fill="#FDD2AC" x="0.5" y="0.5" width="23" height="23"></rect>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="8.663" y="16">6</tspan></text>
+            <rect stroke="#EF4035" fill="#FDD2AC" x="24.5" y="0.5" width="23" height="23"></rect>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="32.663" y="16">6</tspan></text>
+            <text font-family="ArialMT, Arial" font-size="14" fill="#040404"><tspan x="-36" y="44">equal: ties with pivot</tspan></text>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="-14" y="62">placed, never sorted</tspan></text>
+        </g>
+        <g id="upper" stroke-width="1" fill-rule="evenodd" transform="translate(490, 130)">
+            <rect stroke="#EF4035" x="0.5" y="0.5" width="23" height="23"></rect>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="8.663" y="16">8</tspan></text>
+            <text font-family="ArialMT, Arial" font-size="14" fill="#040404"><tspan x="-32" y="44">upper: pivot &lt; x</tspan></text>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="-32" y="62">sorted recursively</tspan></text>
+        </g>
+
+        <!-- row 2 to row 3 -->
+        <path d="M128,200 L258,232" stroke="#040404" stroke-width="1" marker-end="url(#arrow)"></path>
+        <path d="M310,200 L310,232" stroke="#040404" stroke-width="1" marker-end="url(#arrow)"></path>
+        <path d="M490,200 L362,232" stroke="#040404" stroke-width="1" marker-end="url(#arrow)"></path>
+
+        <!-- row 3: the concatenated result -->
+        <g id="result" stroke-width="1" fill-rule="evenodd" transform="translate(248, 238)">
+            <text font-family="ArialMT, Arial" font-size="14" fill="#040404"><tspan x="-44" y="17">result</tspan></text>
+            <rect stroke="#EF4035" x="0.5" y="0.5" width="23" height="23"></rect>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="8.663" y="16">2</tspan></text>
+            <rect stroke="#EF4035" x="24.5" y="0.5" width="23" height="23"></rect>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="32.663" y="16">4</tspan></text>
+            <rect stroke="#EF4035" fill="#FDD2AC" x="48.5" y="0.5" width="23" height="23"></rect>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="56.663" y="16">6</tspan></text>
+            <rect stroke="#EF4035" fill="#FDD2AC" x="72.5" y="0.5" width="23" height="23"></rect>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="80.663" y="16">6</tspan></text>
+            <rect stroke="#EF4035" x="96.5" y="0.5" width="23" height="23"></rect>
+            <text font-family="ArialMT, Arial" font-size="12" fill="#040404"><tspan x="104.663" y="16">8</tspan></text>
+            <text font-family="ArialMT, Arial" font-size="14" fill="#040404"><tspan x="-42" y="47">sort(lower)  +  equal  +  sort(upper)</tspan></text>
+        </g>
+    </g>
+</svg>
