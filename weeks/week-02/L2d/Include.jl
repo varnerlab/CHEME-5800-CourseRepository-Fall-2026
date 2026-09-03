@@ -40,7 +40,7 @@ include(normpath(joinpath(CHEME5800_L2D_ROOT, "..", "..", "..", "Include.jl")))
 # student stub and a reference solution declaring the same module name stay
 # drop-in interchangeable between the notebook and the validation suite.
 if !isdefined(@__MODULE__, :L2dUnicodeTable)
-    include(joinpath(CHEME5800_L2D_ROOT, "src", "Compute.jl"))
+    include(joinpath(CHEME5800_L2D_ROOT, "src", "Compute-solution.jl"))
 end
 
 

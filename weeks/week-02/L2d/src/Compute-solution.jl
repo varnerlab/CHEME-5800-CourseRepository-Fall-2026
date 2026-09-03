@@ -26,23 +26,44 @@ Build one table row for each character in `text`.
 """
 function character_table(text::AbstractString)::DataFrame
 
+    # check: check for empty string input and return an empty DataFrame with the correct schema
+    if (isempty(text) == true)
+        
+        # Allocate typed columns so the empty-string result has the same schema as
+        # every populated result.
+        table = DataFrame(
+            position = Int[],
+            character = Char[],
+            decimal_codepoint = Int[],
+            unicode_codepoint = String[],
+            utf8_byte_count = Int[],
+        ); 
+        return table; # this returns an empty DataFrame with the correct schema for an empty string input
+    end
+
+
     # Allocate typed columns so the empty-string result has the same schema as
     # every populated result.
-    table = DataFrame(
-        position = Int[],
-        character = Char[],
-        decimal_codepoint = Int[],
-        unicode_codepoint = String[],
-        utf8_byte_count = Int[],
-    )
+    # table = DataFrame(
+    #     position = Int[],
+    #     character = Char[],
+    #     decimal_codepoint = Int[],
+    #     unicode_codepoint = String[],
+    #     utf8_byte_count = Int[],
+    # ); 
+    table = DataFrame(); # this is my style, but the above is more explicit and probably better for a reference solution
 
     # Iterate over characters directly. The counter from enumerate(...) is the
     # character position; it does not assume that String byte indices are dense.
-    for (position, character) in enumerate(text)
-        decimal_codepoint = Int(character)
+    for (position, character) ∈ enumerate(text) # enumerate returns (1, first character), (2, second character), ...
+        
+        # Let's compute the decimal code point of the character. 
+        # In Julia, a Char is a Unicode code point, and converting it to Int gives us its decimal value.
+        decimal_codepoint = Int(character) # e.g., 'A' -> 65, 'é' -> 233, '😊' -> 128522
 
         # Format the numerical code point in standard uppercase U+XXXX notation.
-        hexadecimal = uppercase(string(UInt32(character); base = 16, pad = 4))
+        #hexadecimal = uppercase(string(UInt32(character); base = 16, pad = 4)) # Seems complicated - is there another way?
+        hexadecimal = uppercase(string(decimal_codepoint; base = 16, pad = 4)) # Ok, less complicated, but still a bit verbose. 
         unicode_codepoint = "U+$(hexadecimal)"
 
         # Convert this character to a one-character String before counting its
