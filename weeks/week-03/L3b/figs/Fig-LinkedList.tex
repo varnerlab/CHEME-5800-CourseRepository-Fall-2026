@@ -5,12 +5,12 @@
 % Build (from this directory):
 %   pdflatex Fig-LinkedList.tex
 %   pdf2svg Fig-LinkedList.pdf Fig-LinkedList.svg
-%   then re-add the accessibility title element after the opening <svg> tag:
-%   <title>Linked list</title>
+% The notebook supplies the SVG's accessible description through its <img> alt text.
 \documentclass[tikz,border=10pt]{standalone}
 \usetikzlibrary{arrows.meta, calc}
 \definecolor{chemered}{HTML}{EF4035}
 \definecolor{chemewheat}{HTML}{FAEEE2}
+\definecolor{linkgray}{HTML}{6B7280}
 \begin{document}
 \begin{tikzpicture}[
     vbox/.style={draw=black, thick, minimum width=8mm, minimum height=8mm, inner sep=1pt, font=\small},
@@ -48,13 +48,13 @@
         {a node: a value and a reference\\to the node that follows it};
 
     % ================= row 2: the splice =================
-    \node[note, anchor=east] (head2) at (-1.1, -2.7) {head};
+    \node[note, anchor=east] (head2) at (-1.1, -1.55) {head};
 
-    \node[vbox] (a2)  at (0, -2.7) {$2$};
+    \node[vbox] (a2)  at (0, -1.55) {$2$};
     \node[pbox, anchor=west] (a2p) at (a2.east) {};
-    \node[vbox] (b2)  at (2.6, -2.7) {$4$};
+    \node[vbox] (b2)  at (2.6, -1.55) {$4$};
     \node[pbox, anchor=west] (b2p) at (b2.east) {};
-    \node[vbox] (c2)  at (5.2, -2.7) {$8$};
+    \node[vbox] (c2)  at (5.2, -1.55) {$8$};
     \node[pbox, anchor=west] (c2p) at (c2.east) {};
 
     \draw[headref] (head2) -- (a2.west);
@@ -64,21 +64,22 @@
     \draw[thick] (c2p.south west) -- (c2p.north east);
 
     % the old link from 4 to 8 is retired: grayed out and crossed -
-    \draw[ref, gray, dash pattern=on 3pt off 2.2pt] (b2p.center) -- (c2.west);
+    \draw[ref, linkgray, dash pattern=on 3pt off 2.2pt] (b2p.center) -- (c2.west);
     \coordinate (oldmid) at ($(b2p.center)!0.52!(c2.west)$);
-    \draw[thick, gray] ($(oldmid)+(-0.11,-0.11)$) -- ($(oldmid)+(0.11,0.11)$);
-    \draw[thick, gray] ($(oldmid)+(-0.11,0.11)$) -- ($(oldmid)+(0.11,-0.11)$);
-    \node[note, gray, anchor=south, font=\footnotesize] at ($(oldmid)+(0.28,0.18)$) {old link};
+    \draw[thick, linkgray] ($(oldmid)+(-0.11,-0.11)$) -- ($(oldmid)+(0.11,0.11)$);
+    \draw[thick, linkgray] ($(oldmid)+(-0.11,0.11)$) -- ($(oldmid)+(0.11,-0.11)$);
+    \node[note, text=linkgray, anchor=south, font=\footnotesize]
+        at ($(oldmid)+(0.08,0.20)$) {old link};
 
     % the new node, spliced in with two relinks and no shifting -
-    \node[vbox, fill=chemewheat] (m)  at (3.4, -4.5) {$16$};
+    \node[vbox, fill=chemewheat] (m)  at (3.4, -2.95) {$16$};
     \node[pbox, anchor=west, fill=chemewheat] (mp) at (m.east) {};
     \fill (mp.center) circle (1.6pt);
     \draw[ref, chemered] (b2p.center) to[out=-90, in=115] (m.north west);
     \draw[ref, chemered] (mp.center) to[out=25, in=-90] (c2.south);
 
     % caption, centered under the action -
-    \node[note, align=center, anchor=north] at (2.95, -5.35)
+    \node[note, align=center, anchor=north] at (2.95, -3.75)
         {splice $16$ after $4$: two relinks, and nothing else moves};
 \end{tikzpicture}
 \end{document}
