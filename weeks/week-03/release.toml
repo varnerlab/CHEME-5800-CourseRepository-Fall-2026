@@ -1,7 +1,7 @@
 schema_version = 2
 week = 3
-version = "1.0-prototype"
-status = "prototype"
+version = "1.0"
+status = "ready"
 title = "Stacks, queues, recursion, and sorting as a testable algorithm"
 
 languages = ["Julia"]
