@@ -615,7 +615,7 @@
            style="font-variant:normal;font-weight:normal;font-size:40px;font-family:'Helvetica Neue';writing-mode:lr-tb;fill:#333333;fill-opacity:1;fill-rule:nonzero;stroke:none"
            x="0"
            dx="0 0 -0.72000003 0 0 0 0 0 0 0 -0.72000003 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.72000003 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.72000003"
-           y="0">are hierarchical data structures, each with one or more child nodes. </tspan></text>
+           y="0">are hierarchical data structures, each with zero or more children. </tspan></text>
       <text
          id="text5"
          xml:space="preserve"
@@ -692,7 +692,7 @@
            style="font-variant:normal;font-weight:normal;font-size:30px;font-family:'Helvetica Neue';writing-mode:lr-tb;fill:#333333;fill-opacity:1;fill-rule:nonzero;stroke:none"
            x="0"
            dx="0 0 0 0 0 0 0 0 0 0 0 -0.54000002 0 0 -0.54000002 0 0 0 0 0 0 0 0 0 0 -0.54000002 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.22 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.54000002 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.54000002"
-           y="0">the nodes represent the relationships between the nodes. Finally, the number of levels of a tree is called the height of the tree.</tspan></text>
+           y="0">the nodes represent the relationships between the nodes. Finally, the length of the longest root-to-leaf path is the height of the tree.</tspan></text>
     </g>
     <g
        id="g11">
