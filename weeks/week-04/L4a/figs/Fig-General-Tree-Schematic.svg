@@ -615,11 +615,11 @@
            style="font-variant:normal;font-weight:normal;font-size:40px;font-family:'Helvetica Neue';writing-mode:lr-tb;fill:#333333;fill-opacity:1;fill-rule:nonzero;stroke:none"
            x="0"
            dx="0 0 -0.72000003 0 0 0 0 0 0 0 -0.72000003 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.72000003 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.72000003"
-           y="0">are hierarchical data structures, each with zero or more children. </tspan></text>
+           y="0">organize nodes with parent-child links. </tspan></text>
       <text
          id="text5"
          xml:space="preserve"
-         transform="matrix(1.3333333,0,0,1.3333333,1881.0769,142.33253)"
+         transform="matrix(1.3333333,0,0,1.3333333,111.79693,206.59947)"
          clip-path="url(#clipPath5)"><tspan
            id="tspan5"
            style="font-variant:normal;font-weight:700;font-size:40px;font-family:'Helvetica Neue';writing-mode:lr-tb;fill:#ef4035;fill-opacity:1;fill-rule:nonzero;stroke:none"
@@ -629,13 +629,12 @@
       <text
          id="text6"
          xml:space="preserve"
-         transform="matrix(1.3333333,0,0,1.3333333,2033.2369,142.33253)"
-         clip-path="url(#clipPath6)"><tspan
+         transform="matrix(1.3333333,0,0,1.3333333,263.95693,206.59947)"><tspan
            id="tspan6"
            style="font-variant:normal;font-weight:normal;font-size:40px;font-family:'Helvetica Neue';writing-mode:lr-tb;fill:#333333;fill-opacity:1;fill-rule:nonzero;stroke:none"
            x="0"
            dx="0 0 0 0 -0.72000003"
-           y="0">store data with a </tspan></text>
+           y="0">can represent a file system, organization chart, or manufacturing process.</tspan></text>
       <text
          id="text7"
          xml:space="preserve"
@@ -645,7 +644,7 @@
            style="font-variant:normal;font-weight:normal;font-size:40px;font-family:'Helvetica Neue';writing-mode:lr-tb;fill:#333333;fill-opacity:1;fill-rule:nonzero;stroke:none"
            x="0"
            dx="0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.72000003 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.72000003"
-           y="0">natural hierarchical structure, such as a </tspan></text>
+           y="0"></tspan></text>
       <g
          id="g7">
         <text
@@ -656,7 +655,7 @@
              id="tspan8"
              style="font-variant:normal;font-weight:normal;font-size:40px;font-family:'Helvetica Neue';writing-mode:lr-tb;fill:#333333;fill-opacity:1;fill-rule:nonzero;stroke:none"
              x="0"
-             y="0">fi</tspan></text>
+             y="0"></tspan></text>
       </g>
       <text
          id="text9"
@@ -667,7 +666,7 @@
            style="font-variant:normal;font-weight:normal;font-size:40px;font-family:'Helvetica Neue';writing-mode:lr-tb;fill:#333333;fill-opacity:1;fill-rule:nonzero;stroke:none"
            x="0"
            dx="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.12 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.72000003"
-           y="0">le system, industrial organization, or manufacturing process.</tspan></text>
+           y="0"></tspan></text>
     </g>
     <g
        id="g9" />
@@ -682,7 +681,7 @@
            style="font-variant:normal;font-weight:normal;font-size:30px;font-family:'Helvetica Neue';writing-mode:lr-tb;fill:#333333;fill-opacity:1;fill-rule:nonzero;stroke:none"
            x="0"
            dx="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.54000002 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.54000002 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.54000002 0 0 0 0 -0.54000002"
-           y="0">The topmost node with no parent is called the root node, while nodes with no children are called leaf nodes. The edges connecting </tspan></text>
+           y="0">The root has no parent. Leaves have no children.</tspan></text>
       <text
          id="text11"
          xml:space="preserve"
@@ -692,7 +691,7 @@
            style="font-variant:normal;font-weight:normal;font-size:30px;font-family:'Helvetica Neue';writing-mode:lr-tb;fill:#333333;fill-opacity:1;fill-rule:nonzero;stroke:none"
            x="0"
            dx="0 0 0 0 0 0 0 0 0 0 0 -0.54000002 0 0 -0.54000002 0 0 0 0 0 0 0 0 0 0 -0.54000002 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.22 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.54000002 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.54000002"
-           y="0">the nodes represent the relationships between the nodes. Finally, the length of the longest root-to-leaf path is the height of the tree.</tspan></text>
+           y="0">The tree's height is the number of edges in its longest root-to-leaf path.</tspan></text>
     </g>
     <g
        id="g11">
@@ -1017,7 +1016,7 @@
            id="tspan101"
            style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Arial;writing-mode:lr-tb;fill:#040404;fill-opacity:1;fill-rule:nonzero;stroke:none"
            x="0"
-           y="0">height</tspan></text>
+           y="0">depth</tspan></text>
       <text
          id="text102"
          xml:space="preserve"
@@ -1026,7 +1025,7 @@
            id="tspan102"
            style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Arial;writing-mode:lr-tb;fill:#040404;fill-opacity:1;fill-rule:nonzero;stroke:none"
            x="0"
-           y="0">h = 0</tspan></text>
+           y="0">d = 0</tspan></text>
       <text
          id="text103"
          xml:space="preserve"
@@ -1035,7 +1034,7 @@
            id="tspan103"
            style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Arial;writing-mode:lr-tb;fill:#040404;fill-opacity:1;fill-rule:nonzero;stroke:none"
            x="0"
-           y="0">h = 1</tspan></text>
+           y="0">d = 1</tspan></text>
       <text
          id="text104"
          xml:space="preserve"
@@ -1044,7 +1043,7 @@
            id="tspan104"
            style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Arial;writing-mode:lr-tb;fill:#040404;fill-opacity:1;fill-rule:nonzero;stroke:none"
            x="0"
-           y="0">h = 2</tspan></text>
+           y="0">d = 2</tspan></text>
       <text
          id="text105"
          xml:space="preserve"
@@ -1053,7 +1052,7 @@
            id="tspan105"
            style="font-variant:normal;font-weight:normal;font-size:14px;font-family:Arial;writing-mode:lr-tb;fill:#040404;fill-opacity:1;fill-rule:nonzero;stroke:none"
            x="0"
-           y="0">h = 3</tspan></text>
+           y="0">d = 3</tspan></text>
       <text
          id="text106"
          xml:space="preserve"
