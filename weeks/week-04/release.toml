@@ -24,10 +24,16 @@ datasets = [
   "L4d/data/Production-Process.edgelist",
 ]
 student_paths = ["README.md", "L4a", "L4b", "L4c", "L4d"]
-instructor_only_paths = ["../../instructor/validation/week-04"]
+instructor_only_paths = [
+  "../../instructor/validation/week-04",
+  # L4b ships as a traversal scaffold students complete in class; the reference
+  # solution must not be bundled with it.
+  "L4b/src/Compute-solution.jl",
+  # L4d ships the break-even stub students complete in class.
+  "L4d/src/Compute-solution.jl",
+]
 
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-04/runtests.jl"
 external_packages_required = true
 network_required = false
-

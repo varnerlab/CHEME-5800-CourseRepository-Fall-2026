@@ -39,13 +39,12 @@ end
 # the course package. It is the only place environment handling lives.
 include(normpath(joinpath(CHEME5800_L4B_ROOT, "..", "..", "..", "Include.jl")))
 
-# `L4bTraversal` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :L4bTraversal)
-    include(joinpath(CHEME5800_L4B_ROOT, "src", "Traversal.jl"))
-end
+# `L4bTraversal` holds this meeting's student implementation. The include is
+# deliberately unguarded: students edit `src/Compute.jl` during the lab, and
+# re-running this setup file must reload those changes. Notebook calls remain
+# qualified (`L4bTraversal.depth_first_order(...)`) so they resolve against the
+# replacement module without importing stale bindings into `Main`.
+include(joinpath(CHEME5800_L4B_ROOT, "src", "Compute.jl"))
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
@@ -63,6 +62,6 @@ using Test           # @test / @testset for the checks in the notebook
 using DataFrames     # tabular records held as columns
 using PrettyTables   # formatted table output in the notebook
 #
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .L4bTraversal  # from the include in section 2
+# This meeting's own source stays behind the `L4bTraversal` module name. The
+# notebook uses qualified calls so re-running this file loads a student's edits
+# without requiring a kernel restart.

@@ -60,13 +60,18 @@ and are not included in this weekly instructional unit.
 - L4a directly retains the detailed Fall 2025 graph/tree lecture and its original
   figure assets. A tested edge-list, adjacency-list, and adjacency-matrix comparison
   was added to connect the mathematical discussion to executable representation.
-- L4b directly retains the Fall 2025 graph-construction and BFS/DFS lab, plus the
-  original algorithm explanations. The old solution/student split was removed;
-  traversal now uses deterministic local implementations with explicit contracts.
+- L4b retains the Fall 2025 graph-construction example but uses the same tested
+  implementation workflow as the earlier course labs: students complete
+  deterministic DFS and BFS in `src/Compute.jl`, while an instructor-only
+  reference solution verifies the documented contracts. The two supporting
+  algorithm notebooks develop the recursion and queue logic without exposing
+  the finished Julia implementation.
 - L4c directly retains the Fall 2025 shortest-path formulation and Dijkstra and
   Bellman–Ford explanations. Executable current-Julia comparisons, negative-edge
   validation, path reconstruction, and negative-cycle detection were added.
-- L4d directly retains the Fall 2025 production-process graph, schematic, route
-  visualization, and equipment-discount scenario. Its setup now uses the root
-  environment, and Bellman–Ford provides an independent check of Dijkstra's result.
-
+- L4d retains the Fall 2025 production-process graph, schematic, and
+  equipment-discount scenario, restructured as a lab: students price the two
+  routes by hand, confirm the cheaper one with Dijkstra and Bellman–Ford, and
+  complete the break-even function in `src/Compute.jl` that gives the step
+  price below which the plan changes. The route figure is one shared function,
+  and the setup uses the root environment.

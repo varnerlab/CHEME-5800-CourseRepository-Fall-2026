@@ -39,6 +39,13 @@ end
 # the course package. It is the only place environment handling lives.
 include(normpath(joinpath(CHEME5800_L4D_ROOT, "..", "..", "..", "Include.jl")))
 
+# `L4dProductionPlanning` holds this meeting's student implementation. The
+# include is deliberately unguarded: students edit `src/Compute.jl` during the
+# lab, and re-running this setup file must reload those changes. Notebook calls
+# remain qualified (`L4dProductionPlanning.route_cost(...)`) so they resolve
+# against the replacement module without importing stale bindings into `Main`.
+include(joinpath(CHEME5800_L4D_ROOT, "src", "Compute.jl"))
+
 
 # --- 3. IMPORTS --------------------------------------------------------------
 # Everything this meeting brings into scope. One `using` per line so each can
