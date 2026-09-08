@@ -73,6 +73,12 @@ function _BFS(graph::T, node::MyGraphNodeModel, visited::Set{Int64}, order::Arra
 end
 
 function _search(graph::T, start::MyGraphNodeModel, algorithm::DijkstraAlgorithm) where T <: AbstractGraphModel
+
+    # Dijkstra's greedy finalization requires every edge weight to be nonnegative.
+    for ((source, target), _) in graph.edges
+        weight(graph, source, target) < 0 &&
+            throw(ArgumentError("Dijkstra requires nonnegative edge weights"))
+    end
     
     # initialize -
     distances = Dict{Int64, Float64}();
@@ -123,10 +129,9 @@ function _search(graph::T, start::MyGraphNodeModel, algorithm::BellmanFordAlgori
     end
     distances[start.id] = 0.0;
 
-    # main loop -
-    counter = 1;
-    while counter < (number_of_nodes - 1)
-        
+    # Relax every edge at most |V|-1 times. Stop when a full pass changes nothing.
+    for _ in 1:(number_of_nodes - 1)
+        changed = false
         for (k, _) ∈ graph.edges
 
             u = k[1];
@@ -136,14 +141,13 @@ function _search(graph::T, start::MyGraphNodeModel, algorithm::BellmanFordAlgori
             if alt < distances[v]
                 distances[v] = alt;
                 previous[v] = u;
+                changed = true
             end
         end
-
-        # increment counter -
-        counter += 1;
+        changed || break
     end
 
-    # check: If we have negatice cycles, then we should throw an error. 
+    # Reject a reachable negative-weight cycle if one more relaxation is possible.
     for (k, _) ∈ graph.edges
 
         u = k[1];
@@ -154,7 +158,6 @@ function _search(graph::T, start::MyGraphNodeModel, algorithm::BellmanFordAlgori
         end
     end
 
-    # check fo
     return distances, previous;
 end
 
@@ -410,10 +413,13 @@ The function computes the shortest paths from a starting node to all other nodes
 ### Arguments
 - `graph::T`: the graph model to search. This is a subtype of `AbstractGraphModel`.
 - `start::MyGraphNodeModel`: the node to start the search from.
-- `algorithm::MyAbstractGraphSearchAlgorithm`: the algorithm to use for the search. The default is `BellmanFordAlgorithm`, but it can also be `DijkstraAlgorithm`.
+- `algorithm::AbstractGraphSearchAlgorithm`: the algorithm to use for the search. The default is `BellmanFordAlgorithm`, but it can also be `DijkstraAlgorithm`.
 
 ### Returns
 - a tuple of two dictionaries: the first dictionary contains the distances from the starting node to all other nodes, and the second dictionary contains the previous node in the shortest path from the starting node to all other nodes.
+
+### Errors
+- `ArgumentError`: Dijkstra is selected for a graph with a negative edge weight, or Bellman–Ford finds a reachable negative-weight cycle.
 """
 function findshortestpath(graph::T, start::MyGraphNodeModel;
     algorithm::AbstractGraphSearchAlgorithm = BellmanFordAlgorithm()) where T <: AbstractGraphModel

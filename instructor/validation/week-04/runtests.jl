@@ -163,6 +163,28 @@ end
     @test_throws ArgumentError L4dProductionPlanning.breakeven_weight(graph.edges, [1, 2, 3, 4, 5, 9, 3, 4], lower_route, (3, 4))
 end
 
+@testset "graph-model shortest-path edge cases" begin
+    # A two-vertex path needs the single relaxation pass allowed by |V|-1.
+    positive_edge = build(MyGraphEdgeModel, (id = 0, source = 1, target = 2, weight = 1.0))
+    positive_graph = build(MySimpleDirectedGraphModel, Dict(0 => positive_edge))
+    distances, previous = findshortestpath(
+        positive_graph,
+        positive_graph.nodes[1];
+        algorithm = BellmanFordAlgorithm(),
+    )
+    @test distances[2] == 1.0
+    @test previous[2] == 1
+
+    # The graph-model Dijkstra API must enforce the nonnegative-weight contract.
+    negative_edge = build(MyGraphEdgeModel, (id = 0, source = 1, target = 2, weight = -1.0))
+    negative_graph = build(MySimpleDirectedGraphModel, Dict(0 => negative_edge))
+    @test_throws ArgumentError findshortestpath(
+        negative_graph,
+        negative_graph.nodes[1];
+        algorithm = DijkstraAlgorithm(),
+    )
+end
+
 @testset "L4d lab ships an incomplete break-even function" begin
     stub_path = joinpath(WEEK_ROOT, "L4d", "src", "Compute.jl")
     stub = read(stub_path, String)
