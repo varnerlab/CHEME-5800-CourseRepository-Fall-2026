@@ -11,13 +11,22 @@
       .meta { font: 26px Arial, sans-serif; fill: #333; text-anchor: middle; }
       .edge { stroke: #202020; stroke-width: 3; fill: none; }
       .directed { marker-end: url(#arrow); }
-      .weight { font: italic 22px Arial, sans-serif; fill: #333; text-anchor: middle; }
+      .weight { font: italic 22px Arial, sans-serif; fill: #333; text-anchor: middle; paint-order: stroke fill; stroke: #fff; stroke-width: 9; stroke-linejoin: round; }
+      .weight-index { font-size: 15px; baseline-shift: sub; }
       .vertex { fill: #fff; stroke: #ef4136; stroke-width: 4; }
       .vertex-label { font: 600 24px Arial, sans-serif; fill: #111; text-anchor: middle; dominant-baseline: central; }
-      .measure { font: 25px Arial, sans-serif; fill: #222; text-anchor: middle; }
-      .highlight-degree { fill: #dce8bf; stroke: none; }
-      .highlight-in { fill: #bde4f0; stroke: none; }
-      .highlight-out { fill: #ffd27a; stroke: none; }
+      .measure { font: 600 19px Arial, sans-serif; fill: #222; text-anchor: middle; dominant-baseline: central; }
+      .highlight-degree { fill: #e2edc9; stroke: #aac477; stroke-width: 2; }
+      .highlight-in { fill: #c8e9f2; stroke: #78bed2; stroke-width: 2; }
+      .highlight-out { fill: #ffdc91; stroke: #e4ae43; stroke-width: 2; }
+      .measure-card { stroke-width: 2; }
+      .card-degree { fill: #f6f9ef; stroke: #aac477; }
+      .card-in { fill: #f1fafc; stroke: #78bed2; }
+      .card-out { fill: #fff9ed; stroke: #e4ae43; }
+      .leader-degree { stroke: #91ad58; }
+      .leader-in { stroke: #58a9c1; }
+      .leader-out { stroke: #d89a29; }
+      .leader { stroke-width: 2.5; fill: none; stroke-linecap: round; }
     </style>
   </defs>
 
@@ -27,7 +36,7 @@
   <text class="panel-title" x="1050" y="118">Directed acyclic graph</text>
 
   <!-- Undirected graph -->
-  <rect class="highlight-degree" x="438" y="468" width="84" height="84" rx="12"/>
+  <rect class="highlight-degree" x="438" y="458" width="84" height="84" rx="12"/>
   <line class="edge" x1="100" y1="360" x2="230" y2="230"/>
   <line class="edge" x1="100" y1="360" x2="230" y2="500"/>
   <line class="edge" x1="230" y1="230" x2="230" y2="500"/>
@@ -35,31 +44,31 @@
   <line class="edge" x1="230" y1="500" x2="480" y2="500"/>
   <line class="edge" x1="480" y1="230" x2="480" y2="500"/>
   <line class="edge" x1="480" y1="230" x2="620" y2="230"/>
-  <text class="weight" x="155" y="280">w01</text>
-  <text class="weight" x="154" y="455">w02</text>
-  <text class="weight" x="260" y="370">w12</text>
-  <text class="weight" x="350" y="214">w13</text>
-  <text class="weight" x="350" y="486">w24</text>
-  <text class="weight" x="510" y="370">w34</text>
-  <text class="weight" x="550" y="214">w35</text>
+  <text class="weight" x="150" y="286">w<tspan class="weight-index">01</tspan></text>
+  <text class="weight" x="151" y="452">w<tspan class="weight-index">02</tspan></text>
+  <text class="weight" x="270" y="368">w<tspan class="weight-index">12</tspan></text>
+  <text class="weight" x="350" y="202">w<tspan class="weight-index">13</tspan></text>
+  <text class="weight" x="350" y="478">w<tspan class="weight-index">24</tspan></text>
+  <text class="weight" x="520" y="368">w<tspan class="weight-index">34</tspan></text>
+  <text class="weight" x="550" y="202">w<tspan class="weight-index">35</tspan></text>
 
   <!-- Directed graph -->
-  <rect class="highlight-in" x="888" y="468" width="84" height="84" rx="12"/>
-  <rect class="highlight-out" x="1138" y="468" width="84" height="84" rx="12"/>
-  <line class="edge directed" x1="818" y1="342" x2="902" y2="258"/>
-  <line class="edge directed" x1="819" y1="380" x2="901" y2="472"/>
+  <rect class="highlight-in" x="888" y="458" width="84" height="84" rx="12"/>
+  <rect class="highlight-out" x="1138" y="458" width="84" height="84" rx="12"/>
+  <line class="edge directed" x1="818" y1="342" x2="906" y2="254"/>
+  <line class="edge directed" x1="819" y1="380" x2="907" y2="475"/>
   <line class="edge directed" x1="930" y1="260" x2="930" y2="468"/>
   <line class="edge directed" x1="960" y1="230" x2="1147" y2="230"/>
   <line class="edge directed" x1="960" y1="500" x2="1147" y2="500"/>
   <line class="edge directed" x1="1180" y1="468" x2="1180" y2="262"/>
-  <line class="edge directed" x1="1210" y1="230" x2="1317" y2="230"/>
-  <text class="weight" x="855" y="278">w01</text>
-  <text class="weight" x="852" y="455">w02</text>
-  <text class="weight" x="960" y="370">w12</text>
-  <text class="weight" x="1050" y="214">w13</text>
-  <text class="weight" x="1050" y="486">w24</text>
-  <text class="weight" x="1210" y="370">w43</text>
-  <text class="weight" x="1265" y="214">w35</text>
+  <line class="edge directed" x1="1210" y1="230" x2="1287" y2="230"/>
+  <text class="weight" x="850" y="286">w<tspan class="weight-index">01</tspan></text>
+  <text class="weight" x="851" y="452">w<tspan class="weight-index">02</tspan></text>
+  <text class="weight" x="970" y="368">w<tspan class="weight-index">12</tspan></text>
+  <text class="weight" x="1050" y="202">w<tspan class="weight-index">13</tspan></text>
+  <text class="weight" x="1050" y="478">w<tspan class="weight-index">24</tspan></text>
+  <text class="weight" x="1220" y="368">w<tspan class="weight-index">43</tspan></text>
+  <text class="weight" x="1250" y="202">w<tspan class="weight-index">35</tspan></text>
 
   <!-- Vertices -->
   <g>
@@ -74,10 +83,19 @@
     <circle class="vertex" cx="930" cy="500" r="30"/><text class="vertex-label" x="930" y="500">2</text>
     <circle class="vertex" cx="1180" cy="230" r="30"/><text class="vertex-label" x="1180" y="230">3</text>
     <circle class="vertex" cx="1180" cy="500" r="30"/><text class="vertex-label" x="1180" y="500">4</text>
-    <circle class="vertex" cx="1350" cy="230" r="30"/><text class="vertex-label" x="1350" y="230">5</text>
+    <circle class="vertex" cx="1320" cy="230" r="30"/><text class="vertex-label" x="1320" y="230">5</text>
   </g>
 
-  <text class="measure" x="350" y="625">Degree of vertex 4: 2</text>
-  <text class="measure" x="930" y="625">In-degree of vertex 2: 2</text>
-  <text class="measure" x="1180" y="675">Out-degree of vertex 4: 1</text>
+  <!-- Measure callouts -->
+  <line class="leader leader-degree" x1="480" y1="542" x2="480" y2="582"/>
+  <rect class="measure-card card-degree" x="365" y="586" width="230" height="54" rx="14"/>
+  <text class="measure" x="480" y="613">Vertex 4: degree 2</text>
+
+  <line class="leader leader-in" x1="930" y1="542" x2="930" y2="582"/>
+  <rect class="measure-card card-in" x="815" y="586" width="230" height="54" rx="14"/>
+  <text class="measure" x="930" y="613">Vertex 2: in-degree 2</text>
+
+  <line class="leader leader-out" x1="1180" y1="542" x2="1180" y2="582"/>
+  <rect class="measure-card card-out" x="1065" y="586" width="230" height="54" rx="14"/>
+  <text class="measure" x="1180" y="613">Vertex 4: out-degree 1</text>
 </svg>
