@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title description">
+  <title id="title">Complete bipartite graph K3,4</title>
+  <desc id="description">Three blue vertices form the left group and four gold vertices form the right group. All twelve edges cross between the groups. Three red edges form a matching that covers the left group.</desc>
+  <style>
+    .title { font: 600 34px Arial, sans-serif; fill: #111; text-anchor: middle; }
+    .subtitle { font: 24px Arial, sans-serif; fill: #555; text-anchor: middle; }
+    .group-box-left { fill: #f1fafc; stroke: #78bed2; stroke-width: 3; }
+    .group-box-right { fill: #fff9ed; stroke: #e4ae43; stroke-width: 3; }
+    .group-title { font: 600 25px Arial, sans-serif; fill: #222; text-anchor: middle; }
+    .edge { stroke: #8f8f8f; stroke-width: 3; stroke-opacity: 0.62; fill: none; stroke-linecap: round; }
+    .matching { stroke: #ef4136; stroke-width: 6; stroke-opacity: 1; }
+    .left-vertex { fill: #c8e9f2; stroke: #58a9c1; stroke-width: 4; }
+    .right-vertex { fill: #ffdc91; stroke: #d89a29; stroke-width: 4; }
+    .vertex-label { font: 600 23px Arial, sans-serif; fill: #111; text-anchor: middle; dominant-baseline: central; }
+    .metric { font: 600 22px Arial, sans-serif; fill: #333; text-anchor: middle; }
+    .legend { font: 20px Arial, sans-serif; fill: #555; }
+  </style>
+
+  <rect width="1200" height="680" fill="#fff"/>
+  <text class="title" x="600" y="48">Complete bipartite graph K₃,₄</text>
+  <text class="subtitle" x="600" y="80">Every edge crosses between the two vertex groups</text>
+
+  <rect class="group-box-left" x="82" y="120" width="300" height="430" rx="24"/>
+  <rect class="group-box-right" x="818" y="120" width="300" height="430" rx="24"/>
+  <text class="group-title" x="232" y="160">V₁: 3 vertices</text>
+  <text class="group-title" x="968" y="160">V₂: 4 vertices</text>
+
+  <!-- All 3 x 4 cross-group edges. -->
+  <g>
+    <line class="edge" x1="232" y1="235" x2="968" y2="210"/>
+    <line class="edge" x1="232" y1="235" x2="968" y2="305"/>
+    <line class="edge" x1="232" y1="235" x2="968" y2="400"/>
+    <line class="edge" x1="232" y1="235" x2="968" y2="495"/>
+    <line class="edge" x1="232" y1="335" x2="968" y2="210"/>
+    <line class="edge" x1="232" y1="335" x2="968" y2="305"/>
+    <line class="edge" x1="232" y1="335" x2="968" y2="400"/>
+    <line class="edge" x1="232" y1="335" x2="968" y2="495"/>
+    <line class="edge" x1="232" y1="435" x2="968" y2="210"/>
+    <line class="edge" x1="232" y1="435" x2="968" y2="305"/>
+    <line class="edge" x1="232" y1="435" x2="968" y2="400"/>
+    <line class="edge" x1="232" y1="435" x2="968" y2="495"/>
+
+    <line class="edge matching" x1="232" y1="235" x2="968" y2="210"/>
+    <line class="edge matching" x1="232" y1="335" x2="968" y2="305"/>
+    <line class="edge matching" x1="232" y1="435" x2="968" y2="400"/>
+  </g>
+
+  <g>
+    <circle class="left-vertex" cx="232" cy="235" r="31"/><text class="vertex-label" x="232" y="235">u₁</text>
+    <circle class="left-vertex" cx="232" cy="335" r="31"/><text class="vertex-label" x="232" y="335">u₂</text>
+    <circle class="left-vertex" cx="232" cy="435" r="31"/><text class="vertex-label" x="232" y="435">u₃</text>
+    <circle class="right-vertex" cx="968" cy="210" r="31"/><text class="vertex-label" x="968" y="210">v₁</text>
+    <circle class="right-vertex" cx="968" cy="305" r="31"/><text class="vertex-label" x="968" y="305">v₂</text>
+    <circle class="right-vertex" cx="968" cy="400" r="31"/><text class="vertex-label" x="968" y="400">v₃</text>
+    <circle class="right-vertex" cx="968" cy="495" r="31"/><text class="vertex-label" x="968" y="495">v₄</text>
+  </g>
+
+  <text class="metric" x="220" y="606">degree in V₁ = 4</text>
+  <text class="metric" x="600" y="606">|E| = 3 × 4 = 12</text>
+  <text class="metric" x="980" y="606">degree in V₂ = 3</text>
+  <line class="matching" x1="450" y1="646" x2="515" y2="646"/>
+  <text class="legend" x="535" y="653">highlighted edges form one matching</text>
+</svg>

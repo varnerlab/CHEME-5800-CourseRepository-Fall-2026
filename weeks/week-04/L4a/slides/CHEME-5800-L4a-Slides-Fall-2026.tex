@@ -1,0 +1,767 @@
+% L4a lecture companion deck.
+% Mirrors the lecture notebook: graph definitions and measures; storage forms;
+% the six-vertex worked example; graph families; traversal and shortest paths.
+% The project is self-contained: styles, seal, figures, and build rules are local.
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{vnslides}
+\usepackage{tabularx}
+
+\renewcommand{\vnlecturecode}{L4a}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\tikzset{
+  graphvertex/.style={draw=vnslideink,circle,fill=white,line width=0.7pt,
+    minimum size=7mm,inner sep=0pt,font=\small\vnmedium},
+  graphedge/.style={draw=vnslidebody,line width=0.8pt},
+  grapharrow/.style={draw=vnslidebody,line width=0.8pt,-{Latex[length=2.5mm]}},
+  graphaccent/.style={draw=vnaccent,line width=1.2pt,-{Latex[length=2.5mm]}},
+}
+
+\title{{\vnheavy L4a}: Graph and Tree Representations}
+\subtitle{CHEME 5800 Cornell University}
+\author{Copyright Jeffrey Varner 2026. All Rights Reserved}
+
+\begin{document}
+
+% ==== title ==================================================
+\vntitlepage
+
+% ==== objectives =============================================
+\begin{frame}{Objectives for Today}
+  Today we describe graph structure, calculate graph measures, and choose a
+  storage form that matches the operation an algorithm performs.
+
+  \vspace{0.9em}
+  {\large\textbf{\ink{Today's concepts}}}
+  \vspace{0.4em}
+  \begin{itemize}\setlength{\itemsep}{0.7em}
+    \item \hilite{Graph language and measures}: define walks, paths, cycles,
+      connectivity, degree, and density.
+    \item \hilite{Graph families}: recognize complete graphs, bipartite graphs,
+      and trees from their defining properties.
+    \item \hilite{Storage representations}: compare edge lists, adjacency
+      matrices, and adjacency lists by storage and access cost.
+  \end{itemize}
+
+  \slidenote{Lecture:}{\href{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-04/L4a/CHEME-5800-L4a-Lecture-GraphAndTreeRepresentations-Fall-2026.ipynb}{Graph and Tree Representations}}
+\end{frame}
+
+\begin{frame}{Lecture and Connected Exercises}
+  \textbf{\ink{Lecture:}}
+  \href{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-04/L4a/CHEME-5800-L4a-Lecture-GraphAndTreeRepresentations-Fall-2026.ipynb}{Graph and Tree Representations}
+
+  \vspace{1.0em}
+  \textbf{\ink{Lab L4b:}}
+  \href{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-04/L4b/CHEME-5800-L4b-Lab-BreadthFirstAndDepthFirstSearch-Fall-2026.ipynb}{Breadth-First and Depth-First Search}
+
+  Use an unweighted adjacency list to visit a directed graph with a queue or a stack.
+
+  \vspace{1.0em}
+  \textbf{\ink{Lecture L4c and lab L4d:}}
+  \href{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-04/L4c/CHEME-5800-L4c-Lecture-ShortestPathAlgorithms-Fall-2026.ipynb}{Shortest-Path Algorithms}
+
+  Retain edge weights and find minimum-cost routes through a process network.
+\end{frame}
+
+% ==== simple graphs ==========================================
+\begin{frame}{Simple Graphs}
+  A simple graph $\mathcal G=(\mathcal V,\mathcal E)$ stores a set of vertices
+  $\mathcal V$ and a set of edges $\mathcal E$.
+
+  \vspace{0.8em}
+  \begin{itemize}\setlength{\itemsep}{0.8em}
+    \item In an \hilite{undirected graph}, an edge $\{u,v\}$ is an unordered
+      pair of distinct vertices and may be followed either way.
+    \item In a \hilite{directed graph}, an edge $(u,v)$ is an ordered pair.
+      It points from $u$ to $v$, and $(v,u)$ is a different edge.
+    \item The word \hilite{simple} rules out self-loops and repeated parallel edges.
+    \item An edge may carry a weight such as distance, capacity, time, or cost.
+  \end{itemize}
+
+  \slidenote{Modeling decision:}{direction records which transitions are feasible; weight records what one feasible transition costs.}
+\end{frame}
+
+\begin{frame}{Direction Changes Which Routes Are Feasible}
+  \begin{center}
+    \includegraphics[height=0.57\textheight,keepaspectratio]{assets/Fig-General-Graph-Schematic.pdf}
+  \end{center}
+
+  \vspace{-0.2em}
+  The undirected drawing allows travel across an edge in either direction. The
+  directed drawing allows only the arrow direction, even when the endpoints match.
+\end{frame}
+
+\begin{frame}{Walks, Paths, and Cycles}
+  Let $v_0,v_1,\ldots,v_k$ be a sequence of vertices.
+
+  \vspace{0.8em}
+  \begin{itemize}\setlength{\itemsep}{0.85em}
+    \item A \hilite{walk} follows an edge between every consecutive pair. A
+      directed walk must follow every source-to-target direction.
+    \item A \hilite{path} is a walk with no repeated vertices.
+    \item A \hilite{cycle} is a closed walk that repeats no edge and repeats no
+      vertex except $v_0=v_k$.
+  \end{itemize}
+
+  \vspace{0.5em}
+  Walks describe all allowed movement. Paths remove detours. Cycles describe a
+  way to leave a vertex and return to it.
+\end{frame}
+
+\begin{frame}{Connectivity Depends on Direction}
+  Connectivity asks whether paths join the vertices.
+
+  \vspace{0.8em}
+  \begin{itemize}\setlength{\itemsep}{0.85em}
+    \item An undirected graph is \hilite{connected} when a path joins every pair
+      of vertices.
+    \item A directed graph is \hilite{weakly connected} when ignoring edge
+      directions produces a connected undirected graph.
+    \item A directed graph is \hilite{strongly connected} when every ordered pair
+      $(u,v)$ is joined by a directed path from $u$ to $v$.
+  \end{itemize}
+
+  \vspace{0.5em}
+  Strong connectivity implies weak connectivity. The reverse implication does not hold.
+\end{frame}
+
+% ==== graph measures =========================================
+\begin{frame}{Directed Degree Has Two Parts}
+  Compare vertex $v_4$ in the undirected and directed versions of the same graph.
+
+  \vspace{0.8em}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.47\textwidth}
+      {\large\textbf{\ink{Undirected graph}}}
+      \vspace{0.6em}
+
+      Two edges touch $v_4$:
+      \[
+        \{v_2,v_4\},\qquad \{v_3,v_4\}.
+      \]
+
+      \[
+        \deg(v_4)=2.
+      \]
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      {\large\textbf{\ink{Directed graph}}}
+      \vspace{0.6em}
+
+      One edge enters $v_4$ and one edge leaves it:
+      \[
+        v_2\longrightarrow v_4\longrightarrow v_3.
+      \]
+      \[
+        \deg^{\mathrm{in}}(v_4)=1,\qquad
+        \deg^{\mathrm{out}}(v_4)=1,
+      \]
+      so $\deg(v_4)=1+1=2$.
+    \end{column}
+  \end{columns}
+
+  \slidenote{Key comparison:}{direction partitions the incident-edge count into incoming and outgoing parts.}
+\end{frame}
+
+\begin{frame}{Degree Counts Recover the Edge Count}
+  Let $n=|\mathcal V|$ and $m=|\mathcal E|$.
+  In an undirected graph, summing degrees counts both endpoints of every edge:
+  \[
+    \underbrace{\sum_{v_i\in\mathcal V}\deg(v_i)}_{\text{all incident ends}}=2m.
+  \]
+
+  In a directed graph, each edge contributes once to each directional sum:
+  \[
+    \underbrace{\sum_{v_i\in\mathcal V}\deg^{\mathrm{in}}(v_i)}_{\text{all targets}}
+    =
+    \underbrace{\sum_{v_i\in\mathcal V}\deg^{\mathrm{out}}(v_i)}_{\text{all sources}}
+    =m.
+  \]
+
+  These \hilite{handshaking identities} are useful consistency checks for graph data.
+\end{frame}
+
+\begin{frame}{Average Degree Lies Between the Extremes}
+  For an undirected graph with $n\geq1$, let $\delta(\mathcal G)$ and
+  $\Delta(\mathcal G)$ be its minimum and maximum degrees.
+  The average degree is given by:
+  \[
+    \underbrace{\bar d(\mathcal G)=\frac{1}{n}
+      \sum_{v_i\in\mathcal V}\deg(v_i)=\frac{2m}{n}}_{\text{average degree}}.
+  \]
+  It is bounded by:
+  \[
+    \delta(\mathcal G)\leq\bar d(\mathcal G)\leq\Delta(\mathcal G).
+  \]
+
+  An undirected graph is \hilite{regular of degree $r$} when every vertex has
+  degree $r$. Then $\delta=\bar d=\Delta=r$.
+\end{frame}
+
+\begin{frame}{Density Measures the Fraction of Possible Edges}
+  A simple loop-free graph on $n\geq2$ vertices has maximum edge count:
+  \[
+    |\mathcal E|_{\max}=
+    \begin{cases}
+      n(n-1)/2, & \text{undirected},\\
+      n(n-1), & \text{directed}.
+    \end{cases}
+  \]
+  The density is the observed fraction of that maximum:
+  \[
+    \underbrace{\rho(\mathcal G)=\frac{|\mathcal E|}{|\mathcal E|_{\max}}}_{\text{graph density}},
+    \qquad 0\leq\rho(\mathcal G)\leq1.
+  \]
+
+  Density near one is \hilite{dense}; density near zero is \hilite{sparse}.
+  This lecture sets $\rho(\mathcal G)=0$ when $n<2$.
+\end{frame}
+
+\begin{frame}{Counts Do Not Determine the Arrangement}
+  A path and a star both have $n$ vertices and $n-1$ edges, but their distances
+  and degree distributions are very different.
+
+  \vspace{0.6em}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.47\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[x=0.78cm,y=0.78cm]
+        \foreach \i in {1,...,6} {\node[graphvertex] (p\i) at (\i-1,0) {\i};}
+        \foreach \i/\j in {1/2,2/3,3/4,4/5,5/6} {\draw[graphedge] (p\i)--(p\j);}
+      \end{tikzpicture}
+      \end{center}
+      \vspace{0.2em}
+      {\large\textbf{\ink{Path graph}}}
+      \[
+        \Delta=2,\qquad \operatorname{diam}=n-1.
+      \]
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[x=0.75cm,y=0.75cm]
+        \node[graphvertex] (s1) at (2.0,0) {1};
+        \foreach \i/\x/\y in {2/0/1.0,3/1/2.1,4/3/2.1,5/4/1.0,6/2/-1.4}
+          {\node[graphvertex] (s\i) at (\x,\y) {\i}; \draw[graphedge] (s1)--(s\i);}
+      \end{tikzpicture}
+      \end{center}
+      \vspace{0.2em}
+      {\large\textbf{\ink{Star graph}}}
+      \[
+        \Delta=n-1,\qquad \operatorname{diam}=2.
+      \]
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Four Measures Describe Graph Arrangement}
+  For an undirected graph, counts can be supplemented by:
+
+  \vspace{0.7em}
+  \begin{itemize}\setlength{\itemsep}{0.65em}
+    \item \hilite{Diameter $\operatorname{diam}(\mathcal G)$}: the largest
+      shortest-path distance in a connected graph.
+    \item \hilite{Clique number $\omega(\mathcal G)$}: the largest number of
+      vertices that are all pairwise adjacent.
+    \item \hilite{Chromatic number $\chi(\mathcal G)$}: the fewest colors that
+      place different colors on adjacent vertices.
+    \item \hilite{Independence number $\alpha(\mathcal G)$}: the largest number
+      of vertices with no edge between any selected pair.
+  \end{itemize}
+
+  \slidenote{Computational consequence:}{these measures require edge lookups and neighbor iteration; vertex and edge counts alone are insufficient.}
+\end{frame}
+
+% ==== storage forms ==========================================
+\transitionframe{The graph is a mathematical object. \hilite{Its representation
+determines what an algorithm can access efficiently.}}
+
+\begin{frame}{Three Forms Store the Same Graph}
+  Let $n=|\mathcal V|$ and $m=|\mathcal E|$.
+
+  \vspace{0.8em}
+  \begin{itemize}\setlength{\itemsep}{0.85em}
+    \item An \hilite{edge list} stores one source-target-weight record per edge.
+    \item An \hilite{adjacency matrix} stores one entry for every ordered pair
+      of vertices.
+    \item An \hilite{adjacency list} stores one outgoing-neighbor collection per vertex.
+  \end{itemize}
+
+  \vspace{0.5em}
+  The forms are mathematically equivalent. Their memory layout changes the cost
+  of finding one edge and the cost of iterating over one vertex's neighbors.
+\end{frame}
+
+\begin{frame}{Edge Lists Store One Record per Edge}
+  An edge list stores $(\text{source},\text{target},\text{weight})$ for every edge.
+
+  \vspace{0.8em}
+  \begin{itemize}\setlength{\itemsep}{0.8em}
+    \item Storage grows as $\Theta(m)$.
+    \item Finding one specified edge takes $\Theta(m)$ time in the worst case
+      without an index.
+    \item Collecting every edge leaving one source also takes $\Theta(m)$ time
+      because the scan may inspect every record.
+  \end{itemize}
+
+  \vspace{0.5em}
+  Edge lists are simple to read, write, and stream. Bellman-Ford also uses them
+  naturally because one pass deliberately scans every edge.
+\end{frame}
+
+\begin{frame}{Adjacency Matrices Reserve Every Vertex Pair}
+  For vertex order $v_1,\ldots,v_n$, the entry $a_{ij}$ describes $(v_i,v_j)$:
+  \[
+    a_{ij}=\begin{cases}
+      1, & \text{an unweighted edge exists},\\
+      w_{ij}, & \text{a weighted edge exists},\\
+      0, & \text{the edge is absent}.
+    \end{cases}
+  \]
+
+  \begin{itemize}\setlength{\itemsep}{0.55em}
+    \item Storage is $\Theta(n^2)$ and one edge lookup is $\Theta(1)$.
+    \item Finding every neighbor of $v_i$ scans row $i$ in $\Theta(n)$ time.
+    \item An undirected matrix is symmetric; a directed matrix need not be.
+  \end{itemize}
+
+  \slidenote{Weighted graphs:}{if zero is a valid weight, use a separate marker to distinguish a zero-weight edge from a missing edge.}
+\end{frame}
+
+\begin{frame}{Adjacency Lists Store Neighbors}
+  An adjacency list stores one collection of outgoing neighbors for each source.
+
+  \vspace{0.7em}
+  \begin{itemize}\setlength{\itemsep}{0.7em}
+    \item Unweighted form: \texttt{source => [target, ...]}.
+    \item Weighted form: \texttt{source => [(target, weight), ...]}.
+    \item Storage is $\Theta(n+m)$ for a directed graph.
+    \item Accessing a source's dictionary entry is expected $\Theta(1)$;
+      iterating over its out-neighbors costs
+      $\Theta(\deg^{\mathrm{out}}(v_i))$.
+  \end{itemize}
+
+  In an undirected list, each edge appears in both endpoint lists. The exact
+  count is $n+2m$ stored items, which remains $\Theta(n+m)$.
+\end{frame}
+
+\begin{frame}{Pair Lists with an Edge-Weight Map}
+  A flat dictionary can map a known endpoint pair directly to a weight:
+  \[
+    (u,v)\longmapsto w(u,v).
+  \]
+
+  \vspace{0.6em}
+  \begin{itemize}\setlength{\itemsep}{0.75em}
+    \item Expected lookup for a known $(u,v)$ is $\Theta(1)$.
+    \item Finding all neighbors of $u$ still requires scanning $m$ entries.
+    \item Pairing the map with an unweighted adjacency list gives fast direct
+      weight lookup and fast neighbor iteration.
+  \end{itemize}
+
+  \slidenote{Design principle:}{one graph object may maintain more than one representation when its algorithms require different access patterns.}
+\end{frame}
+
+\begin{frame}{Storage and Access Costs}
+  \renewcommand{\arraystretch}{1.38}
+  \begin{tabularx}{\textwidth}{>{\vnmedium}lYYY}
+    \toprule
+    Representation & Storage & Find $(u,v)$ & List neighbors of $u$ \\
+    \midrule
+    Edge list & $\Theta(m)$ & $\Theta(m)$ & $\Theta(m)$ \\
+    Adjacency matrix & $\Theta(n^2)$ & $\Theta(1)$ & $\Theta(n)$ \\
+    Adjacency list & $\Theta(n+m)$ & $\Theta(\deg^{\mathrm{out}}(u))$ & $\Theta(\deg^{\mathrm{out}}(u))$ \\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{1.0em}
+  The adjacency-list edge test assumes a linear scan of one neighbor vector.
+  A separate hash-based weight map changes that particular lookup to expected
+  $\Theta(1)$.
+\end{frame}
+
+\begin{frame}{Choose the Representation from the Operation}
+  \vspace{0.5em}
+  \begin{itemize}\setlength{\itemsep}{0.9em}
+    \item Use an \hilite{adjacency matrix} for a dense graph when the algorithm
+      repeatedly asks whether one specified edge exists.
+    \item Use an \hilite{adjacency list} for a sparse graph when the algorithm
+      repeatedly traverses the neighbors of reached vertices.
+    \item Use an \hilite{edge list} when the workflow reads, writes, sorts, or
+      scans every edge as a collection of records.
+  \end{itemize}
+
+  \vspace{0.6em}
+  Representation choice is not only about memory. It determines which inner
+  loop the algorithm pays for.
+\end{frame}
+
+% ==== worked example =========================================
+\begin{frame}{Worked Example: A Six-Vertex Directed Graph}
+  The file \texttt{SimpleGraph.txt} contains seven weighted edge records:
+
+  \vspace{0.6em}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.33\textwidth}
+      \small
+      \begin{tabular}{rrr}
+        \toprule
+        source & target & weight \\
+        \midrule
+        1&2&10\\ 1&3&100\\ 2&3&2\\ 2&4&100\\
+        3&5&6\\ 4&6&1\\ 5&4&1\\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+    \begin{column}{0.63\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[x=1.0cm,y=0.92cm]
+        \foreach \n/\x/\y in {1/0/1.4,2/2/2.5,3/2/0.3,4/4/2.5,5/4/0.3,6/6/1.4}
+          {\node[graphvertex] (v\n) at (\x,\y) {\n};}
+        \foreach \a/\b/\w in {1/2/10,1/3/100,2/3/2,2/4/100,3/5/6,4/6/1,5/4/1}
+          {\draw[grapharrow] (v\a)--node[midway,fill=white,inner sep=1pt,font=\scriptsize]{\w}(v\b);}
+      \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+
+  \slidenote{Notebook functions:}{\texttt{read\_weighted\_edges}, \texttt{adjacency\_list}, and \texttt{adjacency\_matrix}.}
+\end{frame}
+
+\begin{frame}{The Same Edges Become a List or a Matrix}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.39\textwidth}
+      {\large\textbf{\ink{Outgoing adjacency list}}}
+      \vspace{0.6em}
+
+      \begin{tabular}{c@{\ $\longrightarrow$\ }l}
+        1 & $[2,3]$\\
+        2 & $[3,4]$\\
+        3 & $[5]$\\
+        4 & $[6]$\\
+        5 & $[4]$\\
+        6 & $[\,]$\\
+      \end{tabular}
+
+      \vspace{0.8em}
+      This lecture's helper stores targets only; the original edge records retain the weights.
+    \end{column}
+    \begin{column}{0.57\textwidth}
+      {\large\textbf{\ink{Weighted adjacency matrix}}}
+      \vspace{0.4em}
+      \[
+      \begin{array}{c|rrrrrr}
+          &1&2&3&4&5&6\\\hline
+        1&0&10&100&0&0&0\\
+        2&0&0&2&100&0&0\\
+        3&0&0&0&0&6&0\\
+        4&0&0&0&0&0&1\\
+        5&0&0&0&1&0&0\\
+        6&0&0&0&0&0&0
+      \end{array}
+      \]
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Vertex Order Maps Identifiers to Rows}
+  The matrix carries an explicit vertex ordering:
+  \[
+    \texttt{vertex\_order}[i]=\text{vertex represented by row and column }i.
+  \]
+
+  \vspace{0.7em}
+  In the worked example, the order is $[1,2,3,4,5,6]$.
+
+  \vspace{0.7em}
+  \begin{itemize}\setlength{\itemsep}{0.75em}
+    \item Vertex 1 points to 2 and 3, so the list contains $[2,3]$.
+    \item Row 1 stores weights 10 and 100 in columns 2 and 3.
+    \item Vertex 6 has an empty neighbor vector because no edge leaves it.
+  \end{itemize}
+
+  Vertex identifiers need not equal $1:n$; the ordering provides the translation.
+\end{frame}
+
+\begin{frame}{Small Graph, Different Storage Counts}
+  For the six-vertex, seven-edge directed graph:
+  \[
+    n=6,\qquad m=7,\qquad
+    \rho=\frac{7}{6(6-1)}=\frac{7}{30}.
+  \]
+
+  \vspace{0.5em}
+  The two storage counts are:
+  \[
+    \underbrace{n^2=36}_{\text{matrix entries}},
+    \qquad
+    \underbrace{n+m=13}_{\text{directed adjacency-list items}}.
+  \]
+
+  \vspace{0.5em}
+  Tests in the notebook verify the vertex count, edge count, density, neighbor
+  list for vertex 1, matrix weight for $(1,2)$, and both storage counts.
+\end{frame}
+
+\begin{frame}{Sparse-Graph Storage Diverges at Scale}
+  Consider $n=100{,}000$ vertices with mean out-degree $10$, so
+  $m=1{,}000{,}000$. Count 8 bytes per matrix entry or list item and ignore
+  container overhead.
+
+  \vspace{0.8em}
+  \[
+    \underbrace{n^2(8\ \mathrm{bytes})}_{\text{adjacency matrix}}
+    =10^{10}(8\ \mathrm{bytes})
+    =\hilite{80\ \mathrm{GB}},
+  \]
+  \[
+    \underbrace{(n+m)(8\ \mathrm{bytes})}_{\text{adjacency list}}
+    =1.1\times10^6(8\ \mathrm{bytes})
+    =\hilite{8.8\ \mathrm{MB}}.
+  \]
+
+  The matrix grows with $n^2$; the list grows with the vertices and the edges
+  that actually exist.
+\end{frame}
+
+% ==== graph families =========================================
+\transitionframe{Three graph families turn structural definitions into
+\hilite{recognition tests, formulas, and specialized algorithms.}}
+
+\begin{frame}{Complete Graphs Use Every Possible Edge}
+  A complete graph $K_n$ is a simple undirected graph with an edge between every
+  pair of distinct vertices.
+
+  \vspace{0.25em}
+  \begin{center}
+    \includegraphics[width=0.94\textwidth,height=0.66\textheight,keepaspectratio,trim=0 0 0 65,clip]{assets/Fig-Complete-Graph-Schematic.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Complete-Graph Measures Follow Directly}
+  For $n\geq2$, every possible edge is present:
+  \[
+    |\mathcal E|=\binom n2=\frac{n(n-1)}{2},\qquad
+    \deg(v_i)=n-1.
+  \]
+  Consequently:
+  \[
+    \rho(K_n)=1,\qquad \operatorname{diam}(K_n)=1,
+  \]
+  \[
+    \omega(K_n)=\chi(K_n)=n,\qquad \alpha(K_n)=1.
+  \]
+
+  Round-robin schedules have the edge pattern of $K_n$. Traveling-salesman
+  models use a weighted $K_n$ when every city pair has a travel cost.
+\end{frame}
+
+\begin{frame}{Bipartite Graphs Split Vertices into Two Groups}
+  A graph is bipartite when
+  $\mathcal V=\mathcal V_1\mathbin{\dot\cup}\mathcal V_2$ and every edge has
+  one endpoint in each group.
+
+  \vspace{0.15em}
+  \begin{center}
+    \includegraphics[width=0.94\textwidth,height=0.70\textheight,keepaspectratio,trim=0 0 0 65,clip]{assets/Fig-Bipartite-Graph-Schematic.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Three Equivalent Tests Identify Bipartite Graphs}
+  For an undirected graph $\mathcal G$, the following statements are equivalent:
+
+  \vspace{0.8em}
+  \begin{enumerate}\setlength{\itemsep}{0.8em}
+    \item $\mathcal G$ is bipartite.
+    \item $\mathcal G$ can be colored with at most two colors, so
+      $\chi(\mathcal G)\leq2$.
+    \item $\mathcal G$ contains no odd-length cycle.
+  \end{enumerate}
+
+  \vspace{0.5em}
+  A traversal tests this in $\Theta(|\mathcal V|+|\mathcal E|)$ time: color each
+  uncolored neighbor with the opposite color and reject any same-color edge.
+\end{frame}
+
+\begin{frame}{Matchings Assign Distinct Options}
+  A \hilite{matching} is a set of edges that share no vertices. A matching that
+  covers $\mathcal V_1$ assigns a different right-side option to every left-side vertex.
+
+  \vspace{0.8em}
+  For $S\subseteq\mathcal V_1$, let $N(S)\subseteq\mathcal V_2$ be all neighbors
+  of vertices in $S$. Hall's theorem states:
+  \[
+    \underbrace{|N(S)|\geq|S|\quad\text{for every }S\subseteq\mathcal V_1}_{\text{a matching covers }\mathcal V_1}.
+  \]
+
+  Every group on the left must collectively have at least as many available
+  options on the right. A \hilite{perfect matching} covers both groups and
+  therefore requires $|\mathcal V_1|=|\mathcal V_2|$.
+\end{frame}
+
+\begin{frame}{Bipartite Matrices Have Block Structure}
+  List the vertices of $\mathcal V_1$ before the vertices of $\mathcal V_2$.
+  The adjacency matrix becomes:
+  \[
+    \mathbf A=
+    \begin{bmatrix}
+      \mathbf 0 & \mathbf B\\
+      \mathbf B^{\mathsf T} & \mathbf 0
+    \end{bmatrix}.
+  \]
+
+  \vspace{0.7em}
+  The $m\times n$ \hilite{biadjacency matrix} $\mathbf B$ stores all edges
+  between the groups. Both diagonal blocks are zero because no edge stays within
+  one group.
+
+  \vspace{0.6em}
+  For an undirected bipartite graph, storing $\mathbf B$ determines
+  $\mathbf B^{\mathsf T}$ and both zero blocks.
+\end{frame}
+
+\begin{frame}{Trees Are Minimally Connected Graphs}
+  A tree $\mathcal T=(\mathcal V,\mathcal E)$ is a connected undirected graph
+  with no cycles.
+
+  \vspace{0.8em}
+  \begin{itemize}\setlength{\itemsep}{0.8em}
+    \item Exactly one path joins every pair of vertices.
+    \item Removing any edge disconnects the tree.
+    \item Adding an edge between nonadjacent vertices creates exactly one cycle.
+  \end{itemize}
+
+  \vspace{0.5em}
+  A tree has exactly enough edges to remain connected and no edge that can be
+  removed without losing connectivity.
+\end{frame}
+
+\begin{frame}{Six Equivalent Tests Characterize a Tree}
+  For an undirected graph with $n\geq1$, each statement is equivalent:
+
+  \vspace{0.5em}
+  \begin{enumerate}\setlength{\itemsep}{0.45em}
+    \item The graph is a tree.
+    \item It is connected and has $n-1$ edges.
+    \item It has no cycle and has $n-1$ edges.
+    \item It is connected, and removing any edge disconnects it.
+    \item It has no cycle, and adding any missing edge creates one cycle.
+    \item Every pair of vertices is joined by exactly one path.
+  \end{enumerate}
+
+  \slidenote{Use:}{choose the test whose information is cheapest to verify in the problem at hand.}
+\end{frame}
+
+\begin{frame}{Trees Stay Connected While Becoming Sparse}
+  Every tree on $n$ vertices has $n-1$ edges. For $n\geq2$, its density is:
+  \[
+    \rho(\mathcal T)=
+    \frac{n-1}{n(n-1)/2}
+    =\underbrace{\frac{2}{n}}_{\text{tree density}}.
+  \]
+
+  \vspace{0.8em}
+  Thus $\rho(\mathcal T)\rightarrow0$ as $n\rightarrow\infty$, even though the
+  tree remains connected.
+
+  \vspace{0.8em}
+  Sparsity does not mean fragmentation. A tree is the sparsest possible connected
+  undirected graph.
+\end{frame}
+
+\begin{frame}{A Root Gives a Tree Parent-Child Structure}
+  \begin{center}
+    \includegraphics[height=0.58\textheight,keepaspectratio]{assets/Fig-General-Tree-Schematic-crop.pdf}
+  \end{center}
+
+  \vspace{-0.3em}
+  Every non-root vertex has one parent. Vertices may have children; those with no
+  children are leaves. Depth counts edges from the root, and height is the maximum depth.
+\end{frame}
+
+\begin{frame}{Spanning Trees Retain Connectivity}
+  Every connected undirected graph $\mathcal G$ contains a spanning tree
+  $\mathcal T$ with all $n$ vertices and exactly $n-1$ edges.
+
+  \vspace{0.8em}
+  \begin{itemize}\setlength{\itemsep}{0.8em}
+    \item A cycle-free graph that is not connected is a \hilite{forest}; each
+      connected component is a tree.
+    \item Rooted trees model file systems, organization charts, and function calls.
+    \item Specialized tree structure can make difficult graph problems easier.
+      A largest independent set is found by tree dynamic programming in
+      $\Theta(n)$ time, while the general-graph problem is NP-hard.
+  \end{itemize}
+\end{frame}
+
+% ==== looking ahead ==========================================
+\begin{frame}{Traversal Reads Only Reached Neighbor Lists}
+  A traversal starts at one vertex, reads its neighbors, and repeats until no
+  unvisited reachable vertex remains.
+
+  \vspace{0.8em}
+  \begin{itemize}\setlength{\itemsep}{0.8em}
+    \item Breadth-first search uses a queue and visits vertices in layers.
+    \item Depth-first search follows one branch before backtracking.
+    \item Edge weights do not affect either visit order, so lab L4b uses the
+      unweighted adjacency list.
+  \end{itemize}
+
+  Both run in $\Theta(|\mathcal V_r|+|\mathcal E_r|)$ for the vertices and
+  outgoing edges reached from the start.
+\end{frame}
+
+\begin{frame}{The Algorithm Selects the Representation}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.47\textwidth}
+      {\large\textbf{\ink{Dijkstra}}}
+      \vspace{0.5em}
+
+      Groups weighted edges by source:
+      \[
+        u\longmapsto[(v,w(u,v)),\ldots].
+      \]
+      Each iteration needs the target and weight of every outgoing edge.
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      {\large\textbf{\ink{Bellman-Ford}}}
+      \vspace{0.5em}
+
+      Uses an edge list:
+      \[
+        [(u,v,w(u,v)),\ldots].
+      \]
+      Each relaxation pass deliberately scans every edge.
+    \end{column}
+  \end{columns}
+
+  \vspace{1.0em}
+  The mathematical graph is the same. The global update schedule determines the
+  memory layout that is convenient.
+\end{frame}
+
+% ==== summary ================================================
+\begin{frame}{Summary}
+  A graph states which vertex pairs are joined. Its storage form sets the cost
+  of looking up one edge and listing one vertex's neighbors.
+
+  \vspace{0.7em}
+  {\large\textbf{\ink{Key takeaways}}}
+  \vspace{0.35em}
+  \begin{itemize}\setlength{\itemsep}{0.6em}
+    \item \textbf{\ink{Count vertices and edges.}} Degree and density summarize
+      incidence and fullness, but not arrangement.
+    \item \textbf{\ink{Recognize structural families.}} Complete graphs,
+      bipartite graphs, and trees each have equivalent tests and characteristic counts.
+    \item \textbf{\ink{Match storage to the operation.}} Matrices favor direct
+      edge lookup; adjacency lists favor sparse traversal; edge lists favor full scans.
+  \end{itemize}
+
+  \vspace{0.5em}
+  L4b turns an adjacency list into a systematic visit order; L4c restores weights
+  and minimizes route cost.
+\end{frame}
+
+\transitionframe{That's a wrap. \hilite{Which graph representation would you
+choose for the next algorithm, and what operation justifies that choice?}}
+
+\end{document}

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title description">
+  <title id="title">Complete graph K5</title>
+  <desc id="description">The complete graph K5 has five vertices and all ten possible edges. The four edges incident to vertex 1 are highlighted, showing that every vertex has degree four.</desc>
+  <style>
+    .title { font: 600 34px Arial, sans-serif; fill: #111; text-anchor: middle; }
+    .subtitle { font: 24px Arial, sans-serif; fill: #555; text-anchor: middle; }
+    .edge { stroke: #9a9a9a; stroke-width: 3; fill: none; stroke-linecap: round; }
+    .incident { stroke: #ef4136; stroke-width: 5; }
+    .vertex { fill: #fff; stroke: #ef4136; stroke-width: 4; }
+    .focus { fill: #fff0ee; stroke-width: 6; }
+    .vertex-label { font: 600 25px Arial, sans-serif; fill: #111; text-anchor: middle; dominant-baseline: central; }
+    .panel-heading { font: 600 26px Arial, sans-serif; fill: #222; }
+    .metric-label { font: 23px Arial, sans-serif; fill: #555; }
+    .metric-value { font: 600 32px Arial, sans-serif; fill: #222; }
+    .rule { stroke: #d7d7d7; stroke-width: 2; }
+    .legend { font: 21px Arial, sans-serif; fill: #555; }
+  </style>
+
+  <rect width="1200" height="680" fill="#fff"/>
+  <text class="title" x="600" y="48">Complete graph K₅</text>
+  <text class="subtitle" x="600" y="80">Every pair of distinct vertices is joined by an edge</text>
+
+  <!-- Draw edges before vertices so the endpoints remain clear. -->
+  <g>
+    <line class="edge" x1="560" y1="280" x2="485" y2="515"/>
+    <line class="edge" x1="560" y1="280" x2="235" y2="515"/>
+    <line class="edge" x1="560" y1="280" x2="160" y2="280"/>
+    <line class="edge" x1="485" y1="515" x2="235" y2="515"/>
+    <line class="edge" x1="485" y1="515" x2="160" y2="280"/>
+    <line class="edge" x1="235" y1="515" x2="160" y2="280"/>
+
+    <line class="edge incident" x1="360" y1="125" x2="560" y2="280"/>
+    <line class="edge incident" x1="360" y1="125" x2="485" y2="515"/>
+    <line class="edge incident" x1="360" y1="125" x2="235" y2="515"/>
+    <line class="edge incident" x1="360" y1="125" x2="160" y2="280"/>
+  </g>
+
+  <g>
+    <circle class="vertex focus" cx="360" cy="125" r="34"/><text class="vertex-label" x="360" y="125">1</text>
+    <circle class="vertex" cx="560" cy="280" r="32"/><text class="vertex-label" x="560" y="280">2</text>
+    <circle class="vertex" cx="485" cy="515" r="32"/><text class="vertex-label" x="485" y="515">3</text>
+    <circle class="vertex" cx="235" cy="515" r="32"/><text class="vertex-label" x="235" y="515">4</text>
+    <circle class="vertex" cx="160" cy="280" r="32"/><text class="vertex-label" x="160" y="280">5</text>
+  </g>
+
+  <g transform="translate(700 155)">
+    <text class="panel-heading" x="0" y="0">What the picture shows</text>
+    <line class="rule" x1="0" y1="24" x2="390" y2="24"/>
+
+    <text class="metric-label" x="0" y="83">Degree of every vertex</text>
+    <text class="metric-value" x="0" y="120">deg(v) = 5 - 1 = 4</text>
+
+    <text class="metric-label" x="0" y="190">Number of edges</text>
+    <text class="metric-value" x="0" y="227">|E| = 5(4)/2 = 10</text>
+
+    <text class="metric-label" x="0" y="297">Fraction of possible edges</text>
+    <text class="metric-value" x="0" y="334">ρ(K₅) = 1</text>
+
+    <line class="incident" x1="0" y1="398" x2="62" y2="398"/>
+    <text class="legend" x="78" y="405">edges incident to vertex 1</text>
+  </g>
+</svg>

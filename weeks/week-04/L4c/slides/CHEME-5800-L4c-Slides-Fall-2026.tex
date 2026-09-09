@@ -1,0 +1,576 @@
+% L4c lecture companion deck.
+% Mirrors the lecture notebook: shortest-path formulation and relaxation;
+% Dijkstra; Bellman-Ford; worked comparison; negative weights; lab bridge.
+% The project is self-contained: styles, seal, diagrams, and build rules are local.
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{vnslides}
+\usepackage{tabularx}
+
+\renewcommand{\vnlecturecode}{L4c}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\tikzset{
+  graphvertex/.style={draw=vnslideink,circle,fill=white,line width=0.7pt,
+    minimum size=8mm,inner sep=0pt,font=\small\vnmedium},
+  graphsource/.style={graphvertex,draw=vnaccent,line width=1.2pt},
+  graphedge/.style={draw=vnslidebody,line width=0.8pt,-{Latex[length=2.5mm]}},
+  graphoptimal/.style={draw=vnaccent,line width=1.4pt,-{Latex[length=2.7mm]}},
+  graphnegative/.style={draw=vnslidelink,line width=1.2pt,-{Latex[length=2.7mm]}},
+}
+
+\title{{\vnheavy L4c}: Shortest-Path Algorithms}
+\subtitle{CHEME 5800 Cornell University}
+\author{Copyright Jeffrey Varner 2026. All Rights Reserved}
+
+\begin{document}
+
+% ==== title ==================================================
+\vntitlepage
+
+% ==== objectives =============================================
+\begin{frame}{Objectives for Today}
+  Today we formulate the single-source shortest-path problem and compare two
+  global schedules for the same local relaxation update.
+
+  \vspace{0.9em}
+  {\large\textbf{\ink{Today's concepts}}}
+  \vspace{0.4em}
+  \begin{itemize}\setlength{\itemsep}{0.7em}
+    \item \hilite{Shortest paths and relaxation}: calculate path cost and update
+      distance and predecessor maps.
+    \item \hilite{Dijkstra's algorithm}: explain greedy finalization under
+      nonnegative edge weights.
+    \item \hilite{Bellman-Ford}: explain repeated relaxation, negative edges,
+      and reachable negative-cycle detection.
+  \end{itemize}
+
+  \slidenote{Lecture:}{\href{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-04/L4c/CHEME-5800-L4c-Lecture-ShortestPathAlgorithms-Fall-2026.ipynb}{Shortest-Path Algorithms}}
+\end{frame}
+
+\begin{frame}{Lecture and Lab}
+  \textbf{\ink{Lecture:}}
+  \href{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-04/L4c/CHEME-5800-L4c-Lecture-ShortestPathAlgorithms-Fall-2026.ipynb}{Shortest-Path Algorithms}
+
+  \vspace{0.8em}
+  Formulate the problem, trace Dijkstra and Bellman-Ford, and distinguish a
+  permissible negative edge from a reachable negative-weight cycle.
+
+  \vspace{1.1em}
+  \textbf{\ink{Lab L4d:}}
+  \href{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-04/L4d/CHEME-5800-L4d-Lab-ProductionPlanningShortestPath-Fall-2026.ipynb}{Production Planning with Shortest Paths}
+
+  \vspace{0.8em}
+  Predict a least-cost production route, compute it with Dijkstra, verify it
+  independently with Bellman-Ford, and locate a cost threshold where the optimum changes.
+\end{frame}
+
+% ==== problem formulation ====================================
+\begin{frame}{Weighted Graphs Turn Routes into Optimization}
+  An edge weight can represent travel time, communication delay, monetary cost,
+  or the number of unit operations in a chemical process.
+
+  \vspace{0.9em}
+  The common question is:
+
+  \vspace{0.5em}
+  \begin{center}
+    \begin{minipage}{0.82\textwidth}
+      \centering\Large
+      Among all feasible routes from a source to a target, which route has the
+      \hilite{smallest total edge weight}?
+    \end{minipage}
+  \end{center}
+
+  \vspace{0.9em}
+  Enumerating every route is usually impractical because the number of routes
+  may grow exponentially with graph size.
+\end{frame}
+
+\begin{frame}{A Feasible Route Follows Directed Edges}
+  Let $\mathcal G=(\mathcal V,\mathcal E)$ be directed, let
+  $w:\mathcal E\rightarrow\mathbb R$ assign edge weights, and fix source
+  $s\in\mathcal V$.
+
+  A feasible route from $s$ to target $t$ is:
+  \[
+    P=\langle v_0,v_1,\ldots,v_k\rangle,
+    \qquad v_0=s,\quad v_k=t,
+  \]
+  with $(v_i,v_{i+1})\in\mathcal E$ for $i=0,\ldots,k-1$.
+
+  Its total weight is the sum of its edge weights:
+  \[
+    \underbrace{w(P)=\sum_{i=0}^{k-1}w(v_i,v_{i+1})}_{\text{route cost}}.
+  \]
+\end{frame}
+
+\begin{frame}{Distance Is Finite Only for a Reachable Target}
+  Let $\mathcal P_{s,t}$ be all feasible routes from $s$ to $t$. When no
+  repeatable negative cycle makes the route cost unbounded below, define:
+  \[
+    d(s,t)=
+    \begin{cases}
+      \displaystyle\min_{P\in\mathcal P_{s,t}}w(P),
+        & \mathcal P_{s,t}\neq\varnothing,\\[5pt]
+      +\infty, & \mathcal P_{s,t}=\varnothing.
+    \end{cases}
+  \]
+
+  Thus $d(s,t)=+\infty$ means the target is unreachable. When the optimum is
+  finite, a selected shortest path $P^*$ satisfies:
+  \[
+    P^*\in\arg\min_{P\in\mathcal P_{s,t}}w(P),
+    \qquad w(P^*)=d(s,t).
+  \]
+\end{frame}
+
+\begin{frame}{A Single-Source Solution Returns Two Maps}
+  Fix source $s$ and compute, for every vertex $v\in\mathcal V$:
+  \[
+    \underbrace{\operatorname{dist}[v]=d(s,v)}_{\text{minimum route cost}},
+    \qquad
+    \underbrace{\operatorname{prev}[v]}_{\text{one predecessor on a selected route}}.
+  \]
+
+  \vspace{0.7em}
+  \begin{itemize}\setlength{\itemsep}{0.75em}
+    \item $\operatorname{prev}[s]=\texttt{nothing}$.
+    \item Follow predecessors backward from a target, then reverse the sequence,
+      to reconstruct one minimizing route.
+    \item If several routes tie, the predecessor map may encode any one of them.
+    \item An unreachable vertex keeps distance $+\infty$ and no predecessor.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shortest Paths Have Optimal Substructure}
+  Suppose a shortest path from source $s$ to target $t$ passes through vertex $u$.
+
+  \vspace{0.8em}
+  Its prefix from $s$ to $u$ must itself be a shortest path.
+
+  \vspace{0.8em}
+  If a cheaper prefix existed, replacing the old prefix would produce a cheaper
+  route to $t$, contradicting optimality.
+
+  \vspace{0.9em}
+  \begin{center}
+    \Large
+    \hilite{A globally optimal route is assembled from optimal prefixes.}
+  \end{center}
+
+  \slidenote{Algorithmic consequence:}{store the best discovered prefix to each vertex instead of enumerating complete routes.}
+\end{frame}
+
+% ==== relaxation =============================================
+\begin{frame}{Relaxation Starts with One Known Route}
+  At initialization, the zero-edge route from $s$ to itself is the only known route:
+  \[
+    \operatorname{dist}[v]=
+    \begin{cases}
+      0, & v=s,\\
+      +\infty, & v\neq s,
+    \end{cases}
+    \qquad
+    \operatorname{prev}[v]=\texttt{nothing}.
+  \]
+
+  \vspace{0.8em}
+  A finite estimate $\operatorname{dist}[v]$ is always the weight of an actual
+  source-to-$v$ route discovered so far.
+
+  \vspace{0.6em}
+  These estimates begin conservatively and can only decrease as better routes are found.
+\end{frame}
+
+\begin{frame}{Relax One Extended Route}
+  Consider edge $(u,v)\in\mathcal E$. If a finite route to $u$ is known, appending
+  the edge gives candidate cost:
+  \[
+    \underbrace{\operatorname{alt}(u,v)=
+      \operatorname{dist}[u]+w(u,v)}_{\text{candidate route to }v}.
+  \]
+
+  Relaxation updates both maps only when the candidate is strictly cheaper:
+  \[
+  (\operatorname{dist}[v],\operatorname{prev}[v])\leftarrow
+  \begin{cases}
+    (\operatorname{alt}(u,v),u),
+      & \operatorname{alt}(u,v)<\operatorname{dist}[v],\\[3pt]
+    (\operatorname{dist}[v],\operatorname{prev}[v]),
+      & \operatorname{alt}(u,v)\geq\operatorname{dist}[v].
+  \end{cases}
+  \]
+
+  The strict comparison preserves the existing predecessor when costs tie.
+\end{frame}
+
+\begin{frame}{Relaxation Preserves Two Useful Invariants}
+  Every finite estimate is the weight of a discovered route, so it is an upper
+  bound on the unknown optimum:
+  \[
+    \underbrace{d(s,v)\leq\operatorname{dist}[v]}_{\text{upper-bound invariant}}.
+  \]
+
+  Immediately after relaxing $(u,v)$, the estimates also satisfy:
+  \[
+    \underbrace{\operatorname{dist}[v]
+      \leq\operatorname{dist}[u]+w(u,v)}_{\text{local consistency for }(u,v)}.
+  \]
+
+  \vspace{0.7em}
+  Repeated relaxation propagates cheaper prefixes. The global algorithm decides
+  which edges are revisited and when an estimate becomes final.
+\end{frame}
+
+\transitionframe{Dijkstra and Bellman-Ford use the \hilite{same relaxation rule}.
+They differ in the order, repetition, and assumptions surrounding that update.}
+
+% ==== Dijkstra ===============================================
+\begin{frame}{Dijkstra Requires Nonnegative Edge Weights}
+  Dijkstra repeatedly selects the unsettled vertex with the smallest tentative
+  distance. Its greedy step requires:
+  \[
+    w(u,v)\geq0\qquad\text{for every }(u,v)\in\mathcal E.
+  \]
+
+  Initialize:
+  \begin{itemize}\setlength{\itemsep}{0.55em}
+    \item distance and predecessor maps;
+    \item an empty settled set $\mathcal S$;
+    \item a min-priority queue $\mathcal Q$ containing $s$ with priority zero.
+  \end{itemize}
+
+  Every other distance begins at $+\infty$. The public implementation rejects a
+  graph containing any negative edge before running the greedy algorithm.
+\end{frame}
+
+\begin{frame}{Dijkstra Finalizes One Vertex at a Time}
+  While the min-priority queue $\mathcal Q$ is not empty:
+
+  \vspace{0.6em}
+  \begin{enumerate}\setlength{\itemsep}{0.65em}
+    \item Remove a vertex $u$ with minimum priority.
+    \item If $u\in\mathcal S$, skip it; otherwise add $u$ to $\mathcal S$.
+      Its distance is now final.
+    \item For every outgoing edge $(u,v)$, compute
+      $\operatorname{alt}=\operatorname{dist}[u]+w(u,v)$.
+    \item If $\operatorname{alt}<\operatorname{dist}[v]$, update the distance,
+      set $\operatorname{prev}[v]=u$, and assign priority $\operatorname{alt}$ to $v$.
+  \end{enumerate}
+
+  A weighted adjacency list supplies the outgoing target and weight pairs needed in step 3.
+\end{frame}
+
+\begin{frame}{Why Is a Settled Distance Final?}
+  Let $u$ be the unsettled vertex with minimum tentative distance. Suppose a
+  shorter route to $u$ exists.
+
+  \vspace{0.7em}
+  On that route, let $y$ be the first unsettled vertex and $x$ its settled
+  predecessor. When $x$ was settled, relaxing $(x,y)$ produced a tentative
+  distance no larger than the route prefix to $y$.
+
+  \vspace{0.7em}
+  All remaining edge weights are nonnegative, so that prefix would be cheaper
+  than $\operatorname{dist}[u]$. This contradicts the choice of $u$:
+  \[
+    u\in\arg\min_{v\notin\mathcal S}\operatorname{dist}[v]
+    \quad\Longrightarrow\quad
+    \operatorname{dist}[u]=d(s,u).
+  \]
+\end{frame}
+
+\begin{frame}{Dijkstra Uses a Queue to Scan Edges}
+  With a weighted adjacency list and a min-priority queue, Dijkstra runs in:
+  \[
+    \underbrace{\mathcal O\!\left((|\mathcal V|+|\mathcal E|)
+      \log|\mathcal V|\right)}_{\text{Dijkstra running time}}.
+  \]
+
+  \vspace{0.8em}
+  \begin{itemize}\setlength{\itemsep}{0.75em}
+    \item Each reached vertex enters the queue as tentative distances improve.
+    \item Each outgoing edge is examined when its source is settled.
+    \item The settled set prevents a vertex from being finalized twice.
+  \end{itemize}
+
+  \slidenote{Scope:}{the bound matches the course implementation using adjacency lists and a comparison-based priority queue.}
+\end{frame}
+
+% ==== Bellman-Ford ===========================================
+\begin{frame}{Bellman-Ford Repeatedly Relaxes Every Edge}
+  Bellman-Ford permits negative edges by giving later improvements time to
+  propagate across earlier vertices.
+
+  \vspace{0.7em}
+  Initialize the same distance and predecessor maps. Then repeat at most
+  $|\mathcal V|-1$ times:
+  \begin{enumerate}\setlength{\itemsep}{0.55em}
+    \item Visit every edge $(u,v)\in\mathcal E$.
+    \item If $\operatorname{dist}[u]$ is finite and the candidate is cheaper,
+      relax $(u,v)$.
+    \item If a complete pass changes nothing, stop early because the estimates converged.
+  \end{enumerate}
+
+  No vertex is greedily settled. The algorithm instead expands the maximum path
+  length whose optimal cost has propagated.
+\end{frame}
+
+\begin{frame}{Pass $k$ Accounts for Paths with at Most $k$ Edges}
+  After pass $k$, Bellman-Ford has accounted for every source-to-vertex path
+  containing at most $k$ edges.
+
+  \vspace{0.8em}
+  If no reachable negative-weight cycle exists, a shortest path can be chosen
+  to be simple. Repeating a vertex would add either a nonnegative cycle or a
+  removable zero-cost cycle.
+
+  \vspace{0.8em}
+  A simple path visits at most $|\mathcal V|$ vertices and therefore contains at most:
+  \[
+    \underbrace{|\mathcal V|-1}_{\text{maximum edges in a simple path}}
+  \]
+
+  This is why $|\mathcal V|-1$ relaxation passes are sufficient.
+\end{frame}
+
+\begin{frame}{One Extra Pass Detects Negative Cycles}
+  After the usual passes, scan every edge once more.
+
+  \vspace{0.7em}
+  If an edge from a finite-distance source can still be relaxed, some reachable
+  cycle has negative total weight. Repeating that cycle drives route costs downward:
+  \[
+    w(P),\quad w(P)+w(C),\quad w(P)+2w(C),\quad\ldots
+    \longrightarrow -\infty
+    \qquad\text{when }w(C)<0.
+  \]
+
+  No finite shortest-path solution exists for vertices affected by that cycle.
+
+  \vspace{0.7em}
+  A negative cycle disconnected from source $s$ does not invalidate the
+  single-source result because its edges begin at infinite-distance vertices.
+\end{frame}
+
+\begin{frame}{Bellman-Ford Trades Time for Flexibility}
+  In the worst case, Bellman-Ford scans every edge during each of
+  $|\mathcal V|-1$ passes and during the cycle check:
+  \[
+    \underbrace{\mathcal O(|\mathcal V|\,|\mathcal E|)}_{\text{running time}},
+    \qquad
+    \underbrace{\mathcal O(|\mathcal V|)}_{\text{distance and predecessor storage}}.
+  \]
+
+  \vspace{0.8em}
+  Early exit can reduce the actual number of passes when a complete edge scan
+  produces no update.
+
+  \vspace{0.8em}
+  The benefit is correctness with negative edges and explicit detection of
+  reachable negative-weight cycles.
+\end{frame}
+
+% ==== worked comparison ======================================
+\begin{frame}{Worked Comparison: A Nonnegative Graph}
+  \begin{center}
+  \begin{tikzpicture}[x=1.65cm,y=1.15cm]
+    \node[graphsource] (v1) at (0,1.3) {1};
+    \node[graphvertex] (v3) at (2,0) {3};
+    \node[graphvertex] (v2) at (2,2.6) {2};
+    \node[graphvertex] (v4) at (4.3,1.3) {4};
+    \draw[graphedge] (v1)--node[above left,font=\small,fill=white,inner sep=1pt]{4}(v2);
+    \draw[graphoptimal] (v1)--node[below left,font=\small,fill=white,inner sep=1pt]{1}(v3);
+    \draw[graphoptimal] (v3)--node[right,font=\small,fill=white,inner sep=1pt]{2}(v2);
+    \draw[graphoptimal] (v2)--node[above right,font=\small,fill=white,inner sep=1pt]{1}(v4);
+    \draw[graphedge] (v3)--node[below right,font=\small,fill=white,inner sep=1pt]{5}(v4);
+  \end{tikzpicture}
+  \end{center}
+
+  Both algorithms are valid because all weights are nonnegative. The minimum-cost
+  route from 1 to 4 is:
+  \[
+    1\rightarrow3\rightarrow2\rightarrow4,
+    \qquad 1+2+1=\hilite{4}.
+  \]
+\end{frame}
+
+\begin{frame}{Dijkstra Trace on the Worked Graph}
+  \small
+  \renewcommand{\arraystretch}{1.28}
+  \begin{tabularx}{\textwidth}{>{\vnmedium}lYllll}
+    \toprule
+    Step & Action & $d_1$ & $d_2$ & $d_3$ & $d_4$ \\
+    \midrule
+    0 & initialize at source 1 & 0 & $\infty$ & $\infty$ & $\infty$ \\
+    1 & settle 1; relax $(1,2)$ and $(1,3)$ & 0 & 4 & 1 & $\infty$ \\
+    2 & settle 3; improve 2 and discover 4 & 0 & 3 & 1 & 6 \\
+    3 & settle 2; improve 4 & 0 & 3 & 1 & 4 \\
+    4 & settle 4 & 0 & 3 & 1 & 4 \\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{0.8em}
+  The predecessor updates are $\operatorname{prev}[3]=1$,
+  $\operatorname{prev}[2]=3$, and $\operatorname{prev}[4]=2$.
+  Following them backward reconstructs $4\leftarrow2\leftarrow3\leftarrow1$.
+\end{frame}
+
+\begin{frame}{Different Schedules Produce the Same Optimum}
+  On the nonnegative worked graph:
+  \[
+    \operatorname{dist}_{\mathrm{Dijkstra}}[v]
+    =\operatorname{dist}_{\mathrm{Bellman-Ford}}[v]
+    \qquad\text{for every vertex }v.
+  \]
+
+  Both predecessor maps reconstruct the unique target route:
+  \[
+    P^*=\langle1,3,2,4\rangle,
+    \qquad w(P^*)=4.
+  \]
+
+  \vspace{0.8em}
+  Agreement is expected because Dijkstra's nonnegative-weight precondition holds.
+  Bellman-Ford provides an independent check using a different relaxation schedule.
+\end{frame}
+
+\begin{frame}{A Negative Edge Can Still Have a Finite Optimum}
+  \begin{center}
+  \begin{tikzpicture}[x=1.7cm,y=1.0cm]
+    \node[graphsource] (v1) at (0,1.2) {1};
+    \node[graphvertex] (v2) at (1.8,2.2) {2};
+    \node[graphvertex] (v3) at (3.6,1.2) {3};
+    \node[graphvertex] (v4) at (5.4,1.2) {4};
+    \draw[graphoptimal] (v1)--node[above left,font=\small,fill=white,inner sep=1pt]{4}(v2);
+    \draw[graphedge] (v1)--node[below,font=\small,fill=white,inner sep=1pt]{5}(v3);
+    \draw[graphnegative] (v2)--node[above right,font=\small,fill=white,inner sep=1pt]{$-2$}(v3);
+    \draw[graphoptimal] (v3)--node[above,font=\small,fill=white,inner sep=1pt]{3}(v4);
+  \end{tikzpicture}
+  \end{center}
+
+  Bellman-Ford finds the finite route:
+  \[
+    1\rightarrow2\rightarrow3\rightarrow4,
+    \qquad 4-2+3=\hilite{5}.
+  \]
+
+  A negative edge is permissible when no reachable negative cycle can be repeated.
+\end{frame}
+
+\begin{frame}{Why Dijkstra Rejects the Negative-Edge Graph}
+  Dijkstra may settle a vertex before a later negative edge reveals a cheaper route.
+
+  \vspace{0.8em}
+  In the example, the direct tentative cost to vertex 3 is 5, but the route through
+  vertex 2 has cost:
+  \[
+    \operatorname{dist}[2]+w(2,3)=4+(-2)=2.
+  \]
+
+  \vspace{0.8em}
+  Nonnegative weights guarantee that extending a path cannot lower its cost.
+  The edge of weight $-2$ removes that guarantee, so the implication
+  \[
+    \text{minimum tentative distance}\Longrightarrow\text{final distance}
+  \]
+  is no longer valid. The implementation therefore rejects the graph explicitly.
+\end{frame}
+
+\begin{frame}{Negative Cycles Remove Finite Optima}
+  \begin{center}
+  \begin{tikzpicture}[x=1.6cm,y=1.25cm]
+    \node[graphsource] (v1) at (0,0) {1};
+    \node[graphvertex] (v2) at (2.4,1.7) {2};
+    \node[graphvertex] (v3) at (4.8,0) {3};
+    \draw[graphoptimal] (v1)--node[above left,font=\small,fill=white,inner sep=1pt]{1}(v2);
+    \draw[graphnegative] (v2)--node[above right,font=\small,fill=white,inner sep=1pt]{$-2$}(v3);
+    \draw[graphoptimal] (v3)--node[below,font=\small,fill=white,inner sep=1pt]{0}(v1);
+  \end{tikzpicture}
+  \end{center}
+
+  The cycle weight is:
+  \[
+    w(C)=1-2+0=\hilite{-1}.
+  \]
+  Each repetition lowers the route cost by one. Bellman-Ford's extra pass detects
+  another possible relaxation and reports that no finite solution exists.
+\end{frame}
+
+\begin{frame}{The Public Contracts Separate Three Cases}
+  The notebook turns the comparison into executable checks:
+
+  \vspace{0.7em}
+  \begin{itemize}\setlength{\itemsep}{0.75em}
+    \item \textbf{\ink{Nonnegative graph:}} both algorithms return
+      $\langle1,3,2,4\rangle$ with target cost 4 and identical distance maps.
+    \item \textbf{\ink{Negative edge, no negative cycle:}} Bellman-Ford returns
+      $\langle1,2,3,4\rangle$ with target cost 5.
+    \item \textbf{\ink{Violated contract:}} Dijkstra raises an error for the
+      negative edge; Bellman-Ford raises an error for the reachable negative cycle.
+  \end{itemize}
+
+  \slidenote{Purpose:}{the tests verify numerical results and the public-interface assumptions, not only one displayed example.}
+\end{frame}
+
+\begin{frame}{Choose the Algorithm from the Weight Contract}
+  \renewcommand{\arraystretch}{1.45}
+  \begin{tabularx}{\textwidth}{>{\vnmedium}lYY}
+    \toprule
+    Question & Dijkstra & Bellman-Ford \\
+    \midrule
+    Edge weights & All nonnegative & Negative edges allowed \\
+    Global schedule & Settle minimum tentative vertex & Relax every edge repeatedly \\
+    Negative-cycle detection & Not supported & Detects a reachable cycle \\
+    Worst-case time & $\mathcal O((|\mathcal V|+|\mathcal E|)\log|\mathcal V|)$ & $\mathcal O(|\mathcal V||\mathcal E|)$ \\
+    Natural storage & Weighted adjacency list & Edge list \\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{0.7em}
+  Both return distance and predecessor maps when their input contracts hold.
+\end{frame}
+
+% ==== lab bridge =============================================
+\begin{frame}{Lab L4d Applies Both Algorithms}
+  The lab maps alternative production routes to a weighted directed graph.
+
+  \vspace{0.7em}
+  \begin{enumerate}\setlength{\itemsep}{0.7em}
+    \item Predict the least-cost route by inspecting the process costs.
+    \item Compute the route with Dijkstra because all costs are nonnegative.
+    \item Verify the distance and route independently with Bellman-Ford.
+    \item Discount one production step and locate the break-even cost where the
+      selected route changes.
+  \end{enumerate}
+
+  \vspace{0.6em}
+  Sensitivity analysis asks when the optimum changes, not only what the optimum is today.
+\end{frame}
+
+% ==== summary ================================================
+\begin{frame}{Summary}
+  A shortest-path algorithm combines a local relaxation rule with a global
+  schedule for deciding which edges to revisit and when a distance becomes final.
+
+  \vspace{0.7em}
+  {\large\textbf{\ink{Key takeaways}}}
+  \vspace{0.35em}
+  \begin{itemize}\setlength{\itemsep}{0.6em}
+    \item \textbf{\ink{Relaxation connects local edges to global routes.}}
+      Distance estimates store costs; predecessors store route choices.
+    \item \textbf{\ink{Dijkstra finalizes greedily.}} Nonnegative edge weights
+      make the minimum tentative distance safe to settle.
+    \item \textbf{\ink{Bellman-Ford revisits every edge.}} Repeated passes allow
+      negative edges; one extra pass detects a reachable negative cycle.
+  \end{itemize}
+
+  \vspace{0.5em}
+  In L4d, both algorithms validate a production route and reveal when a cost
+  perturbation changes the optimum.
+\end{frame}
+
+\transitionframe{That's a wrap. \hilite{Which property of the edge weights tells
+you which shortest-path algorithm is valid?}}
+
+\end{document}
