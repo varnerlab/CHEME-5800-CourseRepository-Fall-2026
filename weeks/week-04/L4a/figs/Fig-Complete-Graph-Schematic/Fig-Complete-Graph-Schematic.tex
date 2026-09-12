@@ -1,0 +1,77 @@
+% Standalone figure: run make in this directory to build PDF and SVG.
+\documentclass[11pt,tikz,border=0pt]{standalone}
+\usepackage{fontspec}
+\IfFontExistsTF{Helvetica Neue Light}{
+  \setsansfont{Helvetica Neue Light}[BoldFont={Helvetica Neue Medium}]
+  \newfontfamily\vnmedium{Helvetica Neue Medium}
+}{
+  \setsansfont{TeX Gyre Heros}
+  \newcommand{\vnmedium}{\bfseries}
+}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{unicode-math}
+\setmathfont{latinmodern-math.otf}
+\usetikzlibrary{arrows.meta,calc,positioning}
+\definecolor{vnslideink}{HTML}{333333}
+\definecolor{vnslidebody}{HTML}{5E5E5E}
+\definecolor{vnaccent}{HTML}{FF644E}
+\definecolor{vnslidelink}{HTML}{579ACA}
+\pagecolor{white}
+
+\begin{document}
+% The panel export omits the title already supplied by the slide.
+\begingroup
+\definecolor{cgAccent}{HTML}{EF4136}
+\definecolor{cgEdge}{HTML}{9A9A9A}
+\definecolor{cgInk}{HTML}{333333}
+\definecolor{cgBody}{HTML}{555555}
+\definecolor{cgRule}{HTML}{D7D7D7}
+\begin{tikzpicture}[x=1cm,y=1cm,
+  font=\sffamily\fontsize{11}{13}\selectfont,text=cgInk,
+  cgvertex/.style={circle,draw=cgAccent,fill=white,line width=1.1pt,
+    minimum size=7mm,inner sep=0pt,font=\sffamily\bfseries\fontsize{11}{13}\selectfont},
+  cglabel/.style={anchor=west,text=cgBody,font=\sffamily\fontsize{10}{12}\selectfont},
+  cgequation/.style={anchor=west,font=\fontsize{13}{16}\selectfont}]
+  \ifdefined\CompleteGraphOmitHeading
+    \fill[white] (-0.5,-0.95) rectangle (11.1,4.25);
+    \path[use as bounding box] (-0.5,-0.95) rectangle (11.1,4.25);
+  \else
+    \fill[white] (-0.5,-0.95) rectangle (11.1,5.55);
+    \node[font=\sffamily\bfseries\fontsize{16}{19}\selectfont] at (5.3,5.2)
+      {Complete graph $K_5$};
+    \node[text=cgBody,font=\sffamily\fontsize{11}{13}\selectfont] at (5.3,4.7)
+      {Every pair of distinct vertices is joined by an edge};
+    \path[use as bounding box] (-0.5,-0.95) rectangle (11.1,5.55);
+  \fi
+
+  % Draw the six other edges and the four incident edges before the vertices.
+  \coordinate (c1) at (2,3.8);
+  \coordinate (c2) at (4,2.25);
+  \coordinate (c3) at (3.25,0);
+  \coordinate (c4) at (0.75,0);
+  \coordinate (c5) at (0,2.25);
+  \foreach \i/\j in {2/3,2/4,2/5,3/4,3/5,4/5}
+    {\draw[draw=cgEdge,line width=0.85pt] (c\i)--(c\j);}
+  \foreach \j in {2,3,4,5}
+    {\draw[draw=cgAccent,line width=1.45pt] (c1)--(c\j);}
+  \foreach \i in {2,3,4,5}
+    {\node[cgvertex] at (c\i) {\i};}
+  \node[cgvertex,fill=cgAccent!7,line width=1.6pt] at (c1) {1};
+
+  \node[anchor=west,font=\sffamily\bfseries\fontsize{11}{13}\selectfont]
+    at (5.4,3.9) {What the picture shows};
+  \draw[draw=cgRule,line width=0.5pt] (5.4,3.55)--(10.9,3.55);
+  \node[cglabel] at (5.4,3.25) {Degree of every vertex};
+  \node[cgequation] at (5.4,2.8) {$\displaystyle\deg(v)=5-1=4$};
+  \node[cglabel] at (5.4,2.15) {Number of edges};
+  \node[cgequation] at (5.4,1.2) {$\displaystyle|\mathcal E|=\frac{5(4)}{2}=10$};
+  \node[cglabel] at (5.4,0.35) {Fraction of possible edges};
+  \node[cgequation] at (5.4,-0.1) {$\displaystyle\rho(K_5)=1$};
+  \draw[draw=cgAccent,line width=1.45pt] (5.4,-0.7)--(6.0,-0.7);
+  \node[anchor=west,text=cgBody,font=\sffamily\fontsize{9}{11}\selectfont]
+    at (6.15,-0.7) {edges incident to vertex 1};
+\end{tikzpicture}
+\endgroup
+
+\end{document}

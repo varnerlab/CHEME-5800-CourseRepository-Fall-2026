@@ -67,9 +67,9 @@ function depth_first_order(adjacency::AbstractDict, start::Integer)::Vector{Int6
     # TODO 1: Validate start, then allocate an empty visited set and traversal-
     # order vector. The set prevents a cycle from revisiting a vertex.
 
-    # TODO 2: Define a recursive visit(vertex) helper. On the first visit, add
-    # vertex to both state collections, then recursively visit every neighbor
-    # returned by _ordered_neighbors(adjacency, vertex).
+    # TODO 2: Define a recursive visit(vertex) helper. Return immediately for a
+    # visited vertex. Otherwise, record it in both state collections and visit
+    # each neighbor returned by _ordered_neighbors(adjacency, vertex).
 
     # TODO 3: Visit the validated starting vertex and return the completed
     # first-visit order.
@@ -101,7 +101,7 @@ function breadth_first_order(adjacency::AbstractDict, start::Integer)::Vector{In
 
     # TODO 4: Validate start; allocate the visited set, traversal-order vector,
     # and FIFO queue; then mark and enqueue the start vertex. Marking on enqueue
-    # prevents two frontier vertices from adding the same neighbor twice.
+    # prevents different vertices from adding the same neighbor twice.
 
     # TODO 5: Process the queue with a head index. For each dequeued vertex,
     # append it to the traversal order and inspect its ordered neighbors.

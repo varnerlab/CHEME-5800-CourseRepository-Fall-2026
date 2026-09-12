@@ -23,8 +23,8 @@
 # --- 1. PATHS ----------------------------------------------------------------
 # `@__DIR__` is the folder holding *this* file, not `pwd()`, so the joins below
 # hold whether the notebook was launched from here or from the repository root.
-# The guard makes re-running the setup cell harmless, which matters because a
-# `const` may not be rebound once it is set.
+# The guards avoid redefining the folder constants when the setup cell runs
+# again after students save changes to their traversal functions.
 if !isdefined(@__MODULE__, :CHEME5800_L4B_ROOT)
     const CHEME5800_L4B_ROOT = @__DIR__
 end
