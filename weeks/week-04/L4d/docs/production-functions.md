@@ -1,6 +1,6 @@
 # L4d production-planning functions
 
-These functions support the [production-planning lab](../CHEME-5800-L4d-Lab-ProductionPlanningShortestPath-Fall-2026.ipynb). Route costs use the dataset's arbitrary cost units; vertex identifiers have no physical units. The three route helpers are defined in [`src/Compute.jl`](../src/Compute.jl). The plotting helper is defined in the notebook.
+These functions support the [production-planning lab](../CHEME-5800-L4d-Lab-ProductionPlanningShortestPath-Fall-2026.ipynb). Route costs use the dataset's arbitrary cost units; vertex identifiers have no physical units. The three route helpers are defined in [`src/Compute.jl`](../src/Compute.jl). The plotting helper is defined in [`src/Visualization.jl`](../src/Visualization.jl). Both files are loaded by [`Include.jl`](../Include.jl).
 
 <a id="route_cost"></a>
 ## `route_cost`
@@ -47,4 +47,4 @@ plotroute(graphmodel::MySimpleDirectedGraphModel, route::Vector{Int64},
 
 `graphmodel` supplies directed edges and costs. `route` lists the vertices of the route to highlight. Row `v` of `coordinates` holds the display position `(x, y)` for vertex `v`; these coordinates have no physical units and do not determine edge costs. `start` and `finish` select highlighted endpoints, defaulting to the notebook's endpoint variables.
 
-The function returns the plot with the full graph, edge costs, and the chosen route in red. It assumes valid vertex-indexed coordinates and a route whose steps exist in the graph. See [Shared plotting setup](../CHEME-5800-L4d-Lab-ProductionPlanningShortestPath-Fall-2026.ipynb#Shared-plotting-setup) for its definition.
+The function returns the plot with the full graph, edge costs, and the chosen route in red. It assumes valid vertex-indexed coordinates and a route whose steps exist in the graph. See [`src/Visualization.jl`](../src/Visualization.jl) for its implementation and [Shared plotting setup](../CHEME-5800-L4d-Lab-ProductionPlanningShortestPath-Fall-2026.ipynb#Shared-plotting-setup) for the notebook's layout and endpoint variables.

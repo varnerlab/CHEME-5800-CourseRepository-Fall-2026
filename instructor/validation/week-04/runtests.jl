@@ -67,7 +67,7 @@ end
         @test occursin("TODO $(todo)", stub)
     end
     @test occursin("not implemented yet", stub)
-    @test !occursin("while head <= length(queue)", stub)
+    @test !occursin("while !isempty(queue)", stub)
     @test !occursin("visit(start_id)", stub)
 
     # The scaffold must parse, retain its completed adjacency helper, and fail

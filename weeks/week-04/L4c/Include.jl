@@ -23,10 +23,9 @@
 # --- 1. PATHS ----------------------------------------------------------------
 # `@__DIR__` is the folder holding *this* file, not `pwd()`, so the joins below
 # hold whether the notebook was launched from here or from the repository root.
-# The guard makes re-running the setup cell harmless, which matters because a
-# `const` may not be rebound once it is set.
+# The guard preserves the existing constant binding when the setup cell is rerun.
 if !isdefined(@__MODULE__, :CHEME5800_L4C_ROOT)
-    const CHEME5800_L4C_ROOT = @__DIR__
+    const CHEME5800_L4C_ROOT = @__DIR__ # local lecture folder
 end
 
 
@@ -36,8 +35,8 @@ end
 include(normpath(joinpath(CHEME5800_L4C_ROOT, "..", "..", "..", "Include.jl")))
 
 # This meeting carries no source of its own. The shortest-path algorithms it uses
-# live in the course package, in `code/src/ShortestPathAlgorithms.jl`, and arrive through the root
-# bootstrap above.
+# live in the course package, in `code/src/ShortestPathAlgorithms.jl`, and arrive
+# through the root bootstrap above.
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
@@ -49,7 +48,7 @@ include(normpath(joinpath(CHEME5800_L4C_ROOT, "..", "..", "..", "Include.jl")))
 #   VLDataScienceMachineLearningPackage   the course package
 #
 # Standard library:
-using Test               # @test / @testset for the checks in the notebook
+using Test               # @test, @test_throws, and @testset for the notebook checks
 #
 # Packages:
-using DataStructures     # queues, heaps, and ordered containers
+using DataStructures     # the priority-queue package used by Dijkstra's implementation

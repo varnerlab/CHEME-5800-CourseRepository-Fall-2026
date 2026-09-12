@@ -49,7 +49,7 @@ breadth_first_order(adjacency::AbstractDict, start::Integer) -> Vector{Int64}
 
 - **Inputs:** the same adjacency dictionary and starting-vertex requirements as `depth_first_order`.
 - **Result:** each reachable vertex exactly once, recorded when it is removed from the queue for processing. The order follows layers of increasing minimum edge count from `start`; neighbors are considered in ascending identifier order.
-- **Behavior:** marks vertices when enqueued and leaves the input unchanged. The vector queue uses a head index; entries before that index have already been processed. Edge weights are ignored, and distances and predecessors are not returned.
+- **Behavior:** marks vertices when enqueued and leaves the input unchanged. The FIFO queue is the course's [`MyQueue`](../../../../code/src/StacksQueues.jl): [`push!`](../../../../code/src/StacksQueues.jl) enqueues a vertex, [`popfirst!`](../../../../code/src/StacksQueues.jl) removes the front vertex, and [`isempty`](../../../../code/src/StacksQueues.jl) checks whether processing is complete. Edge weights are ignored, and distances and predecessors are not returned.
 - **Errors:** `ArgumentError` if `start` is a Boolean or is not a dictionary key. The unfinished student function raises its TODO error until implemented.
 
 Complete TODOs 4–6 using the [breadth-first algorithm notebook](../CHEME-5800-L4b-Algorithm-BreadthFirstSearch-Fall-2026.ipynb).

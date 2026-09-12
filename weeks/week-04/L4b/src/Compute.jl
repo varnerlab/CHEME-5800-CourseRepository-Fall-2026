@@ -1,6 +1,11 @@
 module L4bTraversal
 
+using VLDataScienceMachineLearningPackage: MyQueue # FIFO queue introduced in L3b
+
 export adjacency_from_edges, breadth_first_order, depth_first_order
+
+# The adjacency and validation helpers are supplied. Complete only the traversal
+# TODOs below; keep the function signatures and the caller's adjacency list unchanged.
 
 """
     adjacency_from_edges(edges) -> Dict{Int64, Vector{Int64}}
@@ -11,25 +16,25 @@ Duplicate edges are removed, and each outgoing-neighbor vector is sorted so
 subsequent traversals have a reproducible order.
 """
 function adjacency_from_edges(edges)::Dict{Int64, Vector{Int64}}
-    adjacency = Dict{Int64, Vector{Int64}}()
+    # Initialize -
+    adjacency = Dict{Int64, Vector{Int64}}() # one outgoing-neighbor vector per vertex
 
-    # Populate one outgoing-neighbor vector for every vertex in the edge list.
+    # Populate directed neighbor lists -
     for edge in edges
         source, target = Int64(edge[1]), Int64(edge[2])
-        get!(adjacency, source, Int64[])
-        get!(adjacency, target, Int64[])
-        push!(adjacency[source], target)
+        get!(adjacency, source, Int64[]) # create a list only for a new source; retain earlier neighbors
+        get!(adjacency, target, Int64[]) # include targets with no outgoing edges
+        push!(adjacency[source], target) # source → target does not imply target → source
     end
 
-    # Normalize each vector once so duplicate records and input order do not
-    # affect the traversal order.
+    # Remove repeated edges, then sort so input order cannot change neighbor choices -
     for neighbors in values(adjacency)
         sort!(unique!(neighbors))
     end
     return adjacency
 end
 
-# Validate the starting vertex before either traversal allocates its state.
+# Reject missing start vertices and Boolean identifiers (Bool <: Integer in Julia).
 function _validate_start(adjacency::AbstractDict, start::Integer)::Int64
     start isa Bool && throw(ArgumentError("start must be a vertex identifier, not Bool"))
     start_id = Int64(start)
@@ -38,7 +43,8 @@ function _validate_start(adjacency::AbstractDict, start::Integer)::Int64
     return start_id
 end
 
-# Return a sorted copy rather than sorting the caller's adjacency list in place.
+# Work on a fresh vector: unique! and sort! must not change the caller's lists.
+# An absent key gives an empty vector, so a vertex with no recorded edges ends a branch.
 function _ordered_neighbors(adjacency::AbstractDict, vertex::Int64)::Vector{Int64}
     return sort!(unique!(Int64.(collect(get(adjacency, vertex, Int64[])))))
 end
@@ -64,15 +70,17 @@ depth-first order.
 """
 function depth_first_order(adjacency::AbstractDict, start::Integer)::Vector{Int64}
 
-    # TODO 1: Validate start, then allocate an empty visited set and traversal-
-    # order vector. The set prevents a cycle from revisiting a vertex.
+    # TODO 1: Use _validate_start to check start and obtain its Int64 identifier.
+    # Allocate the visited set and order vector once per search, outside visit,
+    # so every recursive call shares the same record of discovered vertices.
 
     # TODO 2: Define a recursive visit(vertex) helper. Return immediately for a
-    # visited vertex. Otherwise, record it in both state collections and visit
-    # each neighbor returned by _ordered_neighbors(adjacency, vertex).
+    # visited vertex. Otherwise mark it and append it to order before recursively
+    # visiting each neighbor from _ordered_neighbors(adjacency, vertex).
+    # Marking first lets a cycle's return edge recognize an already discovered vertex.
 
-    # TODO 3: Visit the validated starting vertex and return the completed
-    # first-visit order.
+    # TODO 3: Call the helper on the validated start. When it returns, all
+    # reachable branches have been explored; return the first-visit order.
 
     throw(ErrorException("Oooops! The `depth_first_order(...)` function is not implemented yet - " *
                          "we'd better fix that. Complete TODO 1 through TODO 3."))
@@ -99,15 +107,18 @@ order.
 """
 function breadth_first_order(adjacency::AbstractDict, start::Integer)::Vector{Int64}
 
-    # TODO 4: Validate start; allocate the visited set, traversal-order vector,
-    # and FIFO queue; then mark and enqueue the start vertex. Marking on enqueue
-    # prevents different vertices from adding the same neighbor twice.
+    # TODO 4: Use _validate_start, then allocate the visited set, order vector,
+    # and an empty MyQueue{Int64}. Mark the start in visited and enqueue it
+    # with push!. Here visited means discovered, even if still waiting in the queue.
 
-    # TODO 5: Process the queue with a head index. For each dequeued vertex,
-    # append it to the traversal order and inspect its ordered neighbors.
+    # TODO 5: While the queue is not empty (check with isempty), remove the front
+    # vertex with popfirst! and append it to order. Record vertices when they
+    # leave the queue, not when they are added.
 
-    # TODO 6: Mark and enqueue every neighbor that has not been discovered.
-    # Continue until the head passes the end of the queue, then return the order.
+    # TODO 6: Inspect each neighbor from _ordered_neighbors(adjacency, vertex).
+    # Skip discovered neighbors. Mark each new neighbor before enqueueing it
+    # with push!, so another edge cannot enqueue it while it is still waiting.
+    # Keep processing queued vertices until the queue is empty, then return order.
 
     throw(ErrorException("Oooops! The `breadth_first_order(...)` function is not implemented yet - " *
                          "we'd better fix that. Complete TODO 4 through TODO 6."))

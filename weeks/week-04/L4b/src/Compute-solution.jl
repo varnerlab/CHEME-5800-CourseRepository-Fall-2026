@@ -1,5 +1,7 @@
 module L4bTraversal
 
+using VLDataScienceMachineLearningPackage: MyQueue # FIFO queue introduced in L3b
+
 # Reference solution for L4b. The student-facing Compute.jl file contains the
 # same public interface with TODO comments in place of the two traversals.
 
@@ -14,25 +16,25 @@ Duplicate edges are removed, and each outgoing-neighbor vector is sorted so
 subsequent traversals have a reproducible order.
 """
 function adjacency_from_edges(edges)::Dict{Int64, Vector{Int64}}
-    adjacency = Dict{Int64, Vector{Int64}}()
+    # Initialize -
+    adjacency = Dict{Int64, Vector{Int64}}() # one outgoing-neighbor vector per vertex
 
-    # Populate one outgoing-neighbor vector for every vertex in the edge list.
+    # Populate directed neighbor lists -
     for edge in edges
         source, target = Int64(edge[1]), Int64(edge[2])
-        get!(adjacency, source, Int64[])
-        get!(adjacency, target, Int64[])
-        push!(adjacency[source], target)
+        get!(adjacency, source, Int64[]) # create a list only for a new source; retain earlier neighbors
+        get!(adjacency, target, Int64[]) # include targets with no outgoing edges
+        push!(adjacency[source], target) # source → target does not imply target → source
     end
 
-    # Normalize each vector once so duplicate records and input order do not
-    # affect the traversal order.
+    # Remove repeated edges, then sort so input order cannot change neighbor choices -
     for neighbors in values(adjacency)
         sort!(unique!(neighbors))
     end
     return adjacency
 end
 
-# Validate the starting vertex before either traversal allocates its state.
+# Reject missing start vertices and Boolean identifiers (Bool <: Integer in Julia).
 function _validate_start(adjacency::AbstractDict, start::Integer)::Int64
     start isa Bool && throw(ArgumentError("start must be a vertex identifier, not Bool"))
     start_id = Int64(start)
@@ -41,7 +43,8 @@ function _validate_start(adjacency::AbstractDict, start::Integer)::Int64
     return start_id
 end
 
-# Return a sorted copy rather than sorting the caller's adjacency list in place.
+# Work on a fresh vector: unique! and sort! must not change the caller's lists.
+# An absent key gives an empty vector, so a vertex with no recorded edges ends a branch.
 function _ordered_neighbors(adjacency::AbstractDict, vertex::Int64)::Vector{Int64}
     return sort!(unique!(Int64.(collect(get(adjacency, vertex, Int64[])))))
 end
@@ -67,25 +70,24 @@ depth-first order.
 """
 function depth_first_order(adjacency::AbstractDict, start::Integer)::Vector{Int64}
 
-    # TODO 1 (solution): validate the start and allocate the traversal state.
+    # TODO 1 (solution): Initialize the state shared by every recursive call -
     start_id = _validate_start(adjacency, start)
-    visited = Set{Int64}()
-    order = Int64[]
+    visited = Set{Int64}() # vertices already discovered by this search
+    order = Int64[]       # first-visit order
 
-    # TODO 2 (solution): record a vertex on its first visit, then recursively
-    # explore its outgoing neighbors in deterministic identifier order.
+    # TODO 2 (solution): Explore a branch before continuing to the next neighbor -
     function visit(vertex::Int64)
-        vertex in visited && return
-        push!(visited, vertex)
-        push!(order, vertex)
+        vertex in visited && return # stop repeated exploration through cycles or converging edges
+        push!(visited, vertex) # mark before descending so a cycle cannot re-enter this vertex
+        push!(order, vertex)   # record discovery, not the later return from recursion
 
         for neighbor in _ordered_neighbors(adjacency, vertex)
-            visit(neighbor)
+            visit(neighbor) # finish this branch before the loop considers the next neighbor
         end
-        return nothing
+        return nothing # return after all outgoing neighbors have been considered
     end
 
-    # TODO 3 (solution): start the recursion and return first-visit order.
+    # TODO 3 (solution): Start the recursion and return first-visit order -
     visit(start_id)
     return order
 end
@@ -111,26 +113,26 @@ order.
 """
 function breadth_first_order(adjacency::AbstractDict, start::Integer)::Vector{Int64}
 
-    # TODO 4 (solution): seed the FIFO queue and mark the starting vertex when
-    # it enters the queue, so it cannot be enqueued again through a cycle.
+    # TODO 4 (solution): Initialize discovered vertices and the FIFO queue -
     start_id = _validate_start(adjacency, start)
-    visited = Set{Int64}([start_id])
-    order = Int64[]
-    queue = Int64[start_id]
-    head = 1
+    visited = Set{Int64}([start_id]) # includes queued vertices not yet processed
+    order = Int64[]                 # vertices in dequeue order
+    queue = MyQueue{Int64}()        # discovered vertices waiting to be processed
+    push!(queue, start_id)
 
-    # TODO 5 (solution): advance a head index instead of removing the first
-    # vector element, then record the vertex when it leaves the queue.
-    while head <= length(queue)
-        vertex = queue[head]
-        head += 1
+    # TODO 5 (solution): Process the oldest queued vertex -
+    # Every queued vertex is already in visited, but enters order only when
+    # removed from the front. New discoveries go behind all vertices still waiting.
+    while !isempty(queue)
+        vertex = popfirst!(queue)
         push!(order, vertex)
 
-        # TODO 6 (solution): discover each ordered neighbor once. Marking here,
-        # at enqueue time, prevents duplicate queue entries.
+        # TODO 6 (solution): Discover each ordered neighbor at most once -
+        # Mark on discovery, not removal: two incoming edges could otherwise
+        # enqueue the same vertex before either copy is processed.
         for neighbor in _ordered_neighbors(adjacency, vertex)
             if neighbor ∉ visited
-                push!(visited, neighbor)
+                push!(visited, neighbor) # later incoming edges will skip this vertex
                 push!(queue, neighbor)
             end
         end

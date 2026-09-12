@@ -1,67 +1,36 @@
 # =============================================================================
 # CHEME 5800 | L4b local setup
 # =============================================================================
-# Every class-meeting folder carries one of these, and running it from the first
-# cell of the notebook is the only setup a student performs.
-#
-# The file is in three sections, in this order:
-#
-#   1. PATHS   locate this folder, so nothing depends on the working directory
-#   2. CODE    load the root bootstrap and any source this meeting needs
-#   3. IMPORTS every `using` for this meeting, in one block
-#
-# Section 3 is deliberately the only place a `using` appears. To see what a
-# notebook can call, read that block and nothing else.
-#
-# The root bootstrap in section 2 activates the single pinned course environment
-# (root Project.toml and Manifest.toml). That is why no weekly folder carries a
-# Project.toml of its own: a cloned repository and an extracted weekly bundle
-# resolve to the same package versions the material was written against.
-# =============================================================================
+# Run this file from the notebook's setup cell to load the course environment,
+# the student traversal functions, and the packages used for tables and checks.
 
 
 # --- 1. PATHS ----------------------------------------------------------------
-# `@__DIR__` is the folder holding *this* file, not `pwd()`, so the joins below
-# hold whether the notebook was launched from here or from the repository root.
-# The guards avoid redefining the folder constants when the setup cell runs
-# again after students save changes to their traversal functions.
+# Resolve paths from this file, not the notebook's working directory.
+# Guards keep these constants available when the setup cell runs again.
 if !isdefined(@__MODULE__, :CHEME5800_L4B_ROOT)
-    const CHEME5800_L4B_ROOT = @__DIR__
+    const CHEME5800_L4B_ROOT = @__DIR__ # folder containing this setup file
 end
 
 if !isdefined(@__MODULE__, :CHEME5800_L4B_DATA)
-    const CHEME5800_L4B_DATA = joinpath(CHEME5800_L4B_ROOT, "data")
+    const CHEME5800_L4B_DATA = joinpath(CHEME5800_L4B_ROOT, "data") # local graph data
 end
 
 
 # --- 2. CODE -----------------------------------------------------------------
-# The repository root `Include.jl` activates the course environment and imports
-# the course package. It is the only place environment handling lives.
+# The root bootstrap activates the pinned course environment and imports the
+# course package for both repository checkouts and extracted weekly bundles.
 include(normpath(joinpath(CHEME5800_L4B_ROOT, "..", "..", "..", "Include.jl")))
 
-# `L4bTraversal` holds this meeting's student implementation. The include is
-# deliberately unguarded: students edit `src/Compute.jl` during the lab, and
-# re-running this setup file must reload those changes. Notebook calls remain
-# qualified (`L4bTraversal.depth_first_order(...)`) so they resolve against the
-# replacement module without importing stale bindings into `Main`.
+# Reload edited student functions on every setup run; do not guard this include.
+# Notebook calls remain qualified (L4bTraversal.depth_first_order(...)) so they
+# use the replacement module rather than a function imported from an older copy.
 include(joinpath(CHEME5800_L4B_ROOT, "src", "Compute.jl"))
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
-# Everything this meeting brings into scope. One `using` per line so each can
-# be annotated and each shows up on its own line in a diff.
-#
-# Already imported by the root bootstrap above, listed so this block is the
-# whole picture rather than most of it:
-#   VLDataScienceMachineLearningPackage   the course package
-#
-# Standard library:
-using Test           # @test / @testset for the checks in the notebook
-#
-# Packages:
-using DataFrames     # tabular records held as columns
-using PrettyTables   # formatted table output in the notebook
-#
-# This meeting's own source stays behind the `L4bTraversal` module name. The
-# notebook uses qualified calls so re-running this file loads a student's edits
-# without requiring a kernel restart.
+# The root bootstrap already imports VLDataScienceMachineLearningPackage;
+# local traversal functions remain accessed through the L4bTraversal module.
+using Test           # @test and @testset for the notebook's checks
+using DataFrames     # adjacency and traversal-comparison tables
+using PrettyTables   # formatted display of those tables
