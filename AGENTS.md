@@ -6,8 +6,8 @@ Before authoring, editing, or reviewing course notebooks, read the shared guide:
 
 [Course notebook style guide](../CHEME-5660-CourseRepository-Fall-2026/lectures/instructor/NOTEBOOK-STYLE-GUIDE.md)
 
-Its absolute location on this computer is:
-`/Users/jeffreyvarner/Desktop/julia_work/CHEME-5660-CourseRepository-Fall-2026/lectures/instructor/NOTEBOOK-STYLE-GUIDE.md`.
+Keep the CHEME 5660 and CHEME 5800 Fall 2026 checkouts in the same parent
+folder so this relative reference works on any machine.
 
 The guide records the instructor's September 10, 2026 reset for CHEME 5660 and
 CHEME 5800: rigorous, formal explanations in his teaching voice, with the
@@ -34,3 +34,12 @@ Read the guide rather than asking the instructor to repeat the discussion. If th
 sibling checkout is unavailable, use the principles here and report the missing
 reference. Maintain the full agreement in its single source rather than creating
 divergent copies in each course.
+
+## Interactive notebook polishing
+
+For a "notebook polish round," use
+[the shared notebook-polish workflow](.agents/skills/notebook-polish/SKILL.md).
+This repository's skill directory links to the maintained copy in the sibling
+CHEME 5660 checkout. [Moving the workflow to another machine](../CHEME-5660-CourseRepository-Fall-2026/lectures/instructor/NOTEBOOK-POLISH-WORKFLOW.md)
+describes the setup. Update the shared workflow in CHEME 5660 rather than
+creating a separate copy here.
