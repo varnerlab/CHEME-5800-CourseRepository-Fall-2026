@@ -1,7 +1,7 @@
 schema_version = 2
 week = 4
-version = "1.0-prototype"
-status = "prototype"
+version = "1.0"
+status = "ready"
 title = "Graph representations, traversal, and shortest paths"
 
 languages = ["Julia"]
@@ -26,6 +26,16 @@ datasets = [
 student_paths = ["README.md", "L4a", "L4b", "L4c", "L4d"]
 instructor_only_paths = [
   "../../instructor/validation/week-04",
+  # LaTeX build files are authoring artifacts; students receive the slide PDF.
+  "L4a/slides/CHEME-5800-L4a-Slides-Fall-2026.aux",
+  "L4a/slides/CHEME-5800-L4a-Slides-Fall-2026.fdb_latexmk",
+  "L4a/slides/CHEME-5800-L4a-Slides-Fall-2026.fls",
+  "L4a/slides/CHEME-5800-L4a-Slides-Fall-2026.log",
+  "L4a/slides/CHEME-5800-L4a-Slides-Fall-2026.nav",
+  "L4a/slides/CHEME-5800-L4a-Slides-Fall-2026.out",
+  "L4a/slides/CHEME-5800-L4a-Slides-Fall-2026.snm",
+  "L4a/slides/CHEME-5800-L4a-Slides-Fall-2026.toc",
+  "L4a/slides/CHEME-5800-L4a-Slides-Fall-2026.xdv",
   # L4b ships as a traversal scaffold students complete in class; the reference
   # solution must not be bundled with it.
   "L4b/src/Compute-solution.jl",
