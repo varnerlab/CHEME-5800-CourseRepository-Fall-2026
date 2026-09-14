@@ -33,7 +33,11 @@ end
 # --- 2. CODE -----------------------------------------------------------------
 # The repository root `Include.jl` activates the course environment and imports
 # the course package. It is the only place environment handling lives.
-include(normpath(joinpath(CHEME5800_L3D_ROOT, "..", "..", "..", "Include.jl")))
+# Reuse a completed bootstrap; reload it if the active project has changed.
+if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
+        Base.active_project() != CHEME5800_PROJECT
+    include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
+end
 
 # `L3dSorting` holds this meeting's own source. It is wrapped in a module so that
 # a student stub and a reference solution declaring the same module name stay
@@ -41,7 +45,7 @@ include(normpath(joinpath(CHEME5800_L3D_ROOT, "..", "..", "..", "Include.jl")))
 # include is deliberately unguarded: students edit `src/Compute.jl` during the
 # lab, and re-running this file must reload those edits. Julia 1.12 replaces
 # the module silently: the reload works even though nothing is printed.
-include(joinpath(CHEME5800_L3D_ROOT, "src", "Compute.jl"))
+include(joinpath(@__DIR__, "src", "Compute-solution.jl"))
 
 
 # --- 3. IMPORTS --------------------------------------------------------------

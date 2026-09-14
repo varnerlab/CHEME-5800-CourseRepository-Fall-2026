@@ -1,10 +1,10 @@
 const WEEK01 = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-01"))
 
-include(joinpath(WEEK01, "L1c", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-01", "L1c", "Include.jl"))
 
 # L1d ships with an unimplemented student stub, so validation uses the reference
 # solution. L1b is a notebook-only guided lab and has no hidden implementation.
-include(joinpath(WEEK01, "L1d", "src", "Compute-solution.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-01", "L1d", "src", "Compute-solution.jl"))
 using .L1dFloatingPoint
 using Random, Test
 

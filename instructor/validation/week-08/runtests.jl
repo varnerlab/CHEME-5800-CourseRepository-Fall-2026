@@ -1,6 +1,6 @@
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-08"))
-include(joinpath(WEEK_ROOT, "L8c", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L8d", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-08", "L8c", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-08", "L8d", "Include.jl"))
 
 @testset "L8c ridge contracts" begin
     x = collect(range(-2.0, 2.0; length = 60))

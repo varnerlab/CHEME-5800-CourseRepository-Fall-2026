@@ -26,27 +26,27 @@ using Distances
 using Optim
 
 # load my codes - order matters: types before factories before compute/solve routines -
-include(joinpath(_PATH_TO_SRC, "Types.jl"));
-include(joinpath(_PATH_TO_SRC, "Factory.jl"));
-include(joinpath(_PATH_TO_SRC, "Files.jl"));
-include(joinpath(_PATH_TO_SRC, "Compute.jl"));
-include(joinpath(_PATH_TO_SRC, "TextRepresentation.jl"));
-include(joinpath(_PATH_TO_SRC, "GraphRepresentation.jl"));
-include(joinpath(_PATH_TO_SRC, "ShortestPathAlgorithms.jl"));
-include(joinpath(_PATH_TO_SRC, "FlowValidation.jl"));
-include(joinpath(_PATH_TO_SRC, "LinearPrograms.jl"));
-include(joinpath(_PATH_TO_SRC, "StacksQueues.jl"));
-include(joinpath(_PATH_TO_SRC, "Recursion.jl"));
-include(joinpath(_PATH_TO_SRC, "Graphs.jl"));
-include(joinpath(_PATH_TO_SRC, "Solvers.jl"));
-include(joinpath(_PATH_TO_SRC, "Eigen.jl"));
-include(joinpath(_PATH_TO_SRC, "Binary.jl"));
-include(joinpath(_PATH_TO_SRC, "MDP.jl"));
-include(joinpath(_PATH_TO_SRC, "Bandit.jl"));
-include(joinpath(_PATH_TO_SRC, "Online.jl"));
-include(joinpath(_PATH_TO_SRC, "QLearning.jl"));
-include(joinpath(_PATH_TO_SRC, "Hopfield.jl"));
-include(joinpath(_PATH_TO_SRC, "Indifference.jl"));
+include("Types.jl");
+include("Factory.jl");
+include("Files.jl");
+include("Compute.jl");
+include("TextRepresentation.jl");
+include("GraphRepresentation.jl");
+include("ShortestPathAlgorithms.jl");
+include("FlowValidation.jl");
+include("LinearPrograms.jl");
+include("StacksQueues.jl");
+include("Recursion.jl");
+include("Graphs.jl");
+include("Solvers.jl");
+include("Eigen.jl");
+include("Binary.jl");
+include("MDP.jl");
+include("Bandit.jl");
+include("Online.jl");
+include("QLearning.jl");
+include("Hopfield.jl");
+include("Indifference.jl");
 # ----------------------------------------------------------------------------------------------- #
 
 # export data loading functions -

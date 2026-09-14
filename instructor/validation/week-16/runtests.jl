@@ -1,5 +1,5 @@
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-16"))
-include(joinpath(WEEK_ROOT, "L16a", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-16", "L16a", "Include.jl"))
 
 @testset "L16 course and bridge maps" begin
     methods = course_method_map()

@@ -1,8 +1,8 @@
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-15"))
-include(joinpath(WEEK_ROOT, "L15a", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L15b", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L15c", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L15d", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-15", "L15a", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-15", "L15b", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-15", "L15c", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-15", "L15d", "Include.jl"))
 
 @testset "L15 explicit Euler and stability" begin
     coarse = explicit_euler(decay_rhs, [1.0], (0.0, 2.0), 0.1; p = 1.0)

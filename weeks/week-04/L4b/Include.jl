@@ -20,12 +20,16 @@ end
 # --- 2. CODE -----------------------------------------------------------------
 # The root bootstrap activates the pinned course environment and imports the
 # course package for both repository checkouts and extracted weekly bundles.
-include(normpath(joinpath(CHEME5800_L4B_ROOT, "..", "..", "..", "Include.jl")))
+# Reuse a completed bootstrap; reload it if the active project has changed.
+if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
+        Base.active_project() != CHEME5800_PROJECT
+    include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
+end
 
 # Reload edited student functions on every setup run; do not guard this include.
 # Notebook calls remain qualified (L4bTraversal.depth_first_order(...)) so they
 # use the replacement module rather than a function imported from an older copy.
-include(joinpath(CHEME5800_L4B_ROOT, "src", "Compute.jl"))
+include(joinpath(@__DIR__, "src", "Compute.jl"))
 
 
 # --- 3. IMPORTS --------------------------------------------------------------

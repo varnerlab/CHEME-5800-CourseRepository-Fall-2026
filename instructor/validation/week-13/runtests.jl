@@ -1,6 +1,6 @@
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-13"))
-include(joinpath(WEEK_ROOT, "L13a", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L13b", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-13", "L13a", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-13", "L13b", "Include.jl"))
 
 const DATA_DIR = joinpath(WEEK_ROOT, "data")
 const POINTS_BODY = read(joinpath(DATA_DIR, "nws-points-ithaca.fixture.json"), String)

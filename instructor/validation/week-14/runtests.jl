@@ -2,7 +2,7 @@ using LinearAlgebra
 using Test
 
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-14"))
-include(joinpath(WEEK_ROOT, "L14a", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-14", "L14a", "Include.jl"))
 
 @testset "L14 power iteration" begin
     A = [4.0 1.0 0.0; 1.0 3.0 1.0; 0.0 1.0 2.0]

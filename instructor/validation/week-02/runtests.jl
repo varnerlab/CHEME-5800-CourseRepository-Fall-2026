@@ -5,8 +5,8 @@ include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-02", "L2c", "Include
 # the reference solutions directly instead of loading each lab's Include.jl,
 # which would load the student module with the same name.
 const WEEK02 = joinpath(@__DIR__, "..", "..", "..", "weeks", "week-02")
-include(joinpath(WEEK02, "L2b", "src", "Compute-solution.jl"))
-include(joinpath(WEEK02, "L2d", "src", "Compute-solution.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-02", "L2b", "src", "Compute-solution.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-02", "L2d", "src", "Compute-solution.jl"))
 using .L2bFibonacci
 using .L2dUnicodeTable
 

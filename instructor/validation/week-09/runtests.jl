@@ -1,8 +1,8 @@
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-09"))
-include(joinpath(WEEK_ROOT, "L9a", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L9b", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L9c", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L9d", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-09", "L9a", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-09", "L9b", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-09", "L9c", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-09", "L9d", "Include.jl"))
 
 @testset "L9b XOR representation" begin
     X = [0.0 0.0; 0.0 1.0; 1.0 0.0; 1.0 1.0]
