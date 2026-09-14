@@ -1,0 +1,20 @@
+% Standalone TikZ diagram: run make in this directory for PDF and SVG.
+\documentclass[11pt,tikz,border=2pt]{standalone}
+\input{../vnflow-figure.tex}
+\begin{document}
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \coordinate (s) at (0,0);
+  \coordinate (a) at (2.2,0.95);
+  \coordinate (b) at (2.2,-0.95);
+  \coordinate (t) at (4.4,0);
+  \draw[active] (s)--node[edge label,above=5pt,text=vnaccent]{1/1}(a);
+  \draw[active] (s)--node[edge label,below=5pt,text=vnaccent]{1/1}(b);
+  \draw[inactive] (a)--node[edge label,right=2pt,text=vnquiet]{0/1}(b);
+  \draw[active] (a)--node[edge label,above=5pt,text=vnaccent]{1/1}(t);
+  \draw[active] (b)--node[edge label,below=5pt,text=vnaccent]{1/1}(t);
+  \node[font=\sffamily\footnotesize] at (2.2,-1.5) {Labels: flow / capacity};
+  % Draw nodes after edges so connectors remain behind the vertex disks.
+  \foreach \v in {s,a,b,t} {\node[vertex] at (\v) {$\v$};}
+  \path[use as bounding box] (-0.4,-1.7) rectangle (4.8,1.3);
+\end{tikzpicture}
+\end{document}

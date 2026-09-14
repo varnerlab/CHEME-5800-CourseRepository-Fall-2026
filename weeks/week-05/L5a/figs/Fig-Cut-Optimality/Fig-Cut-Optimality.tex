@@ -1,0 +1,29 @@
+% Standalone TikZ diagram: run make in this directory for PDF and SVG.
+\documentclass[11pt,tikz,border=2pt]{standalone}
+\input{../vnflow-figure.tex}
+\begin{document}
+\begin{tikzpicture}[x=1cm,y=1cm]
+  % S and T partition the original vertices; colored edges cross the cut.
+  \draw[partition,draw=vnslidelink!55,fill=vnslidelink!5]
+    (-0.45,-1.4) rectangle (2.4,1.4);
+  \draw[partition,draw=vnquiet!55,fill=black!2]
+    (3.05,-1.4) rectangle (6.25,1.4);
+  \coordinate (s) at (0,0);
+  \coordinate (a) at (1.8,0);
+  \coordinate (b) at (3.8,0.95);
+  \coordinate (c) at (3.8,-0.95);
+  \coordinate (t) at (5.8,0);
+  \draw[edge] (s)--node[edge label,below=5pt]{2/3}(a);
+  \draw[active] (a)--node[edge label,above=5pt,text=vnaccent]{1/1}(b);
+  \draw[active] (a)--node[edge label,below=5pt,text=vnaccent]{1/1}(c);
+  \draw[edge] (b)--node[edge label,above=5pt]{1/2}(t);
+  \draw[edge] (c)--node[edge label,below=5pt]{1/2}(t);
+  \draw[residual] (b) .. controls (3.8,2.25) and (0,2.25) ..
+    node[edge label,above=5pt,text=vnslidelink]{0/1}(s);
+  \foreach \v in {s,a,b,c,t} {\node[vertex] at (\v) {$\v$};}
+  \node[text=vnslidelink] at (0.98,-1.72) {$S=\{s,a\}$};
+  \node at (4.65,-1.72) {$T=\{b,c,t\}$};
+  \node[font=\sffamily\footnotesize] at (2.9,-2.15) {Original edges: flow / capacity};
+  \path[use as bounding box] (-0.55,-2.35) rectangle (6.35,2.05);
+\end{tikzpicture}
+\end{document}

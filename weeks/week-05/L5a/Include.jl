@@ -43,9 +43,9 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# This meeting carries no source of its own. The flow-graph and validation helpers it uses
-# live in the course package, in `code/src/FlowValidation.jl`, and arrive through the root
-# bootstrap above.
+# Flow-graph construction and validation arrive through the course package.
+# Keep the example's plotting helper in the local source directory.
+include(joinpath(@__DIR__, "src", "FlowPlots.jl"))
 
 
 # --- 3. IMPORTS --------------------------------------------------------------

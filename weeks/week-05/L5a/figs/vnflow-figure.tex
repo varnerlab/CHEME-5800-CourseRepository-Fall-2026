@@ -1,0 +1,28 @@
+% Shared typography and graph grammar for the L5a standalone TikZ diagrams.
+\usepackage{fontspec}
+\IfFontExistsTF{Helvetica Neue Light}{
+  \setsansfont{Helvetica Neue Light}[BoldFont={Helvetica Neue Medium}]
+}{\setsansfont{TeX Gyre Heros}}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{amsmath,amssymb}
+\usepackage{unicode-math}
+\setmathfont{latinmodern-math.otf}
+\usetikzlibrary{arrows.meta,calc,positioning}
+\definecolor{vnslideink}{HTML}{333333}
+\definecolor{vnslidebody}{HTML}{5E5E5E}
+\definecolor{vnaccent}{HTML}{FF644E}
+\definecolor{vnslidelink}{HTML}{579ACA}
+\definecolor{vnquiet}{HTML}{899198}
+\pagecolor{white}
+\tikzset{
+  every picture/.style={font=\sffamily\small,text=vnslidebody},
+  vertex/.style={circle,draw=vnslideink,fill=white,line width=0.7pt,
+    minimum size=6.4mm,inner sep=0pt,font=\sffamily\normalsize},
+  edge/.style={draw=vnslidebody,line width=0.8pt,
+    -{Latex[length=2.2mm,width=1.5mm]},shorten <=3.4mm,shorten >=3.4mm},
+  active/.style={edge,draw=vnaccent,line width=1.2pt},
+  residual/.style={edge,draw=vnslidelink,line width=1.2pt},
+  inactive/.style={edge,draw=vnquiet,line width=0.7pt},
+  edge label/.style={fill=white,inner sep=1.4pt,font=\sffamily\small},
+  partition/.style={rounded corners=2mm,line width=0.5pt},
+}

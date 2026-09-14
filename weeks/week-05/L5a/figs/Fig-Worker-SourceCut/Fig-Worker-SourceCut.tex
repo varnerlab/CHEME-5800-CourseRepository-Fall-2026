@@ -1,0 +1,29 @@
+% Standalone TikZ diagram: run make in this directory for PDF and SVG.
+\documentclass[11pt,tikz,border=2pt]{standalone}
+\input{../vnflow-figure.tex}
+\begin{document}
+\begin{tikzpicture}[x=1cm,y=1cm]
+  % Only the three actual source-to-worker edges are drawn.
+  % T also contains all task, completion, and sink vertices.
+  \draw[partition,draw=vnslidelink!55,fill=vnslidelink!5]
+    (-0.5,-1.2) rectangle (0.7,1.2);
+  \draw[partition,draw=vnquiet!55,fill=black!2]
+    (1.85,-1.2) rectangle (4.3,1.2);
+  \coordinate (s) at (0,0);
+  \coordinate (w2) at (2.3,0.8);
+  \coordinate (w3) at (2.3,0);
+  \coordinate (w4) at (2.3,-0.8);
+  \draw[active] (s)--node[edge label,pos=0.7,above=4pt,text=vnaccent]{1}(w2);
+  \draw[active] (s)--node[edge label,pos=0.7,above=4pt,text=vnaccent]{1}(w3);
+  \draw[active] (s)--node[edge label,pos=0.7,below=4pt,text=vnaccent]{1}(w4);
+  \node[vertex] at (s) {1};
+  \foreach \i in {2,3,4} {
+    \node[vertex] at (w\i) {\i};
+    \node[right=4mm,font=\sffamily\small] at (w\i) {worker};
+  }
+  \node[text=vnslidelink] at (0.1,1.55) {$S=\{1\}$};
+  \node at (3.075,1.55) {$T=\mathcal V\setminus\{1\}$};
+  \node[font=\sffamily\footnotesize] at (1.9,-1.55) {Labels: capacity (assignments)};
+  \path[use as bounding box] (-0.6,-1.8) rectangle (4.5,1.8);
+\end{tikzpicture}
+\end{document}
