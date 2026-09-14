@@ -1,8 +1,8 @@
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-07"))
-include(joinpath(WEEK_ROOT, "L7a", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L7b", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L7c", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L7d", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-07", "L7a", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-07", "L7b", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-07", "L7c", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-07", "L7d", "Include.jl"))
 
 @testset "L7a SVD contracts" begin
     A = [3.0 2.0 2.0; 2.0 3.0 -2.0]

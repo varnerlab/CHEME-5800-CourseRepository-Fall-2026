@@ -37,7 +37,11 @@ end
 # --- 2. CODE -----------------------------------------------------------------
 # The repository root `Include.jl` activates the course environment and imports
 # the course package. It is the only place environment handling lives.
-include(normpath(joinpath(CHEME5800_L4A_ROOT, "..", "..", "..", "Include.jl")))
+# Reuse a completed bootstrap; reload it if the active project has changed.
+if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
+        Base.active_project() != CHEME5800_PROJECT
+    include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
+end
 
 # This meeting carries no source of its own. The graph-representation functions it uses
 # live in the course package, in `code/src/GraphRepresentation.jl`, and arrive through the root

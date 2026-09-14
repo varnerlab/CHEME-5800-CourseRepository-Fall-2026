@@ -1,19 +1,19 @@
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-04"))
 
-include(joinpath(WEEK_ROOT, "L4a", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L4c", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L4d", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-04", "L4a", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-04", "L4c", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-04", "L4d", "Include.jl"))
 
 # L4b ships deliberately incomplete traversal functions. Validation loads the
 # instructor solution directly instead of `L4b/Include.jl`, which loads the
 # student module with the same name.
-include(joinpath(WEEK_ROOT, "L4b", "src", "Compute-solution.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-04", "L4b", "src", "Compute-solution.jl"))
 using .L4bTraversal
 
 # L4d likewise ships a stub in `src/Compute.jl`; its `Include.jl` above loaded
 # that stub, and the solution below replaces the module. Calls stay qualified so
 # they resolve against the replacement.
-include(joinpath(WEEK_ROOT, "L4d", "src", "Compute-solution.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-04", "L4d", "src", "Compute-solution.jl"))
 
 @testset "L4a graph representations" begin
     path = joinpath(WEEK_ROOT, "L4a", "data", "SimpleGraph.txt")

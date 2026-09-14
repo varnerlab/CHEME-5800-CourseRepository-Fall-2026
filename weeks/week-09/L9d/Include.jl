@@ -37,14 +37,18 @@ end
 # --- 2. CODE -----------------------------------------------------------------
 # The repository root `Include.jl` activates the course environment and imports
 # the course package. It is the only place environment handling lives.
-include(normpath(joinpath(CHEME5800_L9D_ROOT, "..", "..", "..", "Include.jl")))
+# Reuse a completed bootstrap; reload it if the active project has changed.
+if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
+        Base.active_project() != CHEME5800_PROJECT
+    include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
+end
 
 # `Week09Core` holds this meeting's own source. It is wrapped in a module so that
 # the guard below has a name meaning "this file's contents", and so that a
 # student stub and a reference solution declaring the same module name stay
 # drop-in interchangeable between the notebook and the validation suite.
 if !isdefined(@__MODULE__, :Week09Core)
-    include(normpath(joinpath(CHEME5800_L9D_ROOT, "..", "src", "Week09Core.jl")))
+    include(joinpath(@__DIR__, "..", "src", "Week09Core.jl"))
 end
 
 

@@ -1,12 +1,12 @@
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-03"))
 
-include(joinpath(WEEK_ROOT, "L3b", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L3c", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-03", "L3b", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-03", "L3c", "Include.jl"))
 
 # The L3d lab ships a deliberately incomplete student bubble sort. Validation
 # loads the reference solution directly instead of the lab's Include.jl, which
 # would load the student module of the same name.
-include(joinpath(WEEK_ROOT, "L3d", "src", "Compute-solution.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-03", "L3d", "src", "Compute-solution.jl"))
 using .L3dSorting
 
 @testset "L3b stacks and queues" begin

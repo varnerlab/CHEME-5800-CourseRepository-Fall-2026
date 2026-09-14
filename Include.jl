@@ -22,3 +22,9 @@ let active_project = Base.active_project()
 end
 
 using VLDataScienceMachineLearningPackage # exported course models and algorithms, including L4c shortest paths
+
+# Mark completion only after activation and imports succeed, so a failed setup
+# can be retried by any lecture or lab in this module.
+if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED)
+    const CHEME5800_BOOTSTRAP_LOADED = true
+end

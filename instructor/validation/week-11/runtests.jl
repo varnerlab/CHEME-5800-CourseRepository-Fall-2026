@@ -1,8 +1,8 @@
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-11"))
-include(joinpath(WEEK_ROOT, "L11a", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L11b", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L11c", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L11d", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-11", "L11a", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-11", "L11b", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-11", "L11c", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-11", "L11d", "Include.jl"))
 
 @testset "L11 Markov contracts" begin
     P = [0.8 0.15 0.05; 0.2 0.6 0.2; 0.1 0.25 0.65]

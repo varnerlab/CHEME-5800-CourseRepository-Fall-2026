@@ -1,8 +1,8 @@
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-06"))
-include(joinpath(WEEK_ROOT, "L6a", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L6b", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L6c", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L6d", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-06", "L6a", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-06", "L6b", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-06", "L6c", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-06", "L6d", "Include.jl"))
 
 @testset "L6a dual sensitivity" begin
     baseline = solve_resource_lp([100.0, 90.0])

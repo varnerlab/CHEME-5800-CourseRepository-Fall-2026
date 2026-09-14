@@ -1,9 +1,9 @@
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-05"))
 
-include(joinpath(WEEK_ROOT, "L5a", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L5b", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L5c", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L5d", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-05", "L5a", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-05", "L5b", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-05", "L5c", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-05", "L5d", "Include.jl"))
 
 @testset "L5a maximum-flow contracts" begin
     path = joinpath(WEEK_ROOT, "L5a", "data", "Workers-Tasks-Bipartite.edgelist")

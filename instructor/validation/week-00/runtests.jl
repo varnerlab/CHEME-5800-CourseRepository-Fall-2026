@@ -1,7 +1,7 @@
 const WEEK00 = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-00"))
 
-include(joinpath(WEEK00, "W0a", "Include.jl"))
-include(joinpath(WEEK00, "W0b", "src", "Compute-solution.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-00", "W0a", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-00", "W0b", "src", "Compute-solution.jl"))
 
 using .Week00Toolchain
 using .Week00Bridge

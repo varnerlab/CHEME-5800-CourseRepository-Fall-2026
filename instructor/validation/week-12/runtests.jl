@@ -1,8 +1,8 @@
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-12"))
-include(joinpath(WEEK_ROOT, "L12a", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L12b", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L12c", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L12d", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-12", "L12a", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-12", "L12b", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-12", "L12c", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-12", "L12d", "Include.jl"))
 
 @testset "L12 grid-world and value reference" begin
     world = learning_gridworld(slip = 0.1, gamma = 0.95)

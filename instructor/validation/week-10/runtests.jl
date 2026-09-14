@@ -1,8 +1,8 @@
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-10"))
-include(joinpath(WEEK_ROOT, "L10a", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L10b", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L10c", "Include.jl"))
-include(joinpath(WEEK_ROOT, "L10d", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-10", "L10a", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-10", "L10b", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-10", "L10c", "Include.jl"))
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-10", "L10d", "Include.jl"))
 
 @testset "L10 multiplicative weights" begin
     losses = [0.1 0.8; 0.2 0.7; 0.9 0.1; 0.8 0.2]

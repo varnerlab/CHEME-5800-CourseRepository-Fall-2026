@@ -37,17 +37,21 @@ end
 # --- 2. CODE -----------------------------------------------------------------
 # The repository root `Include.jl` activates the course environment and imports
 # the course package. It is the only place environment handling lives.
-include(normpath(joinpath(CHEME5800_L4D_ROOT, "..", "..", "..", "Include.jl")))
+# Reuse a completed bootstrap; reload it if the active project has changed.
+if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
+        Base.active_project() != CHEME5800_PROJECT
+    include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
+end
 
 # `L4dProductionPlanning` holds this meeting's student implementation. The
 # include is deliberately unguarded: students edit `src/Compute.jl` during the
 # lab, and re-running this setup file must reload those changes. Notebook calls
 # remain qualified (`L4dProductionPlanning.route_cost(...)`) so they resolve
 # against the replacement module without importing stale bindings into `Main`.
-include(joinpath(CHEME5800_L4D_ROOT, "src", "Compute.jl"))
+include(joinpath(@__DIR__, "src", "Compute.jl"))
 
 # Supplied plotting helper for the route comparisons in Tasks 2 and 3.
-include(joinpath(CHEME5800_L4D_ROOT, "src", "Visualization.jl"))
+include(joinpath(@__DIR__, "src", "Visualization.jl"))
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
