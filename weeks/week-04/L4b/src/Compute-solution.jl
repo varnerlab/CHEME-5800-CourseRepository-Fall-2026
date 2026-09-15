@@ -49,6 +49,26 @@ function _ordered_neighbors(adjacency::AbstractDict, vertex::Int64)::Vector{Int6
     return sort!(unique!(Int64.(collect(get(adjacency, vertex, Int64[])))))
 end
 
+# TODO 2 (solution): Explore a branch before continuing to the next neighbor -
+# Private helper: pass the traversal state explicitly through every recursive call.
+function _visit!(adjacency::AbstractDict, vertex::Int64,
+    visited::Set{Int64}, order::Vector{Int64})::Nothing
+
+    # base case: stop recursion if this vertex has already been discovered
+    vertex ∈ visited && return # stop repeated exploration through cycles or converging edges
+    
+    # Recursive case: mark this vertex and explore its outgoing neighbors in order -
+    push!(visited, vertex) # mark before descending so a cycle cannot re-enter this vertex
+    push!(order, vertex)   # record discovery, not the later return from recursion
+
+    # Explore each outgoing neighbor in ascending order, finishing one branch before the next -
+    for neighbor in _ordered_neighbors(adjacency, vertex)
+        _visit!(adjacency, neighbor, visited, order) # finish this branch before the loop considers the next neighbor
+    end
+
+    return nothing # return after all outgoing neighbors have been considered
+end
+
 """
     depth_first_order(adjacency::AbstractDict, start::Integer) -> Vector{Int64}
 
@@ -72,24 +92,17 @@ function depth_first_order(adjacency::AbstractDict, start::Integer)::Vector{Int6
 
     # TODO 1 (solution): Initialize the state shared by every recursive call -
     start_id = _validate_start(adjacency, start)
-    visited = Set{Int64}() # vertices already discovered by this search
-    order = Int64[]       # first-visit order
+    visited = Set{Int64}() # empty set of vertices already discovered by this search
+    order = Int64[]       # allocate an empty vector for the first-visit order
+    # order = Array{Int64}(undef, 0) # alternative syntax for an empty vector of Int64
 
-    # TODO 2 (solution): Explore a branch before continuing to the next neighbor -
-    function visit(vertex::Int64)
-        vertex in visited && return # stop repeated exploration through cycles or converging edges
-        push!(visited, vertex) # mark before descending so a cycle cannot re-enter this vertex
-        push!(order, vertex)   # record discovery, not the later return from recursion
-
-        for neighbor in _ordered_neighbors(adjacency, vertex)
-            visit(neighbor) # finish this branch before the loop considers the next neighbor
-        end
-        return nothing # return after all outgoing neighbors have been considered
-    end
+    # TODO 2: see the _visit! helper function above for the recursive implementation of depth-first traversal.
 
     # TODO 3 (solution): Start the recursion and return first-visit order -
-    visit(start_id)
-    return order
+    _visit!(adjacency, start_id, visited, order); # start the recursion with the validated start vertex and the empty state
+    
+    # return -
+    return order; # the order vector now contains every reachable vertex in first-visit order
 end
 
 """
@@ -118,14 +131,18 @@ function breadth_first_order(adjacency::AbstractDict, start::Integer)::Vector{In
     visited = Set{Int64}([start_id]) # includes queued vertices not yet processed
     order = Int64[]                 # vertices in dequeue order
     queue = MyQueue{Int64}()        # discovered vertices waiting to be processed
-    push!(queue, start_id)
+    is_ok_to_stop = false # flag to indicate when to stop processing the queue
+    
+    # add the validated start vertex to the queue for processing
+    push!(queue, start_id); # push! adds to the back of the queue, so start_id will be processed first
 
     # TODO 5 (solution): Process the oldest queued vertex -
     # Every queued vertex is already in visited, but enters order only when
     # removed from the front. New discoveries go behind all vertices still waiting.
-    while !isempty(queue)
-        vertex = popfirst!(queue)
-        push!(order, vertex)
+    while (is_ok_to_stop == false)
+        
+        vertex = popfirst!(queue); # grab the oldest vertex from the front of the queue for processing
+        push!(order, vertex); # add this vertex to the visit order
 
         # TODO 6 (solution): Discover each ordered neighbor at most once -
         # Mark on discovery, not removal: two incoming edges could otherwise
@@ -136,8 +153,15 @@ function breadth_first_order(adjacency::AbstractDict, start::Integer)::Vector{In
                 push!(queue, neighbor)
             end
         end
+
+        # update the stop condition: if the queue is empty, we have processed all reachable vertices
+        if isempty(queue) == true
+            is_ok_to_stop = true; # set the flag to true to exit the while loop 
+        end
     end
-    return order
+    
+    # return -
+    return order; # returns the order vector show the order in which vertices were processed in breadth-first order
 end
 
 end
