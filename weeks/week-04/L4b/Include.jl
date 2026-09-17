@@ -29,7 +29,7 @@ end
 # Reload edited student functions on every setup run; do not guard this include.
 # Notebook calls remain qualified (L4bTraversal.depth_first_order(...)) so they
 # use the replacement module rather than a function imported from an older copy.
-include(joinpath(@__DIR__, "src", "Compute.jl"))
+include(joinpath(@__DIR__, "src", "Compute-solution.jl"))
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
