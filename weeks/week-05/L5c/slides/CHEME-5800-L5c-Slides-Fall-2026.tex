@@ -1,0 +1,668 @@
+% L5c lecture companion: follows the reviewed notebook's teaching sequence.
+% Source notebook SHA-256:
+% 8cbe0b38110cba482879b0df5175278ad24111f65c53b8264130a88dd17d3a89
+% The style files and Cornell seal are copied unchanged from L5a/slides.
+% Both mathematical figures are vector conversions of the lecture's SVGs.
+% Setup stays in the notebook, following the supplied reference decks.
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{vnslides}
+\usepackage{tabularx}
+
+\renewcommand{\vnlecturecode}{L5c}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\lecturelink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-05/L5c/CHEME-5800-L5c-Lecture-LinearProgramming-Fall-2026.ipynb}
+\newcommand{\examplelink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-05/L5c/CHEME-5800-L5c-Example-FruitAllocation-Fall-2026.ipynb}
+\newcommand{\simplexlink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-05/L5c/CHEME-5800-L5c-Algorithm-RevisedSimplex-Fall-2026.ipynb}
+\newcommand{\lablink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-05/L5d/CHEME-5800-L5d-Lab-MinimumCostAssignmentFlow-Fall-2026.ipynb}
+\newcommand{\lecturesource}[1]{\note{[Sources]\par
+  \href{\lecturelink}{Reviewed L5c lecture: Introduction to Linear Programming.}\par
+  #1\par[/Sources]}}
+
+\title{\texorpdfstring{{\vnheavy L5c}}{L5c}: Linear Programming}
+\subtitle{\texorpdfstring{Allocation, duality, and resource values\\[3pt]CHEME 5800 Cornell University}{Allocation, duality, and resource values; CHEME 5800 Cornell University}}
+\author{Copyright Jeffrey Varner 2026. All Rights Reserved}
+
+\begin{document}
+\special{pdf:minorversion 7}
+
+\vntitlepage
+
+% Notebook: introduction and three learning objectives.
+\begin{frame}{Objectives for Today}
+  How should we allocate limited resources, and how can we establish that
+  a feasible allocation is optimal?
+
+  \vspace{0.8em}
+  {\large\textbf{\ink{Today's concepts}}}
+  \vspace{0.35em}
+  \begin{itemize}\setlength{\itemsep}{0.7em}
+    \item \hilite{Formulate allocation models}: identify variables, objectives,
+      constraints, and bounds for purchases and network flows.
+    \item \hilite{Explain duality and resource values}: construct a dual bound
+      and interpret the value of additional budget.
+    \item \hilite{Evaluate results}: check solver status, feasibility, objective
+      values, and an optimality bound.
+  \end{itemize}
+
+  \slidenote{Lecture:}{\href{\lecturelink}{Introduction to Linear Programming}}
+  \lecturesource{Introduction and Learning Objectives.}
+\end{frame}
+
+% Notebook: Examples; setup stays in the notebook.
+\begin{frame}{Lecture and Example}
+  \textbf{\ink{Lecture:}}
+  \href{\lecturelink}{Introduction to Linear Programming}
+
+  Formulate resource-allocation and network-flow models, then use duality
+  to bound the objective and interpret resource values.
+
+  \vspace{1.2em}
+  \textbf{\ink{Example:}}
+  \href{\examplelink}{Apples, Oranges, and Linear Allocation}
+
+  Compare three utility choices with the same prices and budget. Predict
+  the purchases, solve the models, and verify expenditure and utility.
+
+  \vspace{0.8em}
+  Equal utility per dollar can give \hilite{many optimal allocations}.
+  \lecturesource{Examples and the linked fruit-allocation notebook.}
+\end{frame}
+
+% Notebook: Primal Linear Programming Problems.
+\begin{frame}{Primal Linear Programming Problems}
+  The \hilite{primal} describes the activities we choose: purchases,
+  production levels, or edge flows.
+
+  \vspace{0.7em}
+  For $n$ activities and $m$ resource constraints, define:
+  \begin{itemize}\setlength{\itemsep}{0.65em}
+    \item $\mathbf{x}\in\mathbb R^n$: activity levels; $c_i$ is the objective
+      contribution per unit of activity $i$.
+    \item $\mathbf A\in\mathbb R^{m\times n}$: $A_{j,i}$ is the amount of
+      resource $j$ used per unit of activity $i$.
+    \item $\mathbf b\in\mathbb R^m$: $b_j$ is the available amount of resource $j$.
+  \end{itemize}
+
+  \vspace{0.6em}
+  Matrix rows represent \hilite{resources}; columns represent \hilite{activities}.
+  \lecturesource{Primal Linear Programming Problems: variables and indexing.}
+\end{frame}
+
+\begin{frame}{Maximize Value Within Resource Limits}
+  With nonnegative activities, the resource-allocation model is:
+  \[
+    \begin{aligned}
+      \underset{\mathbf x}{\text{maximize}}\quad
+        & O(\mathbf x)=\mathbf c^\top\mathbf x
+          =\sum_{i=1}^n c_i x_i\\
+      \text{subject to}\quad & \mathbf A\mathbf x\leq\mathbf b,\\
+        & \mathbf x\geq\mathbf0.
+    \end{aligned}
+  \]
+
+  Each row limits total use of one resource:
+  \[
+    \underbrace{\sum_{i=1}^n A_{j,i}x_i}_{\text{resource }j\text{ used}}
+    \leq\underbrace{b_j}_{\text{available}},\qquad j=1,\ldots,m.
+  \]
+  Coefficients are fixed; the contributions from activities add together.
+  \lecturesource{Primal resource-allocation model and scalar resource constraint.}
+\end{frame}
+
+\begin{frame}{Feasible Does Not Mean Optimal}
+  The \hilite{feasible region} contains all decisions satisfying every
+  constraint and bound.
+
+  \vspace{0.7em}
+  \begin{itemize}\setlength{\itemsep}{0.65em}
+    \item An \hilite{optimal} decision is feasible and attains the best
+      objective value. Several decisions can share that value.
+    \item An \hilite{infeasible} model has no decision satisfying all constraints.
+    \item An \hilite{unbounded} maximization model has feasible decisions with
+      arbitrarily large objective values, so no finite optimum exists.
+  \end{itemize}
+
+  \vspace{0.6em}
+  Linear programs can also minimize an objective, use equality constraints,
+  and impose other lower or upper bounds.
+  \lecturesource{Feasibility, optimality, infeasibility, unboundedness, and other LP forms.}
+\end{frame}
+
+% Notebook: Consumer Choice Problems as Linear Programs.
+\begin{frame}{Consumer Choice as a Linear Program}
+  For product $i=1,\ldots,n$, let $x_i\geq0$ be the quantity purchased,
+  $p_i>0$ its price in dollars per unit, and $u_i\geq0$ its utility per unit.
+  Let $I\geq0$ be the budget in dollars.
+
+  \vspace{0.4em}
+  The consumer maximizes total utility subject to the budget:
+  \[
+    \begin{aligned}
+      \underset{\mathbf x}{\text{maximize}}\quad
+        & U(\mathbf x)=\sum_{i=1}^n u_i x_i\\
+      \text{subject to}\quad & \sum_{i=1}^n p_i x_i\leq I,\\
+        & x_i\geq0,\qquad i=1,\ldots,n.
+    \end{aligned}
+  \]
+  One resource, the budget: $\mathbf c=\mathbf u$,
+  $\mathbf A=[p_1\ \cdots\ p_n]$, and $\mathbf b=[I]$.
+
+  \slidenote{Assumptions:}{divisible quantities, constant prices and utility per unit, and sufficient product availability.}
+  \lecturesource{Consumer Choice Problems as Linear Programs.}
+\end{frame}
+
+% Notebook: Worked Allocation: Apples and Oranges.
+\begin{frame}{Worked Allocation: Apples and Oranges}
+  Let $x_A$ and $x_O$ be the quantities of apples and oranges.
+  Apples cost 2 dollars per unit and provide 0.55 utility units;
+  oranges cost 4 dollars and provide 0.45 utility units per unit.
+
+  With a 100-dollar budget, the linear program is:
+  \[
+    \begin{aligned}
+      \underset{x_A,x_O}{\text{maximize}}\quad
+        & U(x_A,x_O)=0.55x_A+0.45x_O\\
+      \text{subject to}\quad & 2x_A+4x_O\leq100,\\
+        & x_A,x_O\geq0.
+    \end{aligned}
+  \]
+  We can afford at most \hilite{50 apples} or \hilite{25 oranges}.
+  Affordable mixtures are also feasible.
+  \lecturesource{Worked Allocation: Apples and Oranges; first utility case.}
+\end{frame}
+
+\begin{frame}{Compare Purchases Along the Budget Boundary}
+  Both fruits provide positive utility. With divisible quantities and no
+  stock limit, spending unused budget improves utility. Thus, an optimum uses
+  the full budget:
+  \[
+    x_O=25-\tfrac12x_A,\qquad 0\leq x_A\leq50.
+  \]
+  Substituting into utility gives:
+  \[
+    \begin{aligned}
+      U(x_A)&=0.55x_A+0.45\left(25-\tfrac12x_A\right)\\
+            &=11.25+\hilite{0.325}x_A.
+    \end{aligned}
+  \]
+  Utility increases with $x_A$. The optimum is $(x_A^\star,x_O^\star)=(50,0)$,
+  with $U^\star=27.5$. Buying only oranges gives 11.25 utility units.
+  \lecturesource{Worked allocation: full-budget substitution and optimal purchase.}
+\end{frame}
+
+\begin{frame}{Compare Utility per Dollar}
+  The ratio $u_i/p_i$ measures utility gained per dollar spent on product $i$.
+  For the first case:
+  \[
+    \frac{u_A}{p_A}=\frac{0.55}{2}=\hilite{0.275},
+    \qquad
+    \frac{u_O}{p_O}=\frac{0.45}{4}=0.1125.
+  \]
+
+  \vspace{0.5em}
+  \begin{itemize}\setlength{\itemsep}{0.8em}
+    \item Moving one dollar from oranges to apples increases utility.
+    \item Spending the whole budget does not, by itself, establish optimality.
+    \item Changing prices or utilities can change the preferred fruit.
+  \end{itemize}
+
+  \vspace{0.5em}
+  This comparison will also explain the \hilite{value of an additional dollar}.
+  \lecturesource{Worked allocation: utility per dollar and parameter dependence.}
+\end{frame}
+
+% Notebook: Comparing Allocations and Their Geometry.
+\begin{frame}{Comparing Allocations and Their Geometry}
+  Keep prices $(p_A,p_O)=(2,4)$ and budget $I=100$ fixed.
+  Changing utility coefficients gives three cases:
+
+  \vspace{0.7em}
+  \renewcommand{\arraystretch}{1.45}
+  \setlength{\tabcolsep}{5pt}
+  \begin{tabularx}{\textwidth}{@{}lccYr@{}}
+    \toprule
+    Case & $(u_A,u_O)$ & $(u_A/p_A,u_O/p_O)$ & Optimal purchase & Utility\\
+    \midrule
+    A & $(0.55,0.45)$ & $(0.275,0.1125)$ & $(50,0)$ & 27.5\\
+    B & $(0.15,0.55)$ & $(0.075,0.1375)$ & $(0,25)$ & 13.75\\
+    C & $(2,4)$ & $(1,1)$ & Any full-budget mix & 100\\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{0.9em}
+  The larger ratio receives the budget. Equal ratios make every dollar
+  equally valuable, whichever fruit we purchase.
+
+  \vspace{0.5em}
+  In Case C, $(50,0)$, $(0,25)$, and $(20,15)$ all give 100 utility units.
+  \lecturesource{Comparing Allocations and Their Geometry: three-case table.}
+\end{frame}
+
+\begin{frame}{Compare the Budget and Utility Slopes}
+  Put apples on the horizontal axis and oranges on the vertical axis.
+  Let $\bar U$ be a fixed total utility, $m_I$ the budget slope, and
+  $m_O$ the objective-line slope.
+
+  For positive prices and utilities, the lines are:
+  \[
+    \begin{aligned}
+      \text{Budget:}\quad
+      x_O&=\frac{I}{p_O}
+          +\underbrace{\left(-\frac{p_A}{p_O}\right)}_{m_I}x_A,\\[6pt]
+      \text{Utility:}\quad
+      x_O&=\frac{\bar U}{u_O}
+          +\underbrace{\left(-\frac{u_A}{u_O}\right)}_{m_O}x_A.
+    \end{aligned}
+  \]
+  Increasing $\bar U$ shifts the utility line upward. Seek the last line
+  that still touches the feasible region.
+  \lecturesource{Comparing Allocations and Their Geometry: slopes and line shifts.}
+\end{frame}
+
+\begin{frame}{The Optimum Can Be a Corner or an Edge}
+  \begin{center}
+    \includegraphics[width=0.86\textwidth]{assets/Fig-ThreeCases-LP-Schematic.pdf}
+  \end{center}
+  \vspace{-0.25em}
+  \begin{itemize}\setlength{\itemsep}{0.4em}
+    \item \textbf{\ink{A:}} $|m_O|>|m_I|$ gives the apple corner.
+    \item \textbf{\ink{B:}} $|m_O|<|m_I|$ gives the orange corner.
+    \item \textbf{\ink{C:}} $|m_O|=|m_I|$ gives an entire optimal budget edge.
+  \end{itemize}
+  \slidenote{Schematic:}{the gray triangle is feasible; dashed stock limits lie beyond affordable quantities.}
+  \lecturesource{Geometry schematic: ../figs/Fig-ThreeCases-LP-Schematic.svg,
+    retained from the Fall 2025 lecture with the reviewed cropped viewport.
+    See ../figs/README.md for provenance.}
+\end{frame}
+
+% Notebook: Minimum-Cost Network Flow Problems as Linear Programs.
+\begin{frame}{Minimum-Cost Network Flow}
+  Several routings can deliver the same amount of flow at different costs.
+  We now seek the \hilite{least expensive routing of a required delivery}.
+
+  \vspace{0.7em}
+  Use a finite directed graph $\mathcal G=(\mathcal V,\mathcal E)$,
+  distinct source $s$ and sink $t$, and no self-loops. Fix vertex and edge order.
+  \begin{itemize}\setlength{\itemsep}{0.65em}
+    \item $f_j$: flow on edge $j$; $c_j\geq0$: its finite capacity.
+    \item $w_j$: cost per unit of flow on edge $j$.
+    \item $F\geq0$: the specified net flow from source to sink.
+  \end{itemize}
+
+  \vspace{0.5em}
+  Flows, capacities, and $F$ use the same units.
+  \lecturesource{Minimum-Cost Network Flow Problems as Linear Programs: assumptions and quantities.}
+\end{frame}
+
+\begin{frame}{An Incidence Matrix Encodes Conservation}
+  The matrix $\mathbf A\in\mathbb R^{|\mathcal V|\times|\mathcal E|}$
+  has one row per vertex $i$ and one column per edge $j$.
+  Its entries and required net inflows $b_i$ are:
+
+  \vspace{0.5em}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.55\textwidth}
+      \[
+        A_{i,j}=\begin{cases}
+          1,&j\text{ enters }i,\\
+          -1,&j\text{ leaves }i,\\
+          0,&\text{otherwise}.
+        \end{cases}
+      \]
+    \end{column}
+    \begin{column}{0.41\textwidth}
+      \[
+        b_i=\begin{cases}
+          -F,&\text{source},\\
+          F,&\text{sink},\\
+          0,&\text{otherwise}.
+        \end{cases}
+      \]
+    \end{column}
+  \end{columns}
+
+  \vspace{0.7em}
+  Collect flows in $\mathbf f\in\mathbb R^{|\mathcal E|}$ and net inflows
+  in $\mathbf b\in\mathbb R^{|\mathcal V|}$. Each row enforces:
+  \[
+    \underbrace{(\mathbf A\mathbf f)_i}_{\text{inflow minus outflow}}=b_i.
+  \]
+  \lecturesource{Node-edge incidence convention and required net-inflow vector.}
+\end{frame}
+
+\begin{frame}{A Linear Program for the Required Delivery}
+  Encode the required flow $F$ in $\mathbf b$ and minimize total edge cost:
+  \[
+    \begin{aligned}
+      \underset{\mathbf f}{\text{minimize}}\quad
+        & \sum_{j\in\mathcal E} w_j f_j\\
+      \text{subject to}\quad & \mathbf A\mathbf f=\mathbf b,\\
+        & 0\leq f_j\leq c_j,\qquad j\in\mathcal E.
+    \end{aligned}
+  \]
+
+  \vspace{0.6em}
+  \begin{itemize}\setlength{\itemsep}{0.7em}
+    \item Equalities enforce delivery and conservation.
+    \item Bounds enforce nonnegative flows and edge capacities.
+    \item Costs distinguish feasible routings with the same delivery.
+  \end{itemize}
+  This formulation applies to general directed networks.
+  \lecturesource{Minimum-cost flow for a specified delivery.}
+\end{frame}
+
+% Notebook: Worked Network: Choosing Between Two Routes.
+\begin{frame}{Worked Network: Two Routes}
+  Deliver $F=3$ flow units. Costs are in dollars per flow unit.
+
+  \vspace{0.4em}
+  \begin{center}
+    \includegraphics[width=0.66\textwidth]{assets/Fig-MinCostFlow-ThreeNode.pdf}
+  \end{center}
+
+  Through $v$: cost $1+1=2$ dollars per unit, capacity 2.
+  Direct: cost 5 dollars per unit.
+
+  \vspace{0.6em}
+  Some of the 3-unit delivery must travel directly.
+  \lecturesource{Worked Network: Choosing Between Two Routes.
+    Original lecture diagram: ../figs/Fig-MinCostFlow-ThreeNode.svg;
+    provenance in ../figs/README.md.}
+\end{frame}
+
+\begin{frame}{Write the Three Vertex Balances}
+  Order rows as $(s,v,t)$ and columns as edges $(1,2,3)$.
+  For $F=3$, conservation gives:
+  \[
+    \underbrace{\begin{bmatrix}-1&0&-1\\1&-1&0\\0&1&1\end{bmatrix}}_{\mathbf A}
+    \underbrace{\begin{bmatrix}f_1\\f_2\\f_3\end{bmatrix}}_{\mathbf f}
+    =\underbrace{\begin{bmatrix}-3\\0\\3\end{bmatrix}}_{\mathbf b}.
+  \]
+
+  \vspace{0.4em}
+  \begin{itemize}\setlength{\itemsep}{0.6em}
+    \item Source: $f_1+f_3=3$ units leave.
+    \item Intermediate vertex: $f_1=f_2$.
+    \item Sink: $f_2+f_3=3$ units enter.
+  \end{itemize}
+  Each edge column contains a $-1$ at its start and a $+1$ at its end.
+  \lecturesource{Worked network: ordered incidence matrix and vertex balances.}
+\end{frame}
+
+\begin{frame}{Use the Cheaper Route Up to Its Capacity}
+  Let $q$ be the flow through $v$. Conservation gives
+  $f_1=f_2=q$ and $f_3=3-q$; capacities require $0\leq q\leq2$.
+
+  \vspace{0.5em}
+  The total cost, in dollars, is:
+  \[
+    C(q)=\underbrace{q+q}_{\text{route through }v}
+         +\underbrace{5(3-q)}_{\text{direct route}}
+         =15-3q.
+  \]
+  Cost decreases with $q$, so use $q^\star=2$:
+  \[
+    (f_1^\star,f_2^\star,f_3^\star)=(2,2,1),
+    \qquad C^\star=\hilite{9}.
+  \]
+  Sending all 3 units directly is feasible, but costs 15 dollars.
+  Conservation and capacity checks alone do not select the cheapest routing.
+  \lecturesource{Worked network: one-variable cost reduction and optimal flow.}
+\end{frame}
+
+\begin{frame}{Minimum-Cost Maximum Flow Takes Two Steps}
+  Let $F_{\max}$ be the largest feasible net source-to-sink flow.
+  To find a minimum-cost maximum flow:
+
+  \vspace{0.5em}
+  \begin{enumerate}\setlength{\itemsep}{0.6em}
+    \item Solve the maximum-flow problem to find $F_{\max}$.
+    \item Set $F=F_{\max}$ and minimize cost among routings delivering it.
+  \end{enumerate}
+
+  \vspace{0.4em}
+  In our network, source capacities give a bound reached by a feasible flow:
+  \[
+    F_{\max}=2+3=5,\qquad(f_1,f_2,f_3)=(2,2,3).
+  \]
+  Delivering 5 units costs 19 dollars; the earlier 9-dollar result delivers
+  3 units. A requirement above 5 units is infeasible.
+
+  \slidenote{Next lab:}{\href{\lablink}{L5d uses costs and capacities in a worker-task assignment model.}}
+  \lecturesource{Worked network: minimum-cost maximum flow and the L5d connection.}
+\end{frame}
+
+% Notebook: Dual Linear Programming Problems; consumer budget first.
+\begin{frame}{Dual Linear Programming Problems}
+  How can we show that no feasible purchase is better?
+  Assign a value $y\geq0$ to each dollar of budget, in utility units per dollar.
+
+  Recall product prices $p_i$, utilities $u_i$, and budget $I$.
+  The \hilite{consumer dual} finds the smallest utility bound:
+  \[
+    \begin{aligned}
+      \underset{y}{\text{minimize}}\quad & Iy\\
+      \text{subject to}\quad & p_i y\geq u_i,\qquad i=1,\ldots,n,\\
+        & y\geq0.
+    \end{aligned}
+  \]
+  Each constraint makes the assigned value of a product's cost cover its utility.
+  A feasible purchase spends at most $I$, so its utility is at most $Iy$.
+  \lecturesource{What Is the Consumer's Budget Worth? Shortened approved consumer dual.}
+\end{frame}
+
+\begin{frame}{What Is the Consumer's Budget Worth?}
+  For our apple-orange case, $2y\geq0.55$ and $4y\geq0.45$.
+  The smallest feasible value and its budget bound are:
+  \[
+    y^\star=\max\!\left\{\frac{0.55}{2},\frac{0.45}{4}\right\}=0.275,
+    \qquad Iy^\star=27.5.
+  \]
+  Buying 50 apples attains 27.5 utility units. Matching the bound
+  \hilite{proves optimality}.
+
+  \vspace{0.8em}
+  The budget's \hilite{shadow price} is $y^\star$:
+  an extra dollar buys 0.5 units of apples and adds 0.275 utility units.
+
+  \slidenote{Interpretation:}{fixed prices and utilities, divisible quantities, and sufficient stock. Shadow prices can change as resource availability changes.}
+  \lecturesource{Consumer dual: matching bound and shadow-price interpretation for the stated parameters.}
+\end{frame}
+
+% Notebook: The General Primal-Dual Pair.
+\begin{frame}{The General Primal-Dual Pair}
+  Return to $n$ activities and $m$ resources, with
+  $\mathbf A\in\mathbb R^{m\times n}$.
+  Let $\mathbf y\in\mathbb R^m$ assign a value to each resource.
+  The paired models are:
+
+  \vspace{0.4em}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.46\textwidth}
+      \textbf{\ink{Primal: choose activities}}
+      \[
+        \begin{aligned}
+          \max_{\mathbf x}\quad & \mathbf c^\top\mathbf x\\
+          \text{s.t.}\quad & \mathbf A\mathbf x\leq\mathbf b,\\
+            & \mathbf x\geq\mathbf0.
+        \end{aligned}
+      \]
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \textbf{\ink{Dual: value resources}}
+      \[
+        \begin{aligned}
+          \min_{\mathbf y}\quad & \mathbf b^\top\mathbf y\\
+          \text{s.t.}\quad & \mathbf A^\top\mathbf y\geq\mathbf c,\\
+            & \mathbf y\geq\mathbf0.
+        \end{aligned}
+      \]
+    \end{column}
+  \end{columns}
+
+  \vspace{0.8em}
+  There is one dual variable per primal resource constraint and one dual
+  constraint per primal activity.
+  \lecturesource{The General Primal-Dual Pair.}
+\end{frame}
+
+\begin{frame}{Resource Values Must Cover Each Activity}
+  Recall that $A_{j,i}$ is resource $j$ used per unit of activity $i$,
+  and $c_i$ is that activity's objective contribution.
+  Value resource $j$ at $y_j\geq0$ objective units per resource unit.
+
+  \vspace{0.5em}
+  For each activity, the dual requires:
+  \[
+    \underbrace{\sum_{j=1}^m A_{j,i}y_j}_{\text{assigned resource value}}
+    \geq\underbrace{c_i}_{\text{contribution}},
+    \qquad i=1,\ldots,n.
+  \]
+  The transpose combines entries down each activity column of $\mathbf A$.
+
+  \vspace{0.7em}
+  The objective $\mathbf b^\top\mathbf y$ totals the assigned value of all
+  available resources. The dual seeks the smallest such bound.
+  \lecturesource{Interpretation of the scalar dual constraints and the transpose.}
+\end{frame}
+
+\begin{frame}{Weak Duality Bounds Every Feasible Decision}
+  Let $\mathbf x$ be primal-feasible and $\mathbf y$ dual-feasible.
+  Their constraints and nonnegative components give:
+  \[
+    \mathbf c^\top\mathbf x
+    \leq(\mathbf A^\top\mathbf y)^\top\mathbf x
+    =\mathbf y^\top\mathbf A\mathbf x
+    \leq\mathbf y^\top\mathbf b.
+  \]
+
+  \vspace{0.6em}
+  \begin{itemize}\setlength{\itemsep}{0.8em}
+    \item First inequality: $\mathbf A^\top\mathbf y\geq\mathbf c$
+      and $\mathbf x\geq\mathbf0$.
+    \item Last inequality: $\mathbf A\mathbf x\leq\mathbf b$
+      and $\mathbf y\geq\mathbf0$.
+  \end{itemize}
+
+  \vspace{0.7em}
+  This is \hilite{weak duality}: every feasible dual objective is an upper
+  bound on every feasible primal objective.
+  \lecturesource{Weak-duality derivation.
+    Supporting reference: \url{https://courses.csail.mit.edu/6.854/16/Notes/n12-duality.html}.}
+\end{frame}
+
+\begin{frame}{A Zero Duality Gap Certifies Optimality}
+  For feasible candidates, define the \hilite{duality gap} as:
+  \[
+    \mathbf b^\top\mathbf y-\mathbf c^\top\mathbf x\geq0.
+  \]
+  A zero gap proves both candidates are optimal: the primal reaches the
+  upper bound supplied by the dual.
+
+  \vspace{0.7em}
+  \hilite{Strong duality}: if the primal is feasible with a finite optimal
+  value, the dual also has an optimal solution. Optimal solutions satisfy:
+  \[
+    \mathbf c^\top\mathbf x^\star=\mathbf b^\top\mathbf y^\star.
+  \]
+  The objective values agree; the decision vectors describe different quantities.
+  \lecturesource{Duality gap and strong duality.
+    Supporting reference: \url{https://courses.csail.mit.edu/6.854/16/Notes/n12-duality.html}.}
+\end{frame}
+
+% Notebook: Constraint Directions and Variable Signs.
+\begin{frame}{Constraint Directions and Variable Signs}
+  For the \hilite{maximization convention} just used, the bound determines
+  the following correspondences:
+
+  \vspace{0.6em}
+  \renewcommand{\arraystretch}{1.45}
+  \begin{tabularx}{\textwidth}{@{}YY@{}}
+    \toprule
+    Primal condition & Corresponding dual condition\\
+    \midrule
+    $\sum_i A_{j,i}x_i\leq b_j$ & $y_j\geq0$\\
+    $\sum_i A_{j,i}x_i=b_j$ & $y_j$ free to have either sign\\
+    $x_i\geq0$ & $(\mathbf A^\top\mathbf y)_i\geq c_i$\\
+    $x_i$ free to have either sign & $(\mathbf A^\top\mathbf y)_i=c_i$\\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{0.4em}
+  An equality can be multiplied by either sign. A free primal variable
+  requires matching coefficients for both positive and negative values.
+
+  \vspace{0.5em}
+  Network-flow equality balances therefore have unrestricted dual multipliers.
+  \lecturesource{Constraint Directions and Variable Signs.
+    Supporting reference: \url{https://courses.csail.mit.edu/6.854/16/Notes/n12-duality.html}.}
+\end{frame}
+
+% Notebook: How a Solver Fits the Modeling Workflow.
+\begin{frame}{How a Solver Fits the Modeling Workflow}
+  Interpret a candidate only after checking what the solver established:
+
+  \vspace{0.7em}
+  \begin{enumerate}\setlength{\itemsep}{0.7em}
+    \item \hilite{Read the status.} An optimal status reports optimality within
+      numerical tolerances. A time or iteration limit does not; first confirm
+      a feasible solution is available.
+    \item \hilite{Verify feasibility.} Check the original constraints and bounds,
+      including every node balance for a flow model.
+    \item \hilite{Recompute the objective.} Use the returned quantities and
+      original coefficients; compare with the reported value.
+    \item \hilite{Check an optimality bound.} Verify dual feasibility before
+      comparing primal and dual objective values.
+  \end{enumerate}
+
+  \slidenote{Numerical checks:}{use stated tolerances appropriate to the units and scales. See the \href{https://jump.dev/JuMP.jl/stable/manual/solutions/}{JuMP solution guide}.}
+  \lecturesource{Solver workflow. External documentation:
+    \url{https://jump.dev/JuMP.jl/stable/manual/solutions/}.}
+\end{frame}
+
+\begin{frame}{Supporting Algorithm: Revised Simplex}
+  How does a solver find a candidate?
+  The \href{\simplexlink}{revised-simplex notebook} develops three ideas:
+
+  \vspace{0.8em}
+  \begin{itemize}\setlength{\itemsep}{0.8em}
+    \item A \hilite{feasible basis} selects constraint columns that determine
+      a corner of the feasible region.
+    \item \hilite{Reduced costs} account for objective changes when a nonbasic
+      variable increases and basic variables adjust.
+    \item The \hilite{ratio test} limits the step so that the updated solution
+      remains feasible.
+  \end{itemize}
+
+  \vspace{0.6em}
+  The algorithm explains solver mechanics; our modeling work checks and
+  interprets the result.
+  \lecturesource{Solver workflow and linked supporting revised-simplex notebook.}
+\end{frame}
+
+% Notebook: Summary; preserve three general retrospective takeaways.
+\begin{frame}{Summary}
+  We formulated allocation models and used duality to interpret and verify
+  their solutions.
+
+  \vspace{0.6em}
+  {\large\textbf{\ink{Key takeaways}}}
+  \vspace{0.3em}
+  \begin{itemize}\setlength{\itemsep}{0.6em}
+    \item \textbf{\ink{Formulating allocation models.}} We represented
+      purchases and flows using continuous variables, linear objectives,
+      and resource or balance constraints.
+    \item \textbf{\ink{Duality and resource values.}} We used dual bounds
+      and shadow prices to connect allocation decisions with the marginal
+      value of resources.
+    \item \textbf{\ink{Evaluating results.}} We checked feasibility and
+      objective values, and used agreement with a feasible dual bound
+      to establish optimality.
+  \end{itemize}
+
+  \vspace{0.5em}
+  A feasible allocation that reaches the dual bound is optimal.
+  \lecturesource{Approved Summary; takeaways remain independent of numerical example values.}
+\end{frame}
+
+\end{document}

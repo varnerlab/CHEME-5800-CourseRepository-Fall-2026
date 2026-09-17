@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="330" viewBox="0 0 700 330" role="img" aria-labelledby="title desc">
+  <title id="title">Minimum-cost flow through two alternative routes</title>
+  <desc id="desc">Source s connects to intermediate vertex v and then sink t through two edges of capacity 2 and unit cost 1. A direct edge from s to t has capacity 3 and unit cost 5.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#444"/>
+    </marker>
+  </defs>
+  <rect width="700" height="330" fill="white"/>
+  <g fill="none" stroke="#444" stroke-width="1.8" marker-end="url(#arrow)">
+    <path d="M 110 226 L 330 74"/>
+    <path d="M 370 74 L 590 226"/>
+    <path d="M 114 240 L 586 240"/>
+  </g>
+  <g fill="white" stroke="#444" stroke-width="1.8">
+    <circle cx="90" cy="240" r="24"/>
+    <circle cx="350" cy="60" r="24"/>
+    <circle cx="610" cy="240" r="24"/>
+  </g>
+  <g fill="#222" font-family="Georgia, 'Times New Roman', serif" font-size="25" font-style="italic" text-anchor="middle">
+    <text x="90" y="248">s</text>
+    <text x="350" y="68">v</text>
+    <text x="610" y="248">t</text>
+  </g>
+  <g fill="#222" font-family="Arial, Helvetica, sans-serif" font-size="15" text-anchor="middle">
+    <text x="174" y="109">Edge 1</text>
+    <text x="174" y="130">capacity 2; cost 1</text>
+    <text x="526" y="109">Edge 2</text>
+    <text x="526" y="130">capacity 2; cost 1</text>
+    <text x="350" y="277">Edge 3</text>
+    <text x="350" y="298">capacity 3; cost 5</text>
+    <text x="90" y="282" font-size="14">source</text>
+    <text x="610" y="282" font-size="14">sink</text>
+  </g>
+</svg>
