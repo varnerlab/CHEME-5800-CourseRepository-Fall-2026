@@ -56,6 +56,9 @@ function _visit!(adjacency::AbstractDict, vertex::Int64,
 
     # base case: stop recursion if this vertex has already been discovered
     vertex ∈ visited && return # stop repeated exploration through cycles or converging edges
+    # if (vertex ∈ visited) == true
+    #     return nothing # return early if the vertex has already been visited
+    # end
     
     # Recursive case: mark this vertex and explore its outgoing neighbors in order -
     push!(visited, vertex) # mark before descending so a cycle cannot re-enter this vertex
