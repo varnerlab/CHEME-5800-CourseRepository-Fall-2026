@@ -52,6 +52,11 @@ if !isdefined(@__MODULE__, :L5dMinCostFlow)
 end
 
 
+# The figure helper is separate from model assembly and solution checks.
+if !isdefined(@__MODULE__, :L5dFlowPlots)
+    include(joinpath(@__DIR__, "src", "FlowPlots.jl"))
+end
+
 # --- 3. IMPORTS --------------------------------------------------------------
 # Everything this meeting brings into scope. One `using` per line so each can
 # be annotated and each shows up on its own line in a diff.
@@ -74,3 +79,4 @@ using PrettyTables      # formatted table output in the notebook
 # This meeting's own source, included above. The leading dot means "a module
 # defined here", as opposed to an installed package of the same name:
 using .L5dMinCostFlow   # from the include in section 2
+using .L5dFlowPlots     # the network figure helper

@@ -44,7 +44,38 @@ function read_flow_edges(path::AbstractString)::Vector{FlowEdge}
     return edges
 end
 
-"""Build the node-edge incidence form `A*x = b` using inflow minus outflow."""
+"""
+    flow_formulation(edges::AbstractVector{FlowEdge}, source::Integer,
+        sink::Integer, required_flow::Real)
+
+Assemble node-edge incidence data for a minimum-cost flow model using inflow
+minus outflow. This function returns model data; it does not solve the model.
+
+# Arguments
+- `edges`: Directed `FlowEdge` records. Each record supplies endpoints, cost per
+  flow unit, and lower and upper bounds. In this lab, flow is measured in
+  assignments and cost in synthetic cost units per assignment.
+- `source`, `sink`: Distinct node identifiers present in `edges`.
+- `required_flow`: Finite, nonnegative net flow from source to sink, in the same
+  units as the edge bounds (assignments in this lab).
+
+# Returns
+A named tuple with `A`, `b`, `c`, `lower`, `upper`, and `vertices`:
+- `vertices` lists the node identifiers in ascending order; it defines row order.
+- `A` has one row per node and one column per supplied edge, in input order.
+  A column has -1 at the edge's source, +1 at its target, and zeros elsewhere.
+- `b` is `-required_flow` at the source, `required_flow` at the sink, and zero
+  at intermediate nodes. Its units are flow units.
+- `c` contains costs per flow unit; the notebook denotes this vector by w.
+- `lower` and `upper` contain the corresponding edge bounds, in flow units.
+
+# Assumptions and scope
+`FlowEdge` records have distinct endpoints, finite costs and bounds, and
+`0 <= lower <= upper`. Node identifiers need not be consecutive; interpret rows
+using `vertices`. This routine checks that source and sink are distinct and
+present and that the required flow is finite and nonnegative. It does not check
+whether the requested flow can be delivered within the supplied edge bounds.
+"""
 function flow_formulation(edges::AbstractVector{FlowEdge}, source::Integer, sink::Integer, required_flow::Real)
     source_id, sink_id = Int64(source), Int64(sink)
     source_id == sink_id && throw(ArgumentError("source and sink must differ"))
@@ -68,6 +99,26 @@ function flow_formulation(edges::AbstractVector{FlowEdge}, source::Integer, sink
     )
 end
 
+"""
+    solve_min_cost_flow(edges::AbstractVector{FlowEdge}, source::Integer,
+        sink::Integer, required_flow::Real)
+
+Solve the continuous minimum-cost flow model with JuMP and GLPK.
+
+# Arguments
+- `edges`: Directed edge records with finite costs per flow unit and bounds.
+- `source`, `sink`: Distinct node identifiers present in the network.
+- `required_flow`: Finite, nonnegative source-to-sink flow in the same units as
+  the edge bounds (assignments in this lab).
+
+# Returns and assumptions
+Returns `flow` (edge-pair dictionary), `vector` (input edge order), `cost` (the
+solver's objective value), `residual` (A*vector - b), `status`, and `formulation`.
+Costs are in synthetic cost units in this lab. The input network must have
+unique directed edge pairs for the returned dictionary to represent every edge.
+Only an `OPTIMAL` termination status produces a result; otherwise an error is
+thrown. Independent feasibility and cost checks remain the caller's task.
+"""
 function solve_min_cost_flow(edges::AbstractVector{FlowEdge}, source::Integer, sink::Integer, required_flow::Real)
     form = flow_formulation(edges, source, sink, required_flow)
     model = JuMP.Model(GLPK.Optimizer)
@@ -89,23 +140,74 @@ function solve_min_cost_flow(edges::AbstractVector{FlowEdge}, source::Integer, s
     flow = Dict((edge.source, edge.target) => vector[i] for (i, edge) in enumerate(edges))
     residual = form.A * vector - form.b
     return (
-        flow = flow, vector = vector, cost = dot(form.c, vector),
+        flow = flow, vector = vector, cost = JuMP.objective_value(model),
         residual = residual, status = status, formulation = form,
     )
 end
 
+"""
+    validate_flow_solution(edges::AbstractVector{FlowEdge}, result; atol::Real = 1e-8)
+
+Recompute node balances and total cost from a candidate edge-flow vector.
+
+# Arguments
+- `edges`: Original directed edge records in the same order as `result.vector`.
+- `result`: A candidate with `vector`, `cost`, and `formulation`. The formulation's
+  `vertices` and `b` give the expected node order and net inflows. Preserve those
+  model inputs when checking an edited candidate.
+- `atol`: Finite, nonnegative absolute tolerance. It is used for flow quantities
+  (assignments here) and cost differences (synthetic cost units here). The default
+  is appropriate for this lab's small coefficients; relative tolerance is zero.
+
+# Returns and scope
+Returns the flags `valid`, `bounds_ok`, `balance_ok`, and `objective_ok`, plus the
+freshly computed `residual`, `maximum_balance_residual`, and `recomputed_cost`.
+The balances are accumulated directly from the supplied edge endpoints and
+candidate vector; the solver's stored residual and incidence matrix are not used.
+These checks establish numerical feasibility and objective consistency, not
+optimality or integrality. The edge dictionary is not the candidate checked here.
+"""
 function validate_flow_solution(edges::AbstractVector{FlowEdge}, result; atol::Real = 1e-8)
+    isfinite(atol) && atol >= 0 || throw(ArgumentError("atol must be finite and nonnegative"))
     length(edges) == length(result.vector) || throw(DimensionMismatch("one flow value is required per edge"))
+    vertices = result.formulation.vertices
+    expected = result.formulation.b
+    length(vertices) == length(expected) || throw(DimensionMismatch("one required balance is needed per node"))
+    row = Dict(vertex => i for (i, vertex) in enumerate(vertices))
+    net_inflow = zeros(Float64, length(vertices))
+    for (i, edge) in enumerate(edges)
+        net_inflow[row[edge.source]] -= result.vector[i]
+        net_inflow[row[edge.target]] += result.vector[i]
+    end
+    residual = net_inflow - expected
+    maximum_balance_residual = maximum(abs, residual; init = 0.0)
+    recomputed_cost = dot([e.cost for e in edges], result.vector)
     bounds_ok = all(
         edge.lower - atol <= result.vector[i] <= edge.upper + atol
         for (i, edge) in enumerate(edges)
     )
-    balance_ok = maximum(abs, result.residual; init = 0.0) <= atol
-    objective_ok = isapprox(dot([e.cost for e in edges], result.vector), result.cost; atol = atol)
+    balance_ok = maximum_balance_residual <= atol
+    objective_ok = isapprox(recomputed_cost, result.cost; atol = atol, rtol = 0.0)
     return (valid = bounds_ok && balance_ok && objective_ok,
-        bounds_ok = bounds_ok, balance_ok = balance_ok, objective_ok = objective_ok)
+        bounds_ok = bounds_ok, balance_ok = balance_ok, objective_ok = objective_ok,
+        residual = residual, maximum_balance_residual = maximum_balance_residual,
+        recomputed_cost = recomputed_cost)
 end
 
+"""
+    selected_assignments(result; workers = 2:4, tasks = 5:8, atol::Real = 1e-8)
+
+Extract positive worker-to-task flows from a solved network.
+
+# Arguments and return
+- `result`: A solution with a `flow` dictionary indexed by directed edge pairs.
+- `workers`, `tasks`: Collections of node identifiers for the two node groups.
+- `atol`: Flow threshold, in assignments in this lab; only values above it appear.
+
+Returns named tuples `(worker, task, flow)`, sorted by worker and task identifiers.
+Values are not rounded or forced to integers. Checking whether they represent
+whole assignments is separate from extracting the positive edges.
+"""
 function selected_assignments(result; workers = 2:4, tasks = 5:8, atol::Real = 1e-8)
     return sort([
         (worker = edge[1], task = edge[2], flow = value)
