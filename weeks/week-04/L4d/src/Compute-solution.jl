@@ -106,15 +106,39 @@ function breakeven_weight(edges::AbstractDict, candidate_route::AbstractVector{<
 
     # TODO 1 (solution): count how often the step appears on each route. It must
     # appear exactly once on the candidate and never on the reference.
-    step_id = (Int64(step[1]), Int64(step[2]))
-    count_on(route) = count(i -> (Int64(route[i]), Int64(route[i + 1])) == step_id, 1:(length(route) - 1))
-    count_on(candidate_route) == 1 || throw(ArgumentError("step $(step_id) must appear exactly once on the candidate route"))
-    count_on(reference_route) == 0 || throw(ArgumentError("step $(step_id) must not appear on the reference route"))
+    
+    step_id = step # what step we are looking for
+    
+    # process candidate route -- count how many times the step appears
+    number_of_candidate_steps = length(candidate_route) - 1 # number of steps is one less than number of vertices
+    candidate_count = 0 # initialize counter
+    for i ∈ 1:number_of_candidate_steps
+        route_step = (candidate_route[i], candidate_route[i + 1]) 
+        if route_step == step_id
+            candidate_count += 1
+        end
+    end
+
+    # process reference route -- count how many times the step appears
+    number_of_reference_steps = length(reference_route) - 1 # number of steps is one less than number of vertices
+    reference_count = 0 # initialize counter
+    for i ∈ 1:number_of_reference_steps
+        route_step = (reference_route[i], reference_route[i + 1])
+        if route_step == step_id
+            reference_count += 1
+        end
+    end
+
+    # checks: ensure the step appears correctly on each route
+    candidate_count == 1 || throw(ArgumentError("step $(step_id) must appear exactly once on the candidate route"))
+    reference_count == 0 || throw(ArgumentError("step $(step_id) must not appear on the reference route"))
 
     # TODO 2 (solution): the candidate's cost without the step, plus the new step
     # cost, equals the reference cost at break-even.
     candidate_cost = route_cost(edges, candidate_route)
     reference_cost = route_cost(edges, reference_route)
+    
+    # The break-even cost of the step is the reference cost minus the candidate cost without the step, plus the original cost of the step.
     return reference_cost - (candidate_cost - edges[step_id])
 end
 
