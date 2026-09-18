@@ -28,4 +28,4 @@ Check a candidate flow independently and recompute its net source outflow.
 
 Use zero lower flow bounds and finite numeric capacities and flows. The helper does not enforce nonzero lower bounds. It checks feasibility; the caller must compare `value` with the algorithm's reported total and use a cut-capacity bound to establish optimality.
 
-See the docstring in [FlowValidation.jl](../src/FlowValidation.jl) and [Task 1 of the L5b lab](../CHEME-5800-L5b-Lab-MaximumFlowSensitivity-Fall-2026.ipynb), which loads this helper through [Include.jl](../Include.jl).
+See the docstring in [Compute.jl](../src/Compute.jl) and [Task 1 of the L5b lab](../CHEME-5800-L5b-Lab-MaximumFlowSensitivity-Fall-2026.ipynb), which loads this helper through [Include.jl](../Include.jl).

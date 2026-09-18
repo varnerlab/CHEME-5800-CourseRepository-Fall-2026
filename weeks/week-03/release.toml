@@ -22,9 +22,6 @@ datasets = [
 student_paths = ["README.md", "L3b", "L3c", "L3d"]
 instructor_only_paths = [
   "../../instructor/validation/week-03",
-  # The L3d lab ships as a stub students complete in class; the reference
-  # solution must not be bundled with it.
-  "L3d/src/Compute-solution.jl",
 ]
 
 [validation]

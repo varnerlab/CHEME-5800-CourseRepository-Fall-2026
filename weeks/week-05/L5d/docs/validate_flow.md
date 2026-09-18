@@ -10,4 +10,4 @@ Check `result.vector` against the supplied edge bounds, recompute every node's i
 
 The returned flags are `valid`, `bounds_ok`, `balance_ok`, and `objective_ok`. The result also includes the freshly computed `residual`, `maximum_balance_residual`, and `recomputed_cost`. The helper does not trust the saved incidence matrix or residual. It checks the vector representation, not `result.flow`, and does not establish integrality or optimality.
 
-See the full docstring in [MinCostFlow.jl](../src/MinCostFlow.jl), loaded by [Include.jl](../Include.jl), and [Task 2 of the lab](../CHEME-5800-L5d-Lab-MinimumCostAssignmentFlow-Fall-2026.ipynb).
+See the full docstring in [Compute.jl](../src/Compute.jl), loaded by [Include.jl](../Include.jl), and [Task 2 of the lab](../CHEME-5800-L5d-Lab-MinimumCostAssignmentFlow-Fall-2026.ipynb).

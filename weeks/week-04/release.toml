@@ -36,11 +36,6 @@ instructor_only_paths = [
   "L4a/slides/CHEME-5800-L4a-Slides-Fall-2026.snm",
   "L4a/slides/CHEME-5800-L4a-Slides-Fall-2026.toc",
   "L4a/slides/CHEME-5800-L4a-Slides-Fall-2026.xdv",
-  # L4b ships as a traversal scaffold students complete in class; the reference
-  # solution must not be bundled with it.
-  "L4b/src/Compute-solution.jl",
-  # L4d ships the break-even stub students complete in class.
-  "L4d/src/Compute-solution.jl",
 ]
 
 [validation]

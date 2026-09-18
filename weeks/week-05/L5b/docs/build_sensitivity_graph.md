@@ -19,4 +19,4 @@ The returned graph stores capacity bounds as `graph.capacity[(u, v)] = (lower, u
 
 The input file must exist. Use a directed flow network with zero lower flow bounds and finite, nonnegative upper capacities. The supplied dataset meets these requirements; the builder does not validate every solver assumption.
 
-See the docstring in [FlowValidation.jl](../src/FlowValidation.jl) and [Task 1 of the L5b lab](../CHEME-5800-L5b-Lab-MaximumFlowSensitivity-Fall-2026.ipynb), which loads this helper through [Include.jl](../Include.jl).
+See the docstring in [Compute.jl](../src/Compute.jl) and [Task 1 of the L5b lab](../CHEME-5800-L5b-Lab-MaximumFlowSensitivity-Fall-2026.ipynb), which loads this helper through [Include.jl](../Include.jl).

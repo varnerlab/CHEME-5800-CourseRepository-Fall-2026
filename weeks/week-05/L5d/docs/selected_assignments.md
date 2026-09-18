@@ -8,4 +8,4 @@ Read `result.flow` and return the worker-to-task edges with flow greater than `a
 
 The return value is a vector of named tuples with fields `worker`, `task`, and `flow`, sorted by worker and task identifiers. Flow values are retained without rounding. Extraction does not establish feasibility, integrality, or optimality.
 
-See [MinCostFlow.jl](../src/MinCostFlow.jl), loaded by [Include.jl](../Include.jl), and [Task 2 of the lab](../CHEME-5800-L5d-Lab-MinimumCostAssignmentFlow-Fall-2026.ipynb).
+See [Compute.jl](../src/Compute.jl), loaded by [Include.jl](../Include.jl), and [Task 2 of the lab](../CHEME-5800-L5d-Lab-MinimumCostAssignmentFlow-Fall-2026.ipynb).

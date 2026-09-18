@@ -27,4 +27,4 @@ Assemble the objective coefficients, node conservation equations, and bounds for
 
 Each `FlowEdge` has distinct endpoints, finite costs and bounds, and `0 ≤ lower ≤ upper`. Node identifiers need not be consecutive; use `vertices` to interpret matrix rows. The routine validates the source, sink, and required-flow argument, but does not establish that the requested flow is feasible. In particular, assembling the arrays with a required flow of four does not prove this lab's three-worker network can deliver it.
 
-See the source docstring in [MinCostFlow.jl](../src/MinCostFlow.jl), loaded through [Include.jl](../Include.jl), and [Task 1 of the lab](../CHEME-5800-L5d-Lab-MinimumCostAssignmentFlow-Fall-2026.ipynb).
+See the source docstring in [Compute.jl](../src/Compute.jl), loaded through [Include.jl](../Include.jl), and [Task 1 of the lab](../CHEME-5800-L5d-Lab-MinimumCostAssignmentFlow-Fall-2026.ipynb).

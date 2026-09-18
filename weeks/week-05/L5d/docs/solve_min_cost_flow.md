@@ -9,4 +9,4 @@ Construct and solve a continuous minimum-cost flow model using JuMP and GLPK. Su
 
 The returned named tuple contains `flow` (edge-pair dictionary), `vector` (input edge order), `cost` (solver-reported objective), `residual` (matrix balance residual), `status`, and `formulation` (the assembled model inputs). An `OPTIMAL` termination status is required; other statuses raise an error. The returned data still require independent checks of feasibility and cost.
 
-See [MinCostFlow.jl](../src/MinCostFlow.jl), loaded by [Include.jl](../Include.jl), and [Task 2 of the lab](../CHEME-5800-L5d-Lab-MinimumCostAssignmentFlow-Fall-2026.ipynb).
+See [Compute.jl](../src/Compute.jl), loaded by [Include.jl](../Include.jl), and [Task 2 of the lab](../CHEME-5800-L5d-Lab-MinimumCostAssignmentFlow-Fall-2026.ipynb).

@@ -48,7 +48,7 @@ end
 # student stub and a reference solution declaring the same module name stay
 # drop-in interchangeable between the notebook and the validation suite.
 if !isdefined(@__MODULE__, :L5bFlowValidation)
-    include(joinpath(@__DIR__, "src", "FlowValidation.jl"))
+    include(joinpath(@__DIR__, "src", "Compute.jl"))
 end
 
 

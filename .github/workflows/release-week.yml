@@ -42,6 +42,9 @@ jobs:
       - name: Instantiate course environment
         run: julia --startup-file=no --project=. -e 'using Pkg; Pkg.instantiate()'
 
+      - name: Check bundle inclusion rules
+        run: python3 -m unittest discover -s instructor/validation -p 'test_week_bundles.py'
+
       - name: Validate week
         run: julia --startup-file=no --project=. "instructor/validation/week-${{ steps.release.outputs.week }}/runtests.jl"
 

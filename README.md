@@ -24,6 +24,11 @@ There are two ways to use the course materials:
 Problem sets and the practicum are distributed through separate repositories; see
 [Assignments and practicum](#assignments-and-practicum) below.
 
+Weekly bundles include lab reference solutions as `src/Compute-solution.jl`
+beside the student `src/Compute.jl` files. The notebooks load the student files
+by default. You can compare your work with the included solutions without
+visiting the main repository.
+
 ## One-time setup
 
 The supported environment is Julia 1.12 in VS Code with the Julia and Jupyter

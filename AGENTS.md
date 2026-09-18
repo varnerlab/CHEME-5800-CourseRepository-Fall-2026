@@ -26,8 +26,10 @@ a major-section boundary, never between level-three subsections or after the fin
 section. This replaces the older instruction to put a rule after the final Summary.
 
 Keep CHEME 5800's separate requirements for student work in labs, course content,
-code, execution validation, instructor-only solutions, and releases. The style
-reset does not replace those requirements or require copying 5820's notebook
+code, execution validation, and releases. Weekly bundles include lab reference
+solutions as `src/Compute-solution.jl` alongside the student `src/Compute.jl` files.
+Package releases with the GitHub Action; a local ZIP is only a validation artifact.
+The style reset does not replace those requirements or require copying 5820's notebook
 decomposition.
 
 Read the guide rather than asking the instructor to repeat the discussion. If the

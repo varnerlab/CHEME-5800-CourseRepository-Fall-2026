@@ -31,6 +31,18 @@ The revised-simplex notebook is the week's selected supporting algorithm noteboo
 Interior-point derivations and extended duality proofs remain deeper-study topics;
 they are not parallel required notebooks.
 
+## Lab implementations and reference solutions
+
+Both labs use the standard `Compute.jl` / `Compute-solution.jl` file pair. The
+notebook loads `Compute.jl`; complete its three TODO blocks, save the file,
+restart the notebook kernel, and run from the top. The reference solution is
+included in the same bundle for comparison.
+
+| Lab | Student file | Reference solution | Function to complete |
+|---|---|---|---|
+| L5b | [Compute.jl](L5b/src/Compute.jl) | [Compute-solution.jl](L5b/src/Compute-solution.jl) | `validate_sensitivity_flow(...)`: check capacities, node balances, and total flow. |
+| L5d | [Compute.jl](L5d/src/Compute.jl) | [Compute-solution.jl](L5d/src/Compute-solution.jl) | `flow_formulation(...)`: assemble the incidence matrix, required balances, costs, and bounds. |
+
 ## Environment and validation
 
 Each meeting-local `Include.jl` delegates to the single root `Project.toml` and
@@ -51,12 +63,14 @@ repositories and are not part of this weekly instructional package.
 - L5a retains the detailed Fall 2025 maximum-flow formulation, residual-graph
   explanation, worker–task example, and capacity scenarios. Fall 2026 adds a
   deterministic Edmonds–Karp comparison and independent flow contracts.
-- L5b retains the strongest completed Fall 2025 lab path without publishing a
-  student/solution pair. The capacity expansion and worker outage are now explicit,
-  executable scenarios with assertions.
+- L5b retains the Fall 2025 lab's capacity expansion and worker-outage scenarios
+  with explicit assertions. Students implement the flow validator in `Compute.jl`;
+  the matching `Compute-solution.jl` is included for comparison.
 - L5c retains the Fall 2025 primal/dual lecture, fruit-allocation geometry, SVG
   schematic, and revised-simplex narrative. The example now uses the current JuMP
   API directly and handles alternate optima deliberately.
 - L5d retains the Fall 2025 assignment-network formulation while replacing the
   degenerate equal assignment costs with documented synthetic costs. The new local
   model exposes `A`, `b`, bounds, residuals, and selected assignments for testing.
+  Students assemble the model data in `Compute.jl`; the matching
+  `Compute-solution.jl` is included for comparison.

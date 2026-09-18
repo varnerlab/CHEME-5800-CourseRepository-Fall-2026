@@ -214,11 +214,14 @@ The convention, carried over from the 2025 labs and standardized here:
 - The stub keeps the module, signature, and docstring; replaces the body with
   `# TODO:` comments describing what to write; and ends with
   `throw(ErrorException("Oooops! The \`name(...)\` function is not implemented yet - we'd better fix that."))`.
-- The week's `release.toml` lists the solution under `instructor_only_paths` so it is
-  not bundled for students.
+- Weekly bundles include both `Compute.jl` and `Compute-solution.jl`. Reference
+  solutions are not listed under `instructor_only_paths`. This distribution rule
+  was updated by the instructor on September 18, 2026; students should not need
+  to visit the main repository to obtain the lab solution.
 - The week's `runtests.jl` validates against the solution, and separately asserts that
   the student file still contains its `TODO` markers and none of the solution's
-  distinctive expressions. That guard catches a solution leaking into the student tree.
+  distinctive expressions. That guard keeps the student exercise intact while
+  the separate reference file is included in the same bundle.
 - The lab notebook must contain a section naming the file, listing what each `TODO`
   expects, and pointing at the test cell as the definition of done. A stub alone is not
   discoverable.
@@ -249,6 +252,7 @@ authored in the week's README.
 - the vendored local source needed by the week;
 - approved common and week-specific data;
 - the selected `weeks/week-NN/LNx` class-meeting folders;
+- lab reference solutions named `src/Compute-solution.jl`, alongside student stubs;
 - notebooks labeled `Advanced`, `Derivation`, or `Algorithm` when selected for the release;
 - license and attribution files;
 - optional validation scripts.
@@ -281,6 +285,8 @@ Release notes must tell students to download the specifically named asset under 
 
 ### 6.3 Automation
 
+Published bundles are packaged by the GitHub Action from a pushed, versioned
+week tag. Local builds are validation artifacts, not the release deliverable.
 The validation workflow should run on every pull request and main-branch change. The release workflow should run only for a versioned week tag or a manually approved dispatch. It should:
 
 1. Validate root environment consistency.
@@ -400,7 +406,8 @@ The redesign is ready for students when all of the following are true:
 ### Phase 5 — Confirm the problem-set boundary
 
 - Document the external problem-set repository link convention when that workflow is ready.
-- Verify that weekly build scripts reject embedded problem-set and solution artifacts.
+- Verify that weekly build scripts include lab reference solutions while excluding
+  problem-set materials and instructor-only artifacts.
 - Keep problem-set operations out of the course-content release automation.
 
 ### Phase 6 — Student and staff usability test

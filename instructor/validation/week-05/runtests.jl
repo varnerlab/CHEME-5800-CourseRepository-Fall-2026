@@ -1,6 +1,9 @@
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-05"))
 
 include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-05", "L5a", "Include.jl"))
+# Validate the reference implementations; notebook setup loads student scaffolds.
+include(joinpath(WEEK_ROOT, "L5b", "src", "Compute-solution.jl"))
+include(joinpath(WEEK_ROOT, "L5d", "src", "Compute-solution.jl"))
 include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-05", "L5b", "Include.jl"))
 include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-05", "L5c", "Include.jl"))
 include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-05", "L5d", "Include.jl"))
@@ -27,6 +30,36 @@ include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-05", "L5d", "Include
     invalid_flow[(1, 2)] = 2.0
     @test !validate_flow(graph, invalid_flow, 1, 13).valid
     @test_throws ArgumentError build_flow_graph(joinpath(WEEK_ROOT, "missing.edgelist"))
+end
+
+# Load the default notebook setups in separate modules to check the student path.
+module L5bStudentSetup
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-05", "L5b", "Include.jl"))
+end
+
+module L5dStudentSetup
+include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-05", "L5d", "Include.jl"))
+end
+
+@testset "Week 5 student scaffolds and reference files" begin
+    for meeting in ("L5b", "L5d")
+        student_path = joinpath(WEEK_ROOT, meeting, "src", "Compute.jl")
+        reference_path = joinpath(WEEK_ROOT, meeting, "src", "Compute-solution.jl")
+        @test isfile(student_path)
+        @test isfile(reference_path)
+        @test occursin("# TODO 1:", read(student_path, String))
+    end
+
+    graph = build_sensitivity_graph(joinpath(WEEK_ROOT, "L5b", "data", "Workers-Tasks-Bipartite.edgelist"))
+    _, flow = maximumflow(graph, graph.nodes[1], graph.nodes[13]; algorithm = EdmondsKarpAlgorithm())
+    @test_throws ErrorException L5bStudentSetup.validate_sensitivity_flow(graph, flow, 1, 13)
+    @test !occursin("residuals[vertex] = incoming - outgoing",
+        read(joinpath(WEEK_ROOT, "L5b", "src", "Compute.jl"), String))
+
+    edges = L5dStudentSetup.read_flow_edges(joinpath(WEEK_ROOT, "L5d", "data", "Workers-Tasks-MCMF-Bipartite.edgelist"))
+    @test_throws ErrorException L5dStudentSetup.flow_formulation(edges, 1, 13, 3.0)
+    @test !occursin("A[row[edge.source], j] = -1.0",
+        read(joinpath(WEEK_ROOT, "L5d", "src", "Compute.jl"), String))
 end
 
 @testset "L5b capacity sensitivity" begin

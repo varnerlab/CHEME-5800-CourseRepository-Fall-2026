@@ -15,7 +15,6 @@ datasets = []
 student_paths = ["README.md", "release.toml", "W0a", "W0b"]
 instructor_only_paths = [
   "../../instructor/validation/week-00",
-  "W0b/src/Compute-solution.jl",
 ]
 
 [validation]

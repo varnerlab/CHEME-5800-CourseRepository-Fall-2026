@@ -50,8 +50,6 @@ def copy_student_path(source: Path, destination: Path, exclusions: set[Path]) ->
         raise BuildError(f"symbolic links are not allowed in student bundles: {source}")
     if source.name in SKIP_NAMES or source.name.endswith("-checkpoint.ipynb"):
         return
-    if re.search(r"(?:^|[-_])solution(?:\.|[-_])", source.name, re.IGNORECASE):
-        raise BuildError(f"solution file is not listed as instructor-only: {source}")
     if source.is_dir():
         destination.mkdir(parents=True, exist_ok=True)
         for child in sorted(source.iterdir(), key=lambda item: item.name):
@@ -128,6 +126,13 @@ notebook has no run buttons, the Jupyter extension is missing or disabled. If a
 package cannot be loaded, confirm that the VS Code terminal is in the top-level
 folder containing `Project.toml` and repeat the setup commands. Bring the exact
 error message to office hours if the problem continues.
+
+## Lab reference solutions
+
+Labs with a student `src/Compute.jl` file include the reference implementation
+as `src/Compute-solution.jl`. Open the two files side by side
+to compare your implementation with the reference. The notebook loads the student
+file by default; the solution file does not replace your work.
 """
     (bundle / "README.md").write_text(content, encoding="utf-8")
 
@@ -156,8 +161,6 @@ def validate_bundle(bundle: Path) -> None:
     for path in bundle.rglob("*"):
         if path.name in SKIP_NAMES or path.name in {".git", ".github", ".vscode", "private", "instructor"}:
             raise BuildError(f"prohibited path was copied into the bundle: {path.relative_to(bundle)}")
-        if re.search(r"(?:^|[-_])solution(?:\.|[-_])", path.name, re.IGNORECASE):
-            raise BuildError(f"solution leaked into the bundle: {path.relative_to(bundle)}")
 
     for path in bundle_files(bundle):
         data = path.read_bytes()
