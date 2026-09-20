@@ -274,7 +274,7 @@ The build must exclude at least:
 
 ### 6.2 Release naming and immutability
 
-Decided September 20, 2026: from week 06 onward, releases go out one class
+Decided September 20, 2026: from week 05 onward, releases go out one class
 meeting at a time, before that meeting, instead of one complete week ahead of
 time. Polish edits happen after a meeting is taught, not before it ships. The
 pre-release bar for a meeting is: the notebooks run top to bottom, the strict
@@ -300,7 +300,7 @@ style check passes, and the instructor has read the material once.
   `student_paths` must list exactly the meeting folders the tag promises, and
   `version = "MAJOR.P"` must match the tag; `scripts/build_week.py` fails the
   build otherwise and derives the title from the patch number. Manifests
-  without a `cadence` field (weeks 00–05) keep the whole-week convention they
+  without a `cadence` field (weeks 00–04) keep the whole-week convention they
   were published under.
 - Validation: the workflow passes the included meetings to the week's
   `runtests.jl` through `RELEASE_MEETINGS`; each test file gates its includes

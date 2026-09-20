@@ -16,7 +16,7 @@ There are two ways to use the course materials:
    `CHEME-4800-5800-Fall-2026-Week-XX.Y.zip`. Do not download either automatically
    generated **Source code** archive. Published bundles are versioned snapshots;
    corrections are issued as new releases rather than silently replacing files.
-   Starting with week 6, a week's materials are released one class meeting at a
+   Starting with week 5, a week's materials are released one class meeting at a
    time, and the last number in the release name tells you how many meetings it
    contains: `.0` is the first meeting only, `.1` the first two, `.3` the complete
    week. Every release contains everything in the earlier ones, so always download

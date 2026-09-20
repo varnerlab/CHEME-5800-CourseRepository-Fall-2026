@@ -1,7 +1,7 @@
 name: Release weekly student bundle
 
 # Pushing a tag week-NN.P builds the student bundle and opens a DRAFT release.
-# From week 06 onward (manifests with `cadence = "meeting"`) the patch number P
+# From week 05 onward (manifests with `cadence = "meeting"`) the patch number P
 # names the last class meeting included: week-NN.0 is the first meeting only,
 # week-NN.1 the first two, and so on. A patch at or beyond the last meeting is a
 # fix-only release of the complete week. Every release is cumulative.

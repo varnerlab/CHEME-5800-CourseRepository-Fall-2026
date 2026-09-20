@@ -66,8 +66,14 @@ class WeeklyBundleTests(unittest.TestCase):
                 manifest = tomllib.loads((week / "release.toml").read_text())
                 exclusions = {(week / p).resolve() for p in manifest.get("instructor_only_paths", [])}
                 self.assertFalse(builder.is_excluded(reference, exclusions))
-                selected = [(week / p).resolve() for p in manifest["student_paths"]]
-                self.assertTrue(any(p == reference or p in reference.parents for p in selected))
+                if manifest.get("cadence") == "meeting":
+                    # A partial release may not have reached this meeting yet; it is
+                    # selected once the patch number does, provided it is a meeting folder.
+                    meeting = reference.relative_to(week).parts[0]
+                    self.assertIn(meeting, builder.meeting_folders(week))
+                else:
+                    selected = [(week / p).resolve() for p in manifest["student_paths"]]
+                    self.assertTrue(any(p == reference or p in reference.parents for p in selected))
                 self.assertTrue(reference.with_name("Compute.jl").is_file())
 
 
