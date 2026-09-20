@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="199.58pt" height="139.72pt" viewBox="0 0 199.58 139.72">
+<style id="course-theme">
+  @media screen and (prefers-color-scheme: dark) {
+    [fill="rgb(100%, 100%, 100%)"] { fill: #232830; }
+    [fill="rgb(100%, 39.199829%, 30.599976%)"] { fill: #ff8879; }
+    [fill="rgb(100%, 39.216614%, 30.587769%)"] { fill: #ff8879; }
+    [fill="rgb(34.098816%, 60.398865%, 79.199219%)"] { fill: #84bee8; }
+    [fill="rgb(34.118652%, 60.392761%, 79.214478%)"] { fill: #84bee8; }
+    [fill="rgb(36.863708%, 36.863708%, 36.863708%)"] { fill: #d4dae2; }
+    [fill="rgb(36.898804%, 36.898804%, 36.898804%)"] { fill: #d4dae2; }
+    [fill="rgb(96.705627%, 98.019409%, 98.960876%)"] { fill: #243647; }
+    [fill="rgb(97.999573%, 97.999573%, 97.999573%)"] { fill: #282d35; }
+    [stroke="rgb(100%, 39.216614%, 30.587769%)"] { stroke: #ff8879; }
+    [stroke="rgb(19.999695%, 19.999695%, 19.999695%)"] { stroke: #cbd5e1; }
+    [stroke="rgb(34.118652%, 60.392761%, 79.214478%)"] { stroke: #84bee8; }
+    [stroke="rgb(36.863708%, 36.863708%, 36.863708%)"] { stroke: #d4dae2; }
+    [stroke="rgb(63.764954%, 78.216553%, 88.566589%)"] { stroke: #466681; }
+    [stroke="rgb(74.546814%, 76.275635%, 77.784729%)"] { stroke: #626d7a; }
+  }
+  @media print { svg { background: white; } }
+</style>
 <defs>
 <g>
 <g id="glyph-0-0">

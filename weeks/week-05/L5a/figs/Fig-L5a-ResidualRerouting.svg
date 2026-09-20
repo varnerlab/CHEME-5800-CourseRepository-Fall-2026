@@ -1,12 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1140" height="325" viewBox="0 0 1140 325" role="img" aria-labelledby="title desc">
 <title id="title">A reverse edge allows an earlier flow to be rerouted</title>
 <desc id="desc">All five original edges have capacity one. First, flow follows s to a to b to t. Next, the residual augmentation follows s to b to a to t and cancels the original a to b flow. Finally, two units reach t along s to a to t and s to b to t.</desc>
+<style>
+  .canvas { fill: none; }
+  @media screen and (prefers-color-scheme: dark) {
+    [fill="#202020"] { fill: #e6e9ed; }
+    [fill="#52525b"] { fill: #c0c7d0; }
+    [fill="#334155"] { fill: #cbd5e1; }
+    [stroke="#334155"] { stroke: #cbd5e1; }
+    [fill="#a1a1aa"] { fill: #9ca3af; }
+    [stroke="#a1a1aa"] { stroke: #9ca3af; }
+    [fill="#007f86"] { fill: #5ed5d5; }
+    [stroke="#007f86"] { stroke: #5ed5d5; }
+    circle { fill: #232830; }
+  }
+  @media print { .canvas { fill: white; } }
+</style>
 <defs>
   <marker id="arrow-dark" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/></marker>
   <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#a1a1aa"/></marker>
   <marker id="arrow-teal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#007f86"/></marker>
 </defs>
-<rect width="1140" height="325" fill="white"/>
+<rect class="canvas" width="1140" height="325" fill="white"/>
 <g font-family="Arial, sans-serif" font-size="16" fill="#202020">
 
 <g transform="translate(14,0)">

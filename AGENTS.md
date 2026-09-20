@@ -45,3 +45,12 @@ This repository's skill directory links to the maintained copy in the sibling
 CHEME 5660 checkout. [Moving the workflow to another machine](../CHEME-5660-CourseRepository-Fall-2026/lectures/instructor/NOTEBOOK-POLISH-WORKFLOW.md)
 describes the setup. Update the shared workflow in CHEME 5660 rather than
 creating a separate copy here.
+
+## Light and dark notebook figures
+
+For new or revised notebook figures, follow
+[the figure-theme convention](instructor/FIGURE-THEMES.md): SVG diagrams carry
+light/dark styles and receive VS Code's theme through their notebook image block.
+Computed plots offer `theme(:default)` / `theme(:dark)` in setup, with annotation
+and edge colors that remain readable in both modes. Check both appearances;
+retain light print output and the existing slide workflow.

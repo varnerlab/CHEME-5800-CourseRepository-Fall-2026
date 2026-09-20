@@ -20,6 +20,8 @@ A `Plots.Plot` object. If all capacities agree, state the common capacity once.
 When a flow is supplied, draw positive-flow edges in red and label them with
 `flow / capacity`; gray edges carry zero flow. For unequal capacities, label
 every edge. The graph, coordinates, and flow dictionary are not modified.
+The canvas and annotations follow the current Plots theme. Call
+`theme(:default)` or `theme(:dark)` before drawing the figure.
 """
 function plot_flow_network(graph, coordinates; flow = nothing, title = "Flow network")
     # Initialize -
@@ -36,6 +38,12 @@ function plot_flow_network(graph, coordinates; flow = nothing, title = "Flow net
     figure = plot(; axis = nothing, border = :none, legend = false, title = title,
         titlefontsize = 15, xlim = (x_min - 0.55, x_max + 0.55),
         ylim = (y_min - 0.65, y_max + 0.85), size = (1100, 580))
+    # Follow the selected theme, retaining red for positive flow in either mode -
+    background = figure[:background_color]
+    dark_background = (red(background) + green(background) + blue(background)) < 1.5
+    label_color = figure[1][:foreground_color_subplot]
+    active_color = dark_background ? "#ff786e" : :crimson
+    inactive_color = dark_background ? "#aeb7c3" : :gray55
 
     # Draw edges; place positive flow last so it remains visible at crossings -
     if show_flow
@@ -45,7 +53,7 @@ function plot_flow_network(graph, coordinates; flow = nothing, title = "Flow net
         u, v = edge
         value = show_flow ? get(flow, edge, 0.0) : 0.0
         active = show_flow && value > atol
-        color = active ? :crimson : :gray55
+        color = active ? active_color : inactive_color
         width = active ? 3.2 : 1.5
         x, y = coordinates[u, :]
         dx, dy = coordinates[v, :] - coordinates[u, :]
@@ -68,7 +76,7 @@ function plot_flow_network(graph, coordinates; flow = nothing, title = "Flow net
         (9:12, "Task completion"), (13:13, "Sink")]
     for (vertices, label) in groups
         group_x = sum(coordinates[v, 1] for v in vertices) / length(vertices)
-        annotate!(figure, group_x, y_max + 0.57, text(label, 12, :gray20))
+        annotate!(figure, group_x, y_max + 0.57, text(label, 12, label_color))
     end
     for vertex in 1:13
         color = vertex == graph.source ? :seagreen : vertex == graph.sink ? :firebrick : :slategray
@@ -89,6 +97,6 @@ function plot_flow_network(graph, coordinates; flow = nothing, title = "Flow net
     if show_flow
         caption *= "  Red: positive flow (flow / capacity). Gray: zero flow."
     end
-    annotate!(figure, (x_min + x_max) / 2, y_min - 0.43, text(caption, 10, :gray20))
+    annotate!(figure, (x_min + x_max) / 2, y_min - 0.43, text(caption, 10, label_color))
     return figure
 end

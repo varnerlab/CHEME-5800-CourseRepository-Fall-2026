@@ -38,3 +38,13 @@ residual graph.
 
 `Fig-L5a-ResidualRerouting.svg` is the existing lecture-notebook figure.
 The slides use the three standalone TikZ panels listed above.
+
+The lecture's residual-rerouting and cut-optimality SVGs include a dark palette
+in a `<style>` block. Their notebook image blocks pass VS Code's selected theme
+to the SVG, so changing the editor theme updates both diagrams without running
+Julia. Outside VS Code, the images follow the viewer's exposed color scheme.
+Print uses the light palette; slide PDFs retain their original colors.
+
+For `Fig-Cut-Optimality`, the SVG build also runs `theme_svg.py` using Python 3
+(standard library only). This preserves theme support after rebuilding the TikZ
+source. If its source palette changes, update the color mapping in that script.

@@ -1,6 +1,7 @@
 module L5dFlowPlots
 
 import Plots # draw the assignment network and returned flows
+import Colors # choose contrasting edge colors for the selected plot background
 
 export plot_cost_flow
 
@@ -83,6 +84,8 @@ The legend distinguishes positive flow from unit cost w (cost units per
 assignment). Numbers display up to four decimal places; no rounding is applied
 in the optimization or validation. This helper assumes the lab's layered layout,
 with increasing horizontal positions from source to sink.
+The canvas and annotations follow the current Plots theme. Call
+`Plots.theme(:default)` or `Plots.theme(:dark)` before drawing the figure.
 """
 function plot_cost_flow(edges, result, coordinates;
         title = "Minimum-cost assignment flow", atol::Real = 1e-8)
@@ -96,14 +99,19 @@ function plot_cost_flow(edges, result, coordinates;
     ymin, ymax = extrema(coordinates[:, 2])
     dx, dy = xmax - xmin, ymax - ymin
     dx > 0 && dy > 0 || throw(ArgumentError("the layered layout must span both axes"))
-    active_color, muted_color = "#0072B2", "#D0D5DA"
     delivered_flow = sum(value for value in result.formulation.b if value > 0)
     heading = title * "\nFlow = $(number(delivered_flow)) assignments   |   Total cost = $(number(result.cost))"
     figure = Plots.plot(; axis = false, ticks = false, grid = false,
         framestyle = :none, legend = false, title = heading, titlefontsize = 12,
         xlims = (xmin - 0.075dx, xmax + 0.075dx),
         ylims = (ymin - 0.22dy, ymax + 0.25dy), size = (1000, 480),
-        margin = 3Plots.mm, background_color = :white)
+        margin = 3Plots.mm)
+    # Follow the selected theme while retaining blue for positive flow -
+    background = figure[:background_color]
+    dark_background = (Colors.red(background) + Colors.green(background) + Colors.blue(background)) < 1.5
+    label_color = figure[1][:foreground_color_subplot]
+    active_color = dark_background ? "#70c5f3" : "#0072B2"
+    muted_color = dark_background ? "#929eaa" : "#D0D5DA"
 
     # Draw unused edges first so they cannot obscure selected routes -
     ordered = sort(collect(edges); by = e -> result.flow[(e.source, e.target)] > atol)
@@ -142,7 +150,7 @@ function plot_cost_flow(edges, result, coordinates;
         (9:12,"Completion"),(13:13,"Sink")]
     for (vertices, name) in groups
         x = sum(coordinates[vertices,1])/length(vertices)
-        Plots.annotate!(figure, x, ymax+0.17dy, Plots.text(name, 10, "#334155"))
+        Plots.annotate!(figure, x, ymax+0.17dy, Plots.text(name, 10, label_color))
     end
 
     # Keep the meaning of color and edge labels inside the exported figure -
@@ -152,13 +160,13 @@ function plot_cost_flow(edges, result, coordinates;
         x = xmin + offset*dx
         Plots.plot!(figure, [x, x+0.06dx], [legend_y,legend_y]; color = color,
             linewidth = width, label = "")
-        Plots.annotate!(figure, x+0.08dx, legend_y, Plots.text(label, 9, "#334155", :left))
+        Plots.annotate!(figure, x+0.08dx, legend_y, Plots.text(label, 9, label_color, :left))
     end
     Plots.annotate!(figure, xmin+0.77dx, legend_y,
-        Plots.text("w: cost / assignment", 9, "#334155", :left))
+        Plots.text("w: cost / assignment", 9, label_color, :left))
     if any(edge.upper <= atol for edge in edges)
         Plots.annotate!(figure, (xmin+xmax)/2, ymin-0.22dy,
-            Plots.text("Dashed edges: unavailable", 9, "#64748B"))
+            Plots.text("Dashed edges: unavailable", 9, label_color))
     end
     return figure
 end

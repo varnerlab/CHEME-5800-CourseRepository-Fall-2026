@@ -60,6 +60,7 @@ include(joinpath(@__DIR__, "src", "FlowPlots.jl"))
 using Test                # @test / @testset for the checks in the notebook
 #
 # Packages:
+using Colors              # read the plot background when choosing contrasting edges
 using DataFrames          # tabular records held as columns
 using Plots               # figures
 using PrettyTables        # formatted table output in the notebook

@@ -9,6 +9,11 @@ Draw the L5d assignment network from directed edge records, their solved flows, 
 
 The result is a `Plots.Plot`. Blue arrows show flow greater than `atol` (assignments), thin gray arrows show available unused edges, and dashed gray arrows show capacities at or below the threshold. Labels on positive-flow edges show unit cost `w`, in cost units per assignment. The heading reports the required flow and the total cost from `result`. All labels use up to four decimal places; model values are unchanged. Arrow width distinguishes selected edges and does not encode flow magnitude. `atol` must be finite and nonnegative.
 
+The canvas and annotations follow the selected [Plots theme](https://docs.juliaplots.org/stable/generated/plotthemes/#Using-PlotThemes).
+Choose `theme(:default)` or `theme(:dark)` in the notebook's setup cell, then
+rerun that cell and the plotting cell. Blue still denotes positive flow in both
+themes. Previously rendered images do not change when VS Code's theme changes.
+
 Pass a result solved for the supplied edge list and check feasibility before interpreting the figure. Only positive-flow edges receive cost labels; all edge costs remain available in the input data. The drawing assumes the lab's node roles and layered layout.
 
 See [FlowPlots.jl](../src/FlowPlots.jl), loaded by [Include.jl](../Include.jl), and [Task 2 of the lab](../CHEME-5800-L5d-Lab-MinimumCostAssignmentFlow-Fall-2026.ipynb).
