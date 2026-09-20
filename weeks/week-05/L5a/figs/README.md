@@ -31,9 +31,9 @@ and SVG exports. The slide Makefile builds the figures it needs automatically.
 
 The cut diagrams use the same five-vertex network and the partition
 `S = {s, a}`, `T = {b, c, t}`. In the balance diagram, two units cross from
-S to T and one returns, giving net flow one. In the optimality diagram,
+S to T and one returns, giving a net flow of one. In the optimality diagram,
 the return flow is canceled and that unit reaches the sink instead, giving
-net flow two. At this point, exactly s and a are reachable from s in the
+a net flow of two. At this point, exactly s and a are reachable from s in the
 residual graph.
 
 `Fig-L5a-ResidualRerouting.svg` is the existing lecture-notebook figure.

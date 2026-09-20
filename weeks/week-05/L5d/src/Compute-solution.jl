@@ -54,7 +54,7 @@ minus outflow. This function returns model data; it does not solve the model.
 # Arguments
 - `edges`: Directed `FlowEdge` records. Each record supplies endpoints, cost per
   flow unit, and lower and upper bounds. In this lab, flow is measured in
-  assignments and cost in synthetic cost units per assignment.
+  assignments and cost is measured in synthetic cost units per assignment.
 - `source`, `sink`: Distinct node identifiers present in `edges`.
 - `required_flow`: Finite, nonnegative net flow from source to sink, in the same
   units as the edge bounds (assignments in this lab).
@@ -72,8 +72,8 @@ A named tuple with `A`, `b`, `c`, `lower`, `upper`, and `vertices`:
 # Assumptions and scope
 `FlowEdge` records have distinct endpoints, finite costs and bounds, and
 `0 <= lower <= upper`. Node identifiers need not be consecutive; interpret rows
-using `vertices`. This routine checks that source and sink are distinct and
-present and that the required flow is finite and nonnegative. It does not check
+using `vertices`. This routine checks that the source and sink are distinct and
+present in the network and that the required flow is finite and nonnegative. It does not check
 whether the requested flow can be delivered within the supplied edge bounds.
 """
 function flow_formulation(edges::AbstractVector{FlowEdge}, source::Integer, sink::Integer, required_flow::Real)

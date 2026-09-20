@@ -154,8 +154,8 @@
 % Notebook: Worked Allocation: Apples and Oranges.
 \begin{frame}{Worked Allocation: Apples and Oranges}
   Let $x_A$ and $x_O$ be the quantities of apples and oranges.
-  Apples cost 2 dollars per unit and provide 0.55 utility units;
-  oranges cost 4 dollars and provide 0.45 utility units per unit.
+  Each unit of apples costs 2 dollars and provides 0.55 utility units;
+  each unit of oranges costs 4 dollars and provides 0.45 utility units.
 
   With a 100-dollar budget, the linear program is:
   \[
@@ -178,7 +178,7 @@
   \[
     x_O=25-\tfrac12x_A,\qquad 0\leq x_A\leq50.
   \]
-  Substituting into utility gives:
+  Substituting into the utility function gives:
   \[
     \begin{aligned}
       U(x_A)&=0.55x_A+0.45\left(25-\tfrac12x_A\right)\\
@@ -230,7 +230,7 @@
   \end{tabularx}
 
   \vspace{0.9em}
-  The larger ratio receives the budget. Equal ratios make every dollar
+  We spend the budget on the fruit with the larger ratio. Equal ratios make every dollar
   equally valuable, whichever fruit we purchase.
 
   \vspace{0.5em}
@@ -290,7 +290,7 @@
   \end{itemize}
 
   \vspace{0.5em}
-  Flows, capacities, and $F$ use the same units.
+  Flows, capacities, and $F$ are measured in the same units.
   \lecturesource{Minimum-Cost Network Flow Problems as Linear Programs: assumptions and quantities.}
 \end{frame}
 
@@ -452,7 +452,7 @@
 \end{frame}
 
 \begin{frame}{What Is the Consumer's Budget Worth?}
-  For our apple-orange case, $2y\geq0.55$ and $4y\geq0.45$.
+  For our apples-and-oranges case, $2y\geq0.55$ and $4y\geq0.45$.
   The smallest feasible value and its budget bound are:
   \[
     y^\star=\max\!\left\{\frac{0.55}{2},\frac{0.45}{4}\right\}=0.275,
@@ -507,8 +507,8 @@
 \end{frame}
 
 \begin{frame}{Resource Values Must Cover Each Activity}
-  Recall that $A_{j,i}$ is resource $j$ used per unit of activity $i$,
-  and $c_i$ is that activity's objective contribution.
+  Recall that $A_{j,i}$ is the amount of resource $j$ used per unit of activity $i$,
+  and $c_i$ is the objective contribution per unit of that activity.
   Value resource $j$ at $y_j\geq0$ objective units per resource unit.
 
   \vspace{0.5em}
@@ -527,7 +527,7 @@
 \end{frame}
 
 \begin{frame}{Weak Duality Bounds Every Feasible Decision}
-  Let $\mathbf x$ be primal-feasible and $\mathbf y$ dual-feasible.
+  Let $\mathbf x$ be primal-feasible and let $\mathbf y$ be dual-feasible.
   Their constraints and nonnegative components give:
   \[
     \mathbf c^\top\mathbf x
@@ -545,8 +545,8 @@
   \end{itemize}
 
   \vspace{0.7em}
-  This is \hilite{weak duality}: every feasible dual objective is an upper
-  bound on every feasible primal objective.
+  This is \hilite{weak duality}: every feasible dual objective value is an upper
+  bound on every feasible primal objective value.
   \lecturesource{Weak-duality derivation.
     Supporting reference: \url{https://courses.csail.mit.edu/6.854/16/Notes/n12-duality.html}.}
 \end{frame}
@@ -589,7 +589,7 @@
   \end{tabularx}
 
   \vspace{0.4em}
-  An equality can be multiplied by either sign. A free primal variable
+  An equality can be multiplied by a value of either sign. A free primal variable
   requires matching coefficients for both positive and negative values.
 
   \vspace{0.5em}

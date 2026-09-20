@@ -24,7 +24,7 @@ Read a worker–task edge list and return a `MyDirectedBipartiteGraphModel`.
 
 # Arguments
 - `path`: Path to a comma-separated edge list. Each noncomment record contains
-  source node, target node, cost, lower capacity, and upper capacity.
+  the source node, target node, cost, lower capacity, and upper capacity.
 - `source`, `sink`: Distinct source and sink node identifiers present in the data.
   Use contiguous integer node identifiers starting at one for the course solver.
 

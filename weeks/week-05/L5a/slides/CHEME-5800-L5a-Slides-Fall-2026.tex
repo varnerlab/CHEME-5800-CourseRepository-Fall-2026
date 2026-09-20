@@ -72,7 +72,7 @@
     \item Each original edge $(u,v)$ has a finite \hilite{capacity}
       $c(u,v)\geq0$.
     \item The \hilite{flow} $f(u,v)$ is the amount assigned to that edge,
-      in the same units as capacity.
+      in the same units as the capacity.
   \end{itemize}
 
   \vspace{0.5em}
@@ -109,7 +109,7 @@
   at the sink $t$.
 
   \vspace{0.5em}
-  The maximum-flow problem seeks a feasible flow $f^*$ with largest value:
+  The maximum-flow problem seeks a feasible flow $f^*$ with the largest value:
   \[
     |f^*|=\max_{f\;\text{feasible}}|f|.
   \]
@@ -381,7 +381,7 @@
       \includegraphics[width=\linewidth]{../figs/Fig-Cut-Balance/Fig-Cut-Balance.pdf}
     \end{column}
     \begin{column}{0.44\textwidth}
-      Cut capacity sums original capacities from $S$ to $T$:
+      The cut capacity is the sum of the original edge capacities from $S$ to $T$:
       \[
         c(S,T)=\sum_{\substack{(u,v)\in\mathcal E\\u\in S,\;v\in T}}c(u,v).
       \]
@@ -468,7 +468,7 @@
       \includegraphics[width=\linewidth]{../figs/Fig-Worker-SourceCut/Fig-Worker-SourceCut.pdf}
     \end{column}
     \begin{column}{0.49\textwidth}
-      Put source 1 in $S$ and every other vertex in $T$. The cut capacity is:
+      Put the source, node 1, in $S$ and every other vertex in $T$. The cut capacity is:
       \[
         c(S,T)=1+1+1=\hilite{3}.
       \]
@@ -476,7 +476,7 @@
       \[
         |f|=c(S,T)=3.
       \]
-      Therefore, \hilite{three assignments} is the maximum.
+      Therefore, the maximum is \hilite{three assignments}.
     \end{column}
   \end{columns}
 
