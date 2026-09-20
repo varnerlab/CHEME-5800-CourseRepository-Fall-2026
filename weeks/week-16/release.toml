@@ -2,6 +2,7 @@ schema_version = 2
 week = 16
 version = "1.0-prototype"
 status = "prototype"
+cadence = "meeting"
 title = "Course synthesis and transition to CHEME 5820"
 languages = ["Julia"]
 entry_notebooks = [

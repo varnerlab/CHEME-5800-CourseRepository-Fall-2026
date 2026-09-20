@@ -1,6 +1,7 @@
-"""Check that weekly bundles include lab solutions and retain exclusions."""
+"""Check that weekly bundles include lab solutions, retain exclusions, and respect the release scope."""
 import importlib.util
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+import re
 import tempfile
 import tomllib
 import unittest
@@ -68,6 +69,75 @@ class WeeklyBundleTests(unittest.TestCase):
                 selected = [(week / p).resolve() for p in manifest["student_paths"]]
                 self.assertTrue(any(p == reference or p in reference.parents for p in selected))
                 self.assertTrue(reference.with_name("Compute.jl").is_file())
+
+
+def _week_with_meetings(root: Path, *meetings: str) -> Path:
+    week = root / "week-06"
+    for name in meetings + ("src",):
+        (week / name).mkdir(parents=True)
+    (week / "README.md").write_text("# Week 6\n")
+    return week
+
+
+class ReleaseScopeTests(unittest.TestCase):
+    def test_patch_number_names_the_last_meeting_included(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            week = _week_with_meetings(Path(temporary), "L6a", "L6b", "L6c", "L6d")
+            manifest = {"cadence": "meeting"}
+            first = builder.release_scope(manifest, week, 6, 0)
+            self.assertEqual(first["included"], ["L6a"])
+            self.assertFalse(first["complete"])
+            self.assertEqual(first["title"], "CHEME 4800/5800 - Week 06 (L6a)")
+            second = builder.release_scope(manifest, week, 6, 1)
+            self.assertEqual(second["included"], ["L6a", "L6b"])
+            self.assertEqual(second["label"], "L6a\u2013L6b")
+            last = builder.release_scope(manifest, week, 6, 3)
+            self.assertTrue(last["complete"])
+            self.assertEqual(last["title"], "CHEME 4800/5800 - Week 06")
+            fix = builder.release_scope(manifest, week, 6, 5)
+            self.assertEqual(fix["included"], ["L6a", "L6b", "L6c", "L6d"])
+            self.assertTrue(fix["complete"])
+
+    def test_legacy_manifests_release_the_whole_week(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            week = _week_with_meetings(Path(temporary), "L5a", "L5b", "L5c", "L5d")
+            scope = builder.release_scope({}, week, 5, 0)
+            self.assertEqual(scope["included"], ["L5a", "L5b", "L5c", "L5d"])
+            self.assertTrue(scope["complete"])
+            self.assertEqual(scope["title"], "CHEME 4800/5800 - Week 05")
+            with self.assertRaisesRegex(builder.BuildError, "cadence"):
+                builder.release_scope({"cadence": "daily"}, week, 5, 0)
+
+    def test_student_paths_must_match_the_tag(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            week = _week_with_meetings(Path(temporary), "L6a", "L6b", "L6c", "L6d")
+            scope = builder.release_scope({"cadence": "meeting"}, week, 6, 1)
+            builder.validate_scope(["README.md", "L6a", "L6b", "src"], scope)
+            with self.assertRaisesRegex(builder.BuildError, "student_paths"):
+                builder.validate_scope(["README.md", "L6a", "L6b", "L6c", "L6d", "src"], scope)
+            with self.assertRaisesRegex(builder.BuildError, "student_paths"):
+                builder.validate_scope(["README.md", "L6a"], scope)
+            legacy = builder.release_scope({}, week, 6, 0)
+            builder.validate_scope(["README.md", "L6a"], legacy)
+
+    def test_manifest_entries_outside_the_release_are_ignored(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            week = _week_with_meetings(Path(temporary), "L6a", "L6b", "L6c", "L6d")
+            scope = builder.release_scope({"cadence": "meeting"}, week, 6, 0)
+            self.assertTrue(builder.in_scope(PurePosixPath("L6a/notebook.ipynb"), scope))
+            self.assertFalse(builder.in_scope(PurePosixPath("L6c/data/x.csv"), scope))
+            self.assertTrue(builder.in_scope(PurePosixPath("src/Week06Core.jl"), scope))
+
+    def test_repository_manifests_are_consistent_with_their_version(self):
+        for manifest_file in sorted((ROOT / "weeks").glob("week-*/release.toml")):
+            with self.subTest(manifest=manifest_file.relative_to(ROOT)):
+                manifest = tomllib.loads(manifest_file.read_text())
+                week = manifest_file.parent
+                version = str(manifest.get("version", "")).removesuffix("-prototype")
+                match = re.fullmatch(r"(\d+)\.(\d+)", version)
+                self.assertIsNotNone(match, f"unparseable version {version!r}")
+                scope = builder.release_scope(manifest, week, int(manifest["week"]), int(match.group(2)))
+                builder.validate_scope(manifest["student_paths"], scope)
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@ schema_version = 2
 week = 7
 version = "1.0-prototype"
 status = "prototype"
+cadence = "meeting"
 title = "SVD, data reduction, and ordinary least squares"
 languages = ["Julia"]
 entry_notebooks = [
@@ -12,7 +13,7 @@ entry_notebooks = [
 ]
 supporting_notebooks = []
 datasets = ["L7b/data/README.md", "L7b/data/SP500-Reduced-LogReturns-2024.csv"]
-student_paths = ["README.md", "L7a", "L7b", "L7c", "L7d", "src"]
+student_paths = ["README.md", "L7a", "src"]
 instructor_only_paths = ["../../instructor/validation/week-07"]
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-07/runtests.jl"

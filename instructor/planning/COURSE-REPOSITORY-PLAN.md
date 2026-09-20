@@ -274,10 +274,39 @@ The build must exclude at least:
 
 ### 6.2 Release naming and immutability
 
-- Git tag: `week-07.0`
-- Release title: `CHEME 4800/5800 - Week 07`
-- Asset: `CHEME-4800-5800-Fall-2026-Week-07.0.zip`
-- Correction: tag `week-07.1` with a new asset and release note explaining the change.
+Decided September 20, 2026: from week 06 onward, releases go out one class
+meeting at a time, before that meeting, instead of one complete week ahead of
+time. Polish edits happen after a meeting is taught, not before it ships. The
+pre-release bar for a meeting is: the notebooks run top to bottom, the strict
+style check passes, and the instructor has read the material once.
+
+- Git tag: `week-07.P`, where the patch number `P` names the last class meeting
+  included. `week-07.0` contains `L7a` only, `week-07.1` contains `L7a`–`L7b`,
+  `week-07.2` adds `L7c`, and `week-07.3` is the complete week. The mapping is
+  fixed by position, never by content, so a given tag means the same thing in
+  every week.
+- Every release is cumulative and supersedes the earlier ones for that week.
+  Students always download the most recent release for the week.
+- Release title: `CHEME 4800/5800 - Week 07 (L7a–L7b)` while partial, and
+  `CHEME 4800/5800 - Week 07` once complete. The title, release notes, and
+  bundle README are generated from the scope.
+- Asset: `CHEME-4800-5800-Fall-2026-Week-07.P.zip`
+- Corrections: a problem found in a released meeting ships with the next
+  release of that week. After the last meeting, further patches (`week-07.4`,
+  `week-07.5`, ...) are fix-only releases of the complete week with a release
+  note explaining the change. A released meeting is never re-released on its
+  own.
+- Manifest: `weeks/week-NN/release.toml` carries `cadence = "meeting"`. Its
+  `student_paths` must list exactly the meeting folders the tag promises, and
+  `version = "MAJOR.P"` must match the tag; `scripts/build_week.py` fails the
+  build otherwise and derives the title from the patch number. Manifests
+  without a `cadence` field (weeks 00–05) keep the whole-week convention they
+  were published under.
+- Validation: the workflow passes the included meetings to the week's
+  `runtests.jl` through `RELEASE_MEETINGS`; each test file gates its includes
+  and testsets per meeting with the helper in
+  `instructor/validation/release_scope.jl`. The style check runs only on the
+  included meeting folders.
 
 Do not use `gh release upload --clobber`. A released tag and its student asset are immutable.
 

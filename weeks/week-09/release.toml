@@ -2,6 +2,7 @@ schema_version = 2
 week = 9
 version = "1.0-prototype"
 status = "prototype"
+cadence = "meeting"
 title = "Binary classification and numerical optimization"
 languages = ["Julia"]
 entry_notebooks = [
@@ -11,7 +12,7 @@ entry_notebooks = [
 ]
 supporting_notebooks = ["L9b/CHEME-5800-L9b-Example-XORLinearSeparability-Fall-2026.ipynb"]
 datasets = ["L9d/data/README.md", "L9d/data/ai4i2020.csv"]
-student_paths = ["README.md", "L9a", "L9b", "L9c", "L9d", "src"]
+student_paths = ["README.md", "L9a", "src"]
 instructor_only_paths = ["../../instructor/validation/week-09"]
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-09/runtests.jl"

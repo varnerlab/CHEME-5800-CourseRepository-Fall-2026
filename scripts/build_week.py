@@ -24,6 +24,8 @@ SKIP_NAMES = {".DS_Store", ".AppleDouble", "__pycache__", ".ipynb_checkpoints"}
 AUTHOR_PATH_MARKERS = (b"/Users/", b"\\Users\\", b"Desktop/julia_work", b"jl_notebook_cell_")
 VERSION = re.compile(r"^(\d+)\.(\d+)$")
 TAG = re.compile(r"^week-(\d{2})\.(\d+)$")
+MEETING_DIR = re.compile(r"^L\d+[a-z]$")
+COURSE_TITLE = "CHEME 4800/5800"
 ZIP_TIME = (1980, 1, 1, 0, 0, 0)
 
 
@@ -61,6 +63,72 @@ def copy_student_path(source: Path, destination: Path, exclusions: set[Path]) ->
     shutil.copyfile(source, destination)
 
 
+def meeting_folders(week_dir: Path) -> list[str]:
+    """Return the class-meeting folders (`L5a`, `L5b`, ...) of a week in teaching order."""
+    return sorted(item.name for item in week_dir.iterdir() if item.is_dir() and MEETING_DIR.match(item.name))
+
+
+def release_scope(manifest: dict, week_dir: Path, week: int, release_patch: int) -> dict:
+    """Decide which class meetings a release contains.
+
+    Under the ``meeting`` cadence the patch number of the tag names the last
+    meeting included: ``week-NN.0`` is the first meeting only, ``week-NN.1`` the
+    first two, and so on. A patch at or beyond the last meeting is a fix-only
+    release of the complete week. The legacy ``week`` cadence (manifests without
+    a ``cadence`` field) always releases the whole week.
+    """
+    meetings = meeting_folders(week_dir)
+    cadence = manifest.get("cadence", "week")
+    if cadence not in {"week", "meeting"}:
+        raise BuildError("manifest cadence must be 'week' or 'meeting'")
+    if cadence == "meeting":
+        if not meetings:
+            raise BuildError(f"no class-meeting folders (L{week}a, L{week}b, ...) found in {week_dir}")
+        included = meetings[: min(release_patch + 1, len(meetings))]
+    else:
+        included = list(meetings)
+    complete = len(included) == len(meetings)
+    if not included:
+        label = ""
+    elif len(included) == 1:
+        label = included[0]
+    else:
+        label = f"{included[0]}\u2013{included[-1]}"
+    title = f"{COURSE_TITLE} - Week {week:02d}"
+    if not complete:
+        title += f" ({label})"
+    return {
+        "cadence": cadence,
+        "meetings": meetings,
+        "included": included,
+        "complete": complete,
+        "label": label,
+        "title": title,
+    }
+
+
+def validate_scope(student_paths: list[str], scope: dict) -> None:
+    """Require the manifest's meeting folders to match what the tag promises."""
+    listed = [PurePosixPath(raw).parts[0] for raw in student_paths]
+    listed_meetings = [part for part in listed if MEETING_DIR.match(part)]
+    if scope["cadence"] != "meeting":
+        return
+    if listed_meetings != scope["included"]:
+        raise BuildError(
+            "student_paths lists the class meetings "
+            f"{listed_meetings} but this release must contain exactly {scope['included']}: "
+            "under the meeting cadence, the patch number of the tag names the last meeting included "
+            "(week-NN.0 is the first meeting, week-NN.1 the first two, ...). "
+            "Fix student_paths or the manifest version."
+        )
+
+
+def in_scope(relative: PurePosixPath, scope: dict) -> bool:
+    """A manifest entry is in scope unless it lives in a meeting folder left out of this release."""
+    head = relative.parts[0]
+    return not MEETING_DIR.match(head) or head in scope["included"]
+
+
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -73,7 +141,23 @@ def bundle_files(bundle: Path) -> list[Path]:
     return sorted(path for path in bundle.rglob("*") if path.is_file())
 
 
-def write_bundle_readme(bundle: Path, week: int, tag: str, title: str) -> None:
+def scope_note(week: int, tag: str, scope: dict) -> str:
+    """Explain what a partial release contains and how later meetings arrive."""
+    if scope["complete"]:
+        return ""
+    later = [
+        f"`week-{week:02d}.{index}`"
+        for index in range(len(scope["included"]), len(scope["meetings"]))
+    ]
+    return (
+        f"\nThis release contains the class meeting folder(s) {', '.join(f'`{m}`' for m in scope['included'])}. "
+        f"The remaining meetings of this week will arrive as {', '.join(later)}. "
+        "Each release contains everything in the earlier ones, so always download the "
+        "most recent release for the week.\n"
+    )
+
+
+def write_bundle_readme(bundle: Path, week: int, tag: str, title: str, scope: dict) -> None:
     guide = f"weeks/week-{week:02d}/README.md"
     content = f"""# CHEME 4800/5800 Fall 2026: Week {week:02d}
 
@@ -81,7 +165,7 @@ def write_bundle_readme(bundle: Path, week: int, tag: str, title: str) -> None:
 
 This is the student bundle for release `{tag}`. Start from this directory, which
 contains the pinned Julia environment used by every included notebook.
-
+{scope_note(week, tag, scope)}
 ## Before you open a notebook
 
 1. Extract this ZIP completely and keep the extracted folder somewhere you can
@@ -137,10 +221,12 @@ file by default; the solution file does not replace your work.
     (bundle / "README.md").write_text(content, encoding="utf-8")
 
 
-def validate_notebook_paths(bundle: Path, week_root: Path, manifest: dict) -> None:
+def validate_notebook_paths(bundle: Path, week_root: Path, manifest: dict, scope: dict) -> None:
     for field in ("entry_notebooks", "supporting_notebooks"):
         for raw in manifest.get(field, []):
             relative = manifest_path(raw, field)
+            if not in_scope(relative, scope):
+                continue
             path = week_root / relative
             if not path.is_file():
                 raise BuildError(f"{field} entry is missing from the bundle: {relative}")
@@ -153,6 +239,8 @@ def validate_notebook_paths(bundle: Path, week_root: Path, manifest: dict) -> No
 
     for raw in manifest.get("datasets", []):
         relative = manifest_path(raw, "datasets")
+        if not in_scope(relative, scope):
+            continue
         if not (week_root / relative).is_file():
             raise BuildError(f"dataset is missing from the bundle: {relative}")
 
@@ -218,11 +306,16 @@ def main() -> int:
     parser.add_argument("--expected-tag", help="require manifest version to match this release tag")
     parser.add_argument("--allow-dirty", action="store_true", help="allow a local test build from uncommitted files")
     parser.add_argument("--force", action="store_true", help="replace existing local artifacts")
+    parser.add_argument(
+        "--scope-only",
+        action="store_true",
+        help="print the release scope (included meetings, completeness, title) as key=value lines and exit",
+    )
     args = parser.parse_args()
 
     if args.week < 0 or args.week > 99:
         raise BuildError("week must be between 0 and 99")
-    if not args.allow_dirty:
+    if not args.allow_dirty and not args.scope_only:
         require_clean_repository()
 
     week_name = f"week-{args.week:02d}"
@@ -233,10 +326,12 @@ def main() -> int:
     manifest = tomllib.loads(manifest_file.read_text(encoding="utf-8"))
     if manifest.get("week") != args.week:
         raise BuildError(f"manifest week does not match requested week {args.week}")
-    if manifest.get("status") not in {"ready", "released"}:
+    if not args.scope_only and manifest.get("status") not in {"ready", "released"}:
         raise BuildError("manifest status must be 'ready' or 'released'")
 
     version = str(manifest.get("version", ""))
+    if args.scope_only:
+        version = version.removesuffix("-prototype")
     match = VERSION.fullmatch(version)
     if match is None:
         raise BuildError("manifest version must have the form MAJOR.PATCH, for example 1.0")
@@ -247,12 +342,21 @@ def main() -> int:
         if tag_match is None or int(tag_match.group(1)) != args.week or int(tag_match.group(2)) != release_patch:
             raise BuildError(f"manifest version {version!r} does not match tag {args.expected_tag!r}")
 
-    title = str(manifest.get("title", "")).strip()
-    if not title:
-        raise BuildError("manifest title is required")
     student_paths = manifest.get("student_paths")
     if not isinstance(student_paths, list) or not student_paths:
         raise BuildError("manifest student_paths must be a nonempty list")
+    scope = release_scope(manifest, source_week, args.week, release_patch)
+    validate_scope(student_paths, scope)
+    if args.scope_only:
+        print(f"included={' '.join(scope['included'])}")
+        print(f"complete={'true' if scope['complete'] else 'false'}")
+        print(f"label={scope['label']}")
+        print(f"title={scope['title']}")
+        return 0
+
+    title = str(manifest.get("title", "")).strip()
+    if not title:
+        raise BuildError("manifest title is required")
 
     exclusions = {
         (source_week / raw).resolve()
@@ -285,17 +389,21 @@ def main() -> int:
                 raise BuildError(f"student path does not exist: {relative}")
             copy_student_path(source, destination_week / relative, exclusions)
 
-        write_bundle_readme(bundle, args.week, tag, title)
-        validate_notebook_paths(bundle, destination_week, manifest)
+        write_bundle_readme(bundle, args.week, tag, title, scope)
+        validate_notebook_paths(bundle, destination_week, manifest, scope)
         validate_bundle(bundle)
         write_inventory(bundle)
         write_zip(bundle, archive)
 
     archive_digest = sha256(archive)
     checksum.write_text(f"{archive_digest}  {archive.name}\n", encoding="utf-8")
+    (output_dir / f"RELEASE-TITLE-{tag}.txt").write_text(scope["title"] + "\n", encoding="utf-8")
+    contents = ", ".join(f"`{meeting}`" for meeting in scope["included"])
     notes.write_text(
         f"""## Week {args.week:02d}: {title}
 
+**Class meetings in this release:** {contents}{"" if scope["complete"] else " (more to come)"}.
+{scope_note(args.week, tag, scope)}
 Download **`{archive.name}`** under **Assets** and extract it. Do not use GitHub's
 automatically generated Source code ZIP or tarball; those contain the authoring
 repository rather than the student bundle. After extraction, open the bundle's
@@ -307,6 +415,8 @@ The attached `{checksum.name}` file contains the SHA-256 checksum.
     )
 
     print(f"tag={tag}")
+    print(f"title={scope['title']}")
+    print(f"included={' '.join(scope['included'])}")
     print(f"archive={archive}")
     print(f"checksum={checksum}")
     print(f"notes={notes}")

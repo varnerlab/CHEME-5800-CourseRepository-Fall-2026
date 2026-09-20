@@ -1,5 +1,11 @@
 name: Release weekly student bundle
 
+# Pushing a tag week-NN.P builds the student bundle and opens a DRAFT release.
+# From week 06 onward (manifests with `cadence = "meeting"`) the patch number P
+# names the last class meeting included: week-NN.0 is the first meeting only,
+# week-NN.1 the first two, and so on. A patch at or beyond the last meeting is a
+# fix-only release of the complete week. Every release is cumulative.
+
 on:
   push:
     tags:
@@ -37,7 +43,13 @@ jobs:
           week="${BASH_REMATCH[1]}"
           week_number="$((10#${week}))"
           printf 'week=%s\n' "${week}" >> "${GITHUB_OUTPUT}"
-          printf 'title=CHEME 4800/5800 - Week %02d\n' "${week_number}" >> "${GITHUB_OUTPUT}"
+
+      - name: Determine release scope
+        id: scope
+        shell: bash
+        run: |
+          python3 scripts/build_week.py "${{ steps.release.outputs.week }}" \
+            --expected-tag "${GITHUB_REF_NAME}" --scope-only | tee -a "${GITHUB_OUTPUT}"
 
       - name: Instantiate course environment
         run: julia --startup-file=no --project=. -e 'using Pkg; Pkg.instantiate()'
@@ -46,12 +58,19 @@ jobs:
         run: python3 -m unittest discover -s instructor/validation -p 'test_week_bundles.py'
 
       - name: Validate week
+        env:
+          RELEASE_MEETINGS: ${{ steps.scope.outputs.included }}
         run: julia --startup-file=no --project=. "instructor/validation/week-${{ steps.release.outputs.week }}/runtests.jl"
 
       - name: Check notebook style
         shell: bash
         run: |
-          mapfile -d '' notebooks < <(find "weeks/week-${{ steps.release.outputs.week }}" -name '*.ipynb' -print0)
+          notebooks=()
+          for meeting in ${{ steps.scope.outputs.included }}; do
+            while IFS= read -r -d '' notebook; do notebooks+=("${notebook}"); done \
+              < <(find "weeks/week-${{ steps.release.outputs.week }}/${meeting}" -name '*.ipynb' -print0)
+          done
+          test "${#notebooks[@]}" -gt 0
           python3 instructor/validation/notebook_style_check.py "${notebooks[@]}" --strict
 
       - name: Build student bundle
@@ -83,5 +102,5 @@ jobs:
           gh release create "${GITHUB_REF_NAME}" "${archive}" "${checksum}" \
             --draft \
             --verify-tag \
-            --title "${{ steps.release.outputs.title }}" \
+            --title "${{ steps.scope.outputs.title }}" \
             --notes-file "${notes}"

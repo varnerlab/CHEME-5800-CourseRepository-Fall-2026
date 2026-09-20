@@ -2,6 +2,7 @@ schema_version = 2
 week = 12
 version = "1.0-prototype"
 status = "prototype"
+cadence = "meeting"
 title = "Tabular Q-learning and sequential-decision integration"
 languages = ["Julia"]
 entry_notebooks = [
@@ -12,7 +13,7 @@ entry_notebooks = [
 ]
 supporting_notebooks = []
 datasets = []
-student_paths = ["README.md", "L12a", "L12b", "L12c", "L12d", "src"]
+student_paths = ["README.md", "L12a", "src"]
 instructor_only_paths = ["../../instructor/validation/week-12"]
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-12/runtests.jl"

@@ -2,6 +2,7 @@ schema_version = 2
 week = 13
 version = "1.0-prototype"
 status = "prototype"
+cadence = "meeting"
 title = "REST clients and MCP servers"
 languages = ["Julia", "Python"]
 entry_notebooks = [
@@ -16,7 +17,7 @@ datasets = [
   "data/nws-forecast-hourly-ithaca.fixture.json",
   "data/urea-cycle-network.json",
 ]
-student_paths = ["README.md", "L13a", "L13b", "L13c", "L13d", "data", "src", "python"]
+student_paths = ["README.md", "L13a", "data", "src", "python"]
 instructor_only_paths = ["../../instructor/validation/week-13"]
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-13/runtests.jl"
