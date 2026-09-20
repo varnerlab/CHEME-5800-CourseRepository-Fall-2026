@@ -33,8 +33,8 @@
       and net source outflow.
     \item \hilite{Apply Ford–Fulkerson}: construct residual graphs, revise
       earlier routes, and choose augmenting paths.
-    \item \hilite{Verify maximum flow}: check feasibility and use a cut
-      capacity to prove that more flow is impossible.
+    \item \hilite{Verify maximum flow}: check feasibility and use an upper
+      bound from edge capacities to prove that more flow is impossible.
   \end{itemize}
 
   \slidenote{Lecture:}{\href{\lecturelink}{Network-flow models: capacity, conservation, and maximum flow}}
@@ -105,8 +105,9 @@
     \underbrace{\sum_{v:(s,v)\in\mathcal E}f(s,v)}_{\text{leaving }s}
     -\underbrace{\sum_{u:(u,s)\in\mathcal E}f(u,s)}_{\text{entering }s}.
   \]
-  Subtract returning flow. Conservation makes $|f|$ equal to the net inflow
-  at the sink $t$.
+  The source and sink are exempt from conservation: the source creates flow
+  and the sink consumes it. Conservation at the intermediate vertices makes
+  $|f|$ equal to the net inflow at the sink $t$.
 
   \vspace{0.5em}
   The maximum-flow problem seeks a feasible flow $f^*$ with the largest value:
@@ -114,16 +115,17 @@
     |f^*|=\max_{f\;\text{feasible}}|f|.
   \]
 
-  \slidenote{Worker–task model:}{no edges enter the source, so its total outflow counts completed assignments.}
+  \slidenote{Equivalently:}{imagine an edge entering the source from outside the network and an edge leaving the sink to outside the network, each carrying $|f|$; then every vertex balances.}
 \end{frame}
 
 % Notebook: Ford-Fulkerson Method; What is a Residual Graph?
 \begin{frame}{Ford–Fulkerson Method}
-  Start with zero flow. Repeatedly find a source-to-sink route that allows
-  the total flow to increase.
+  Start with zero flow. Repeatedly find an \hilite{augmenting path}: a
+  source-to-sink route along which we can still send more flow.
 
   \vspace{0.8em}
-  A \hilite{residual graph} records changes we can make to the current flow:
+  A \hilite{residual graph} records where we can add flow and where we can
+  take back flow assigned earlier:
   \begin{itemize}\setlength{\itemsep}{0.8em}
     \item \hilite{Forward edges} record unused capacity.
     \item \hilite{Backward edges} record flow we can cancel to revise an
@@ -131,7 +133,8 @@
   \end{itemize}
 
   \vspace{0.7em}
-  Ford–Fulkerson is a \hilite{method}: it leaves the path-selection rule open.
+  Ford–Fulkerson is a \hilite{method}: it leaves the path-selection rule
+  open, and different rules give different algorithms.
 \end{frame}
 
 \begin{frame}{What Is a Residual Graph?}
@@ -184,7 +187,7 @@
       \texttt{residual}(u,v)>0\}.
   \]
 
-  \slidenote{Scope:}{the worker–task network satisfies these assumptions; $f$ remains nonnegative on original edges.}
+  \slidenote{Backward edges:}{because $\mathcal E_f$ is built from all ordered pairs, $(v,u)$ appears whenever $f(u,v)>0$, even though $(v,u)$ is not an original edge.}
 \end{frame}
 
 % Notebook: How do we augment the flow?
@@ -290,7 +293,7 @@
   Each augmentation preserves feasibility and increases $|f|$ by $\Delta$.
 \end{frame}
 
-% Notebook: How do we find augmenting paths? Edmonds–Karp, then DFS.
+% Notebook: How do we find augmenting paths? Edmonds–Karp, then the two rules compared.
 \begin{frame}{Edmonds–Karp Uses Breadth-First Search}
   Search the residual graph using \hilite{breadth-first search}, following
   only edges with positive residual capacity.
@@ -313,51 +316,38 @@
   \note{[Sources]\newline https://algs4.cs.princeton.edu/64maxflow/\newline Edmonds–Karp running-time bound.\newline [/Sources]}
 \end{frame}
 
-\begin{frame}{Depth-First Search and Termination}
-  \hilite{Depth-first search} finds a residual path; it need not have the
-  fewest edges.
-
-  \vspace{0.8em}
-  For nonnegative integer capacities and zero initial flow:
-  \begin{itemize}\setlength{\itemsep}{0.7em}
-    \item Each augmentation adds at least one unit of flow.
-    \item Finite source capacity bounds the total flow.
-    \item The method terminates; the iteration count can depend on capacities.
-  \end{itemize}
+\begin{frame}{Two Path-Selection Rules for the Same Method}
+  The \href{\examplelink}{worker–task example} applies the Ford–Fulkerson
+  method with two path-selection rules to the same capacities.
 
   \vspace{0.7em}
-  Irrational capacities can allow a sequence of path choices that never terminates.
-\end{frame}
-
-\begin{frame}{Compare Both Searches on the Same Network}
-  The \href{\examplelink}{worker–task example} applies two path-selection
-  rules to the same capacities.
-
-  \vspace{0.9em}
   \renewcommand{\arraystretch}{1.4}
   \begin{tabularx}{\textwidth}{YY}
     \toprule
-    \textbf{Course solver} & \textbf{Residual-path selection}\\
+    \textbf{Path-selection rule} & \textbf{Behavior}\\
     \midrule
-    Ford–Fulkerson implementation & Depth-first search\\
-    Edmonds–Karp & Breadth-first search; fewest edges\\
+    Depth-first search & Takes the first augmenting path it reaches; may choose longer paths\\
+    Breadth-first search (Edmonds–Karp) & Chooses an augmenting path with the fewest edges\\
     \bottomrule
   \end{tabularx}
 
-  \vspace{0.9em}
-  Both methods should give the same maximum-flow value. Their individual
+  \vspace{0.7em}
+  Both searches give the same maximum-flow value. Their individual
   worker–task assignments may differ.
 
-  \vspace{0.7em}
-  We next check feasibility and establish that the value is maximum.
+  \vspace{0.5em}
+  With integer capacities, each augmentation adds at least one unit, so
+  either search terminates.
 \end{frame}
 
 % Notebook: Verifying feasibility and maximum flow.
 \begin{frame}{Verifying Feasibility and Maximum Flow}
-  Independently check the reported edge flows:
+  Ford–Fulkerson stops when no augmenting path remains. How do we know the
+  returned flow is the largest possible, and not merely the largest this
+  sequence of paths could find? First, check feasibility:
 
-  \vspace{0.8em}
-  \begin{enumerate}\setlength{\itemsep}{0.85em}
+  \vspace{0.6em}
+  \begin{enumerate}\setlength{\itemsep}{0.7em}
     \item \hilite{Capacities}: every original edge satisfies
       $0\leq f(u,v)\leq c(u,v)$.
     \item \hilite{Conservation}: each intermediate vertex has equal total
@@ -366,9 +356,9 @@
       inflow.
   \end{enumerate}
 
-  \vspace{0.8em}
-  These checks establish feasibility. To prove the flow is maximum, find
-  an upper bound that the feasible flow reaches.
+  \vspace{0.6em}
+  These checks establish only that the flow is allowed. To prove it is
+  maximum, we need an upper bound that the feasible flow reaches.
 \end{frame}
 
 \begin{frame}{A Source–Sink Cut Gives an Upper Bound}
@@ -385,10 +375,11 @@
       \[
         c(S,T)=\sum_{\substack{(u,v)\in\mathcal E\\u\in S,\;v\in T}}c(u,v).
       \]
-      Here the two \hilite{outgoing cut edges} give $c(S,T)=1+1=2$.
+      The two \hilite{outgoing cut edges} give $c(S,T)=1+1=2$.
 
       \vspace{0.6em}
-      The \textcolor{vnslidelink}{return edge} adds no cut capacity.
+      The \textcolor{vnslidelink}{edge $b\to s$} is an original edge that
+      enters the source. It crosses from $T$ to $S$ and adds no cut capacity.
     \end{column}
   \end{columns}
 \end{frame}
@@ -409,8 +400,7 @@
     =c(S,T).
   \]
 
-  In the illustrated cut, $|f|=2-1=1\leq c(S,T)=2$.
-  The return flow reduces net delivery.
+  Every source–sink cut therefore bounds every feasible flow.
 \end{frame}
 
 \begin{frame}{No Augmenting Path Identifies a Cut}
@@ -434,8 +424,8 @@
     \end{column}
   \end{columns}
 
-  \vspace{0.4em}
-  Residual augmentation $s\to b\to t$ cancels $b\to s$ and gives $|f|=2$.
+  \vspace{0.3em}
+  $S\to T$ edges are full and the $T\to S$ edge is empty, so $|f|=c(S,T)=2$.
 \end{frame}
 
 \begin{frame}{The Stopping Condition Proves Maximum Flow}
@@ -476,7 +466,8 @@
       \[
         |f|=c(S,T)=3.
       \]
-      Therefore, the maximum is \hilite{three assignments}.
+      Therefore, the maximum is \hilite{three assignments}. Each worker
+      can take one assignment, so the fourth task goes unassigned.
     \end{column}
   \end{columns}
 
@@ -494,8 +485,8 @@
     \item \textbf{\ink{Capacity and conservation.}} We maximized net source
       outflow subject to edge capacities and intermediate flow balances.
     \item \textbf{\ink{Residual augmentation.}} We used bottlenecks to add
-      or cancel flow while preserving feasibility. Edmonds–Karp chose paths
-      with the fewest edges.
+      or cancel flow while preserving feasibility, and compared depth-first
+      search with Edmonds–Karp, which chooses paths with the fewest edges.
     \item \textbf{\ink{Proof of maximum flow.}} We matched feasible flow
       to a cut bound, proving a maximum of three assignments in our example.
   \end{itemize}

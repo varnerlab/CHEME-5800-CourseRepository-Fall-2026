@@ -13,17 +13,17 @@
   \coordinate (b) at (3.8,0.95);
   \coordinate (c) at (3.8,-0.95);
   \coordinate (t) at (5.8,0);
-  \draw[edge] (s)--node[edge label,below=5pt]{2/3}(a);
-  \draw[active] (a)--node[edge label,above=5pt,text=vnaccent]{1/1}(b);
-  \draw[active] (a)--node[edge label,below=5pt,text=vnaccent]{1/1}(c);
-  \draw[edge] (b)--node[edge label,above=5pt]{0/2}(t);
-  \draw[edge] (c)--node[edge label,below=5pt]{1/2}(t);
+  \draw[edge] (s)--node[edge label,below=5pt]{3}(a);
+  \draw[active] (a)--node[edge label,above=5pt,text=vnaccent]{1}(b);
+  \draw[active] (a)--node[edge label,below=5pt,text=vnaccent]{1}(c);
+  \draw[edge] (b)--node[edge label,above=5pt]{2}(t);
+  \draw[edge] (c)--node[edge label,below=5pt]{2}(t);
   \draw[residual] (b) .. controls (3.8,2.25) and (0,2.25) ..
-    node[edge label,above=5pt,text=vnslidelink]{1/1}(s);
+    node[edge label,above=5pt,text=vnslidelink]{1}(s);
   \foreach \v in {s,a,b,c,t} {\node[vertex] at (\v) {$\v$};}
   \node[text=vnslidelink] at (0.98,-1.72) {$S=\{s,a\}$};
   \node at (4.65,-1.72) {$T=\{b,c,t\}$};
-  \node[font=\sffamily\footnotesize] at (2.9,-2.15) {Original edges: flow / capacity};
+  \node[font=\sffamily\footnotesize] at (2.9,-2.15) {Original edges: capacity};
   \path[use as bounding box] (-0.55,-2.35) rectangle (6.35,2.05);
 \end{tikzpicture}
 \end{document}

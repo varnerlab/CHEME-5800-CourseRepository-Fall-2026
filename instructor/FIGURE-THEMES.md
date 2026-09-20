@@ -38,15 +38,21 @@ theme(:default)   # light background
 ```
 
 Plot helpers should inherit the canvas and foreground from the current Plots
-theme. Explicit annotations must use the resolved foreground color. Where an
+theme, and also accept a `theme` keyword: `:auto` (the default) follows the
+global setting, while `:light` or `:dark` draws that one figure on the named
+background without changing the global theme. The dark canvas reuses the
+background and foreground of Plots' own `theme(:dark)`, so both routes look the
+same. Explicit annotations must use the resolved foreground color. Where an
 edge color conveys meaning, keep that meaning and choose a contrasting shade
 for each background. Filled markers may retain white labels when they remain
 readable. See the [L5a helper](../weeks/week-05/L5a/src/FlowPlots.jl) and
 [L5d helper](../weeks/week-05/L5d/src/FlowPlots.jl).
 
 The Julia setting affects newly generated plots; switching VS Code's theme does
-not recolor saved PNG outputs. Students rerun setup and the plotting cells after
-changing the selection. Keep light as the initial setting and use it for print.
+not recolor saved PNG outputs, and the kernel cannot detect the editor theme.
+Students either change the selection in setup and rerun the plotting cells, or
+pass `theme = :dark` to a single plotting call. Keep light as the initial
+setting and use it for print.
 
 ## Verification
 

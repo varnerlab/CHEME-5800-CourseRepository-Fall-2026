@@ -10,7 +10,7 @@ source, a Makefile, and generated PDF and SVG files. The shared
 | `Fig-Residual-FirstFlow` | Initial unit flow through the four-vertex network |
 | `Fig-Residual-Augmentation` | Residual path that cancels the earlier middle-edge flow |
 | `Fig-Residual-RevisedFlow` | Revised feasible flow of two |
-| `Fig-Cut-Balance` | A feasible flow of one crossing a cut of capacity two |
+| `Fig-Cut-Balance` | A source–sink cut of capacity two, with an original edge entering the source |
 | `Fig-Cut-Optimality` | A maximum flow of two, with saturated outgoing cut edges and zero return flow |
 | `Fig-Worker-SourceCut` | Three source-to-worker edges in the supplied assignment network |
 

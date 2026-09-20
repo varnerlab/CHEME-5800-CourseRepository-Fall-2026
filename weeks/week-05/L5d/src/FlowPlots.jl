@@ -3,6 +3,36 @@ module L5dFlowPlots
 import Plots # draw the assignment network and returned flows
 import Colors # choose contrasting edge colors for the selected plot background
 
+# Canvas colors for an explicit figure theme. The dark values match Plots' own
+# `theme(:dark)`, so a per-figure choice looks the same as the global setting.
+# Each entry sets the same attributes that `theme(:dark)` sets, so an explicit
+# choice overrides the global theme completely in either direction.
+const _FIGURE_THEMES = Dict(
+    :light => (background_color = :white, background_color_inside = :white,
+        foreground_color = :black, foreground_color_text = :black,
+        foreground_color_guide = :black, foreground_color_legend = :black,
+        legendfontcolor = :black, legendtitlefontcolor = :black, titlefontcolor = :black),
+    :dark => (background_color = "#363D46", background_color_inside = "#30343B",
+        foreground_color = "#ADB2B7", foreground_color_text = "#FFFFFF",
+        foreground_color_guide = "#FFFFFF", foreground_color_legend = "#FFFFFF",
+        legendfontcolor = "#FFFFFF", legendtitlefontcolor = "#FFFFFF", titlefontcolor = "#FFFFFF"),
+)
+
+"""
+    _figure_theme_attributes(theme)
+
+Return the `Plots.plot(...)` keyword attributes for `theme`: nothing for `:auto`,
+so the figure inherits the current Plots theme, or an explicit canvas for
+`:light` (alias `:default`) and `:dark`.
+"""
+function _figure_theme_attributes(theme::Symbol)
+    theme === :auto && return NamedTuple()
+    theme === :default && (theme = :light)
+    haskey(_FIGURE_THEMES, theme) ||
+        throw(ArgumentError("theme must be :auto, :light, :default, or :dark; got :$(theme)"))
+    return _FIGURE_THEMES[theme]
+end
+
 export plot_cost_flow
 
 # Test whether a line segment enters a padded label rectangle in screen pixels.
@@ -61,7 +91,7 @@ end
 
 """
     plot_cost_flow(edges, result, coordinates;
-        title = "Minimum-cost assignment flow", atol::Real = 1e-8)
+        title = "Minimum-cost assignment flow", atol::Real = 1e-8, theme = :auto)
 
 Draw the L5d network with selected flows and their costs per assignment.
 
@@ -74,6 +104,10 @@ Draw the L5d network with selected flows and their costs per assignment.
 - `title`: Figure heading.
 - `atol`: Finite, nonnegative flow threshold in assignments. Flows above it
   are highlighted; capacities at or below it are displayed as unavailable.
+- `theme`: `:auto` (default) follows the current Plots theme selected with
+  `Plots.theme(:default)` or `Plots.theme(:dark)`. `:light` or `:dark` draws
+  this figure on that background regardless of the global setting; `:default`
+  is accepted as an alias for `:light`. The global theme is not changed.
 
 # Returns and scope
 Returns a `Plots.Plot` for the lab's source 1, workers 2–4, tasks 5–8,
@@ -84,12 +118,13 @@ The legend distinguishes positive flow from unit cost w (cost units per
 assignment). Numbers display up to four decimal places; no rounding is applied
 in the optimization or validation. This helper assumes the lab's layered layout,
 with increasing horizontal positions from source to sink.
-The canvas and annotations follow the current Plots theme. Call
-`Plots.theme(:default)` or `Plots.theme(:dark)` before drawing the figure.
+The canvas and annotations follow the current Plots theme unless `theme` selects
+one explicitly.
 """
 function plot_cost_flow(edges, result, coordinates;
-        title = "Minimum-cost assignment flow", atol::Real = 1e-8)
+        title = "Minimum-cost assignment flow", atol::Real = 1e-8, theme = :auto)
     size(coordinates) == (13, 2) || throw(DimensionMismatch("expected 13 node positions with two coordinates each"))
+    canvas = _figure_theme_attributes(theme)
     all(isfinite, coordinates) || throw(ArgumentError("node coordinates must be finite"))
     isfinite(atol) && atol >= 0 || throw(ArgumentError("atol must be finite and nonnegative"))
     number(value) = string(round(value; digits = 4))
@@ -105,7 +140,7 @@ function plot_cost_flow(edges, result, coordinates;
         framestyle = :none, legend = false, title = heading, titlefontsize = 12,
         xlims = (xmin - 0.075dx, xmax + 0.075dx),
         ylims = (ymin - 0.22dy, ymax + 0.25dy), size = (1000, 480),
-        margin = 3Plots.mm)
+        margin = 3Plots.mm, canvas...)
     # Follow the selected theme while retaining blue for positive flow -
     background = figure[:background_color]
     dark_background = (Colors.red(background) + Colors.green(background) + Colors.blue(background)) < 1.5

@@ -1,5 +1,43 @@
+# =============================================================================
+# CHEME 5800 | L5a plotting helper
+# =============================================================================
+# Draws the worker–task flow network for the L5a worked example. The meeting's
+# Include.jl loads this file, so the notebook calls plot_flow_network(...) directly.
+# Plots and Colors are already in scope from Include.jl.
+# =============================================================================
+
+# Canvas colors for an explicit figure theme. Each entry sets every color
+# attribute that Plots' own `theme(:dark)` sets, so an explicit choice overrides
+# the global theme completely in either direction, and the dark values are
+# copied from that theme so a per-figure choice looks the same as the global one.
+const _FIGURE_THEMES = Dict(
+    :light => (background_color = :white, background_color_inside = :white,
+        foreground_color = :black, foreground_color_text = :black,
+        foreground_color_guide = :black, foreground_color_legend = :black,
+        legendfontcolor = :black, legendtitlefontcolor = :black, titlefontcolor = :black),
+    :dark => (background_color = "#363D46", background_color_inside = "#30343B",
+        foreground_color = "#ADB2B7", foreground_color_text = "#FFFFFF",
+        foreground_color_guide = "#FFFFFF", foreground_color_legend = "#FFFFFF",
+        legendfontcolor = "#FFFFFF", legendtitlefontcolor = "#FFFFFF", titlefontcolor = "#FFFFFF"),
+)
+
 """
-    plot_flow_network(graph, coordinates; flow = nothing, title = "Flow network")
+    _figure_theme_attributes(theme)
+
+Return the `plot(...)` keyword attributes for `theme`: nothing for `:auto`, so the
+figure inherits the current Plots theme, or an explicit canvas for `:light`
+(alias `:default`) and `:dark`.
+"""
+function _figure_theme_attributes(theme::Symbol)
+    theme === :auto && return NamedTuple()
+    theme === :default && (theme = :light)
+    haskey(_FIGURE_THEMES, theme) ||
+        throw(ArgumentError("theme must be :auto, :light, :default, or :dark; got :$(theme)"))
+    return _FIGURE_THEMES[theme]
+end
+
+"""
+    plot_flow_network(graph, coordinates; flow = nothing, title = "Flow network", theme = :auto)
 
 Draw the 13-node worker–task network used in the L5a worked example.
 
@@ -14,31 +52,43 @@ Draw the 13-node worker–task network used in the L5a worked example.
   Missing entries represent zero flow. With `nothing`, draw the capacities
   without displaying a computed flow. This function does not validate a flow.
 - `title`: Text displayed above the network.
+- `theme`: `:auto` (default) follows the current Plots theme selected with
+  `theme(:default)` or `theme(:dark)`. `:light` or `:dark` draws this figure on
+  that background regardless of the global setting; `:default` is accepted as
+  an alias for `:light`. The global theme is not changed.
 
 # Returns
 A `Plots.Plot` object. If all capacities agree, state the common capacity once.
 When a flow is supplied, draw positive-flow edges in red and label them with
 `flow / capacity`; gray edges carry zero flow. For unequal capacities, label
 every edge. The graph, coordinates, and flow dictionary are not modified.
-The canvas and annotations follow the current Plots theme. Call
-`theme(:default)` or `theme(:dark)` before drawing the figure.
+The canvas and annotations follow the current Plots theme unless `theme` selects
+one explicitly.
 """
-function plot_flow_network(graph, coordinates; flow = nothing, title = "Flow network")
-    # Initialize -
+function plot_flow_network(graph, coordinates; flow = nothing, title = "Flow network", theme = :auto)
+    # Check the inputs; this drawing is specific to the 13-node example layout -
     size(coordinates) == (13, 2) || throw(DimensionMismatch("expected 13 × 2 node coordinates"))
     sort(collect(keys(graph.nodes))) == collect(1:13) ||
         throw(ArgumentError("this drawing uses the L5a node identifiers 1:13"))
+    canvas = _figure_theme_attributes(theme) # empty for :auto, explicit colors otherwise
+
+    # Collect the edges and decide how much labeling the figure needs -
     edges = sort(collect(keys(graph.capacity)))
     capacities = [graph.capacity[edge][2] for edge in edges]
     common_capacity = all(==(first(capacities)), capacities)
     show_flow = !isnothing(flow)
     atol = 1e-8 # flow below this plotting threshold is shown as zero
+
+    # Open the canvas with room above for group labels and below for the caption -
     y_min, y_max = extrema(coordinates[:, 2])
     x_min, x_max = extrema(coordinates[:, 1])
     figure = plot(; axis = nothing, border = :none, legend = false, title = title,
         titlefontsize = 15, xlim = (x_min - 0.55, x_max + 0.55),
-        ylim = (y_min - 0.65, y_max + 0.85), size = (1100, 580))
-    # Follow the selected theme, retaining red for positive flow in either mode -
+        ylim = (y_min - 0.65, y_max + 0.85), size = (1100, 580), canvas...)
+
+    # Read the resolved colors back from the figure, so :auto and an explicit
+    # theme take the same path. A background whose RGB components sum to less
+    # than 1.5 (of 3) counts as dark; red keeps its meaning on either background.
     background = figure[:background_color]
     dark_background = (red(background) + green(background) + blue(background)) < 1.5
     label_color = figure[1][:foreground_color_subplot]
@@ -57,7 +107,8 @@ function plot_flow_network(graph, coordinates; flow = nothing, title = "Flow net
         width = active ? 3.2 : 1.5
         x, y = coordinates[u, :]
         dx, dy = coordinates[v, :] - coordinates[u, :]
-        # Stop at the marker boundary so arrowheads remain visible -
+        # Shorten each end so arrowheads stop at the marker boundary; 0.10 and
+        # 0.17 are the marker's half-widths in data units, capped at 35% of the edge -
         trim = min(0.35, inv(hypot(dx / 0.10, dy / 0.17)))
         plot!(figure, [x + trim * dx, x + (1 - trim) * dx],
             [y + trim * dy, y + (1 - trim) * dy];
@@ -67,11 +118,12 @@ function plot_flow_network(graph, coordinates; flow = nothing, title = "Flow net
             capacity_label = isinteger(upper) ? string(Int(upper)) : string(round(upper; digits = 2))
             flow_label = isinteger(value) ? string(Int(value)) : string(round(value; digits = 2))
             label = show_flow ? flow_label * " / " * capacity_label : capacity_label
+            # Place the label just above the edge, a third of the way along it -
             annotate!(figure, x + 0.35 * dx, y + 0.35 * dy + 0.14, text(label, 10, color))
         end
     end
 
-    # Identify the node groups and their original numerical IDs -
+    # Label the node groups above their columns, then draw the numbered nodes -
     groups = [(1:1, "Source"), (2:4, "Workers"), (5:8, "Tasks"),
         (9:12, "Task completion"), (13:13, "Sink")]
     for (vertices, label) in groups
@@ -79,6 +131,7 @@ function plot_flow_network(graph, coordinates; flow = nothing, title = "Flow net
         annotate!(figure, group_x, y_max + 0.57, text(label, 12, label_color))
     end
     for vertex in 1:13
+        # Source green, sink red, everything else gray; white numerals read on all three -
         color = vertex == graph.source ? :seagreen : vertex == graph.sink ? :firebrick : :slategray
         scatter!(figure, [coordinates[vertex, 1]], [coordinates[vertex, 2]];
             c = color, ms = 13, markerstrokecolor = :white, markerstrokewidth = 1, label = "")
