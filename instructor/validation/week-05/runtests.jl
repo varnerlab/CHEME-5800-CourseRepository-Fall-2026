@@ -50,15 +50,17 @@ end
         reference_path = joinpath(WEEK_ROOT, meeting, "src", "Compute-solution.jl")
         @test isfile(student_path)
         @test isfile(reference_path)
-        @test occursin("# TODO 1:", read(student_path, String))
     end
+    released("L5d") && @test occursin("# TODO 1:", read(joinpath(WEEK_ROOT, "L5d", "src", "Compute.jl"), String))
 
+    # L5b is walked through in class, so its student file ships the working
+    # implementation: the student setup must validate a flow, not throw.
     @meeting "L5b" begin
         graph = build_sensitivity_graph(joinpath(WEEK_ROOT, "L5b", "data", "Workers-Tasks-Bipartite.edgelist"))
         _, flow = maximumflow(graph, graph.nodes[1], graph.nodes[13]; algorithm = EdmondsKarpAlgorithm())
-        @test_throws ErrorException L5bStudentSetup.validate_sensitivity_flow(graph, flow, 1, 13)
-        @test !occursin("residuals[vertex] = incoming - outgoing",
-            read(joinpath(WEEK_ROOT, "L5b", "src", "Compute.jl"), String))
+        @test L5bStudentSetup.validate_sensitivity_flow(graph, flow, 1, 13).valid
+        @test L5bStudentSetup.cut_capacity(graph, [1]) == 3.0
+        @test !occursin("# TODO 1:", read(joinpath(WEEK_ROOT, "L5b", "src", "Compute.jl"), String))
     end
 
     @meeting "L5d" begin
@@ -97,6 +99,26 @@ end
         )
         @test outage_value == 2.0
         @test validate_sensitivity_flow(outage, outage_flow, 1, 13).valid
+
+        # Cut capacities: every cut bounds the flow, and the binding cut moves.
+        @test cut_capacity(baseline, [1]) == 3.0
+        @test cut_capacity(baseline, 1:12) == 4.0
+        @test cut_capacity(baseline, [1, 2, 3, 4]) == 12.0
+        @test cut_capacity(expanded, [1]) == 4.0
+        @test cut_capacity(expanded, 1:8) == 4.0
+        @test cut_capacity(outage, [1]) == 3.0
+        @test cut_capacity(outage, [1, 3]) == 2.0
+        @test cut_capacity(outage, [1, 3, 5]) == 3.0 # (1,2), (1,4), (5,9) cross; (2,5) and (4,5) enter S and do not count
+        # A third slot for worker 3 does not raise the flow past the task-completion cut.
+        saturated = deepcopy(baseline)
+        saturated.capacity[(1, 3)] = (0.0, 3.0)
+        saturated_value, saturated_flow = maximumflow(
+            saturated, saturated.nodes[1], saturated.nodes[13]; algorithm = EdmondsKarpAlgorithm(),
+        )
+        @test saturated_value == 4.0
+        @test validate_sensitivity_flow(saturated, saturated_flow, 1, 13).valid
+        @test cut_capacity(saturated, [1]) == 5.0
+        @test cut_capacity(saturated, 1:8) == 4.0
     end
 end
 

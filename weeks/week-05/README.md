@@ -33,14 +33,15 @@ they are not parallel required notebooks.
 
 ## Lab implementations and reference solutions
 
-Both labs use the standard `Compute.jl` / `Compute-solution.jl` file pair. The
-notebook loads `Compute.jl`; complete its three TODO blocks, save the file,
-restart the notebook kernel, and run from the top. The reference solution is
-included in the same bundle for comparison.
+Both labs use the standard `Compute.jl` / `Compute-solution.jl` file pair, and
+each notebook loads `Compute.jl`. For L5d, complete its three TODO blocks, save
+the file, restart the notebook kernel, and run from the top. L5b is walked
+through in class, so its `Compute.jl` is already complete. The reference
+solutions are included in the same bundle for comparison.
 
 | Lab | Student file | Reference solution | Function to complete |
 |---|---|---|---|
-| L5b | [Compute.jl](L5b/src/Compute.jl) | [Compute-solution.jl](L5b/src/Compute-solution.jl) | `validate_sensitivity_flow(...)`: check capacities, node balances, and total flow. |
+| L5b | [Compute.jl](L5b/src/Compute.jl) | [Compute-solution.jl](L5b/src/Compute-solution.jl) | Walked through in class; the student file ships `validate_sensitivity_flow(...)` and `cut_capacity(...)` complete. Rebuilding the validator from its docstring is an optional exercise. |
 | L5d | [Compute.jl](L5d/src/Compute.jl) | [Compute-solution.jl](L5d/src/Compute-solution.jl) | `flow_formulation(...)`: assemble the incidence matrix, required balances, costs, and bounds. |
 
 ## Environment and validation
@@ -64,8 +65,9 @@ repositories and are not part of this weekly instructional package.
   explanation, worker–task example, and capacity scenarios. Fall 2026 adds a
   deterministic Edmonds–Karp comparison and independent flow contracts.
 - L5b retains the Fall 2025 lab's capacity expansion and worker-outage scenarios
-  with explicit assertions. Students implement the flow validator in `Compute.jl`;
-  the matching `Compute-solution.jl` is included for comparison.
+  with explicit assertions. It is walked through in class as an extended example,
+  so `Compute.jl` ships the flow validator and a cut-capacity helper complete;
+  `Compute-solution.jl` is the matching reference.
 - L5c retains the Fall 2025 primal/dual lecture, fruit-allocation geometry, SVG
   schematic, and revised-simplex narrative. The example now uses the current JuMP
   API directly and handles alternate optima deliberately.

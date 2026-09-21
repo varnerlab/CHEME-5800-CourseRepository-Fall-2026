@@ -1,6 +1,6 @@
 schema_version = 2
 week = 5
-version = "1.0"
+version = "1.1"
 status = "ready"
 cadence = "meeting"
 title = "Maximum flow and linear programming"
@@ -27,7 +27,7 @@ datasets = [
   "L5d/data/README.md",
   "L5d/data/Workers-Tasks-MCMF-Bipartite.edgelist",
 ]
-student_paths = ["README.md", "L5a"]
+student_paths = ["README.md", "L5a", "L5b"]
 instructor_only_paths = ["../../instructor/validation/week-05"]
 
 [validation]
