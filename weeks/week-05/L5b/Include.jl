@@ -51,6 +51,9 @@ if !isdefined(@__MODULE__, :L5bFlowValidation)
     include(joinpath(@__DIR__, "src", "Compute.jl"))
 end
 
+# The lab's plotting helper draws the network and highlights a computed flow.
+include(joinpath(@__DIR__, "src", "FlowPlots.jl"))
+
 
 # --- 3. IMPORTS --------------------------------------------------------------
 # Everything this meeting brings into scope. One `using` per line so each can
@@ -64,6 +67,7 @@ end
 using Test                # @test / @testset for the checks in the notebook
 #
 # Packages:
+using Colors              # read the plot background when choosing contrasting edges
 using DataFrames          # tabular records held as columns
 using Plots               # figures
 using PrettyTables        # formatted table output in the notebook
