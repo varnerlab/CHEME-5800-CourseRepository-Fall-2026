@@ -1,4 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="700" height="330" viewBox="0 0 700 330" role="img" aria-labelledby="title desc">
+<style id="course-theme">
+  .canvas { fill: none; }
+  @media screen and (prefers-color-scheme: dark) {
+    [fill="#444"] { fill: #cbd5e1; }
+    [stroke="#444"] { stroke: #cbd5e1; }
+    [fill="#222"] { fill: #e6e9ed; }
+    circle { fill: #232830; }
+  }
+  @media print { .canvas { fill: white; } }
+</style>
   <title id="title">Minimum-cost flow through two alternative routes</title>
   <desc id="desc">Source s connects to intermediate vertex v and then sink t through two edges of capacity 2 and unit cost 1. A direct edge from s to t has capacity 3 and unit cost 5.</desc>
   <defs>
@@ -6,7 +16,7 @@
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#444"/>
     </marker>
   </defs>
-  <rect width="700" height="330" fill="white"/>
+  <rect class="canvas" width="700" height="330" fill="white"/>
   <g fill="none" stroke="#444" stroke-width="1.8" marker-end="url(#arrow)">
     <path d="M 110 226 L 330 74"/>
     <path d="M 370 74 L 590 226"/>

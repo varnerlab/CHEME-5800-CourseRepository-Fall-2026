@@ -11,11 +11,13 @@ entry_notebooks = [
   "L5a/CHEME-5800-L5a-WorkedExample-MaximumFlow-Fall-2026.ipynb",
   "L5b/CHEME-5800-L5b-Lab-MaximumFlowSensitivity-Fall-2026.ipynb",
   "L5c/CHEME-5800-L5c-Lecture-LinearProgramming-Fall-2026.ipynb",
-  "L5c/CHEME-5800-L5c-Example-FruitAllocation-Fall-2026.ipynb",
+  "L5c/CHEME-5800-L5c-FruitProblem-Primal-Example-Fall-2026.ipynb",
   "L5d/CHEME-5800-L5d-Lab-MinimumCostAssignmentFlow-Fall-2026.ipynb",
 ]
 supporting_notebooks = [
-  "L5c/CHEME-5800-L5c-Algorithm-RevisedSimplex-Fall-2026.ipynb",
+  "L5c/CHEME-5800-L5c-LagrangeKKT-Advanced-Fall-2026.ipynb",
+  "L5c/CHEME-5800-L5c-RevisedSimplex-Algorithm-Fall-2026.ipynb",
+  "L5c/CHEME-5800-L5c-InteriorPointMethod-Algorithm-Fall-2026.ipynb",
 ]
 datasets = [
   "L5a/data/README.md",
@@ -24,6 +26,7 @@ datasets = [
   "L5b/data/Workers-Tasks-Bipartite.edgelist",
   "L5c/figs/README.md",
   "L5c/figs/Fig-ThreeCases-LP-Schematic.svg",
+  "L5c/figs/Fig-MinCostFlow-ThreeNode.svg",
   "L5d/data/README.md",
   "L5d/data/Workers-Tasks-MCMF-Bipartite.edgelist",
 ]
