@@ -2,7 +2,7 @@
 
 ```julia
 plot_cost_flow(edges, result, coordinates;
-    title = "Minimum-cost assignment flow", atol::Real = 1e-8)
+    title = "Minimum-cost assignment flow", atol::Real = 1e-8, theme = :auto)
 ```
 
 Draw the L5d assignment network from directed edge records, their solved flows, and a finite 13-by-2 coordinate matrix. Row `i` holds the position of node `i`; coordinates control the drawing only. Use the lab's node identifiers (source 1, workers 2–4, tasks 5–8, completion nodes 9–12, sink 13) and layered positions increasing from left to right.

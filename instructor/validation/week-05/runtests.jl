@@ -163,6 +163,14 @@ end
         disrupted_result = solve_min_cost_flow(disrupted, 1, 13, 3.0)
         @test disrupted_result.cost == 9.0
         @test validate_flow_solution(disrupted, disrupted_result).valid
+
+        blocked = block_assignments(edges, [(4, 7)])
+        @test [(e.source, e.target) for e in blocked] == [(e.source, e.target) for e in edges]
+        @test count(e -> e.upper == 0.0, blocked) == 1
+        @test blocked[findfirst(e -> (e.source, e.target) == (4, 7), blocked)].upper == 0.0
+        @test solve_min_cost_flow(blocked, 1, 13, 3.0).cost == 9.0
+        @test_throws ArgumentError block_assignments(edges, [(4, 4)])
+        @test_throws ErrorException solve_min_cost_flow(block_assignments(edges, [(4, t) for t in 5:8]), 1, 13, 3.0)
         @test_throws ErrorException solve_min_cost_flow(edges, 1, 13, 4.0)
         @test_throws ArgumentError FlowEdge(1, 2, 1.0, 2.0, 1.0)
         @test_throws ArgumentError read_flow_edges(joinpath(WEEK_ROOT, "missing.edgelist"))

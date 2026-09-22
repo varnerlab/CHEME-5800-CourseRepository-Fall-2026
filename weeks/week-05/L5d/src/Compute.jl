@@ -8,8 +8,8 @@ import JuMP
 import LinearAlgebra: dot
 import MathOptInterface as MOI
 
-export FlowEdge, flow_formulation, read_flow_edges, selected_assignments,
-    solve_min_cost_flow, validate_flow_solution
+export FlowEdge, block_assignments, flow_formulation, read_flow_edges,
+    selected_assignments, solve_min_cost_flow, validate_flow_solution
 
 struct FlowEdge
     source::Int64
@@ -219,6 +219,42 @@ function selected_assignments(result; workers = 2:4, tasks = 5:8, atol::Real = 1
         for (edge, value) in result.flow
         if edge[1] in workers && edge[2] in tasks && value > atol
     ]; by = item -> (item.worker, item.task))
+end
+
+
+"""
+    block_assignments(edges::AbstractVector{FlowEdge}, pairs)
+
+Return a copy of `edges` in which every `(source, target)` pair listed in
+`pairs` has both flow bounds set to zero, making that assignment unavailable.
+
+# Arguments
+- `edges`: Directed `FlowEdge` records in the order used by the flow variables.
+- `pairs`: A collection of `(source, target)` node-identifier pairs to block.
+
+# Returns and scope
+A new vector of `FlowEdge` records in the same order as `edges`; the input is
+not modified. A blocked edge keeps its endpoints and cost and receives
+`lower = upper = 0.0`, so it stays in the model and in `result.flow` but can
+carry no flow. Every pair must name an edge in `edges`; otherwise an
+`ArgumentError` is thrown. Blocking does not check whether the required flow
+remains feasible; the solver reports that when the model is solved.
+"""
+function block_assignments(edges::AbstractVector{FlowEdge}, pairs)
+    blocked = Set{Tuple{Int64,Int64}}()
+    for pair in pairs
+        length(pair) == 2 || throw(ArgumentError("each pair must be a (source, target) tuple"))
+        push!(blocked, (Int64(pair[1]), Int64(pair[2])))
+    end
+    present = Set((edge.source, edge.target) for edge in edges)
+    for pair in blocked
+        pair in present || throw(ArgumentError("edge $(pair) is not in the network"))
+    end
+    return [
+        (edge.source, edge.target) in blocked ?
+            FlowEdge(edge.source, edge.target, edge.cost, 0.0, 0.0) : edge
+        for edge in edges
+    ]
 end
 
 end
