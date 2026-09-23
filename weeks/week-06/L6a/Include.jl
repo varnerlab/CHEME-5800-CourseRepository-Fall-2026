@@ -4,11 +4,12 @@
 # Every class-meeting folder carries one of these, and running it from the first
 # cell of the notebook is the only setup a student performs.
 #
-# The file is in three sections, in this order:
+# The file is in four sections, in this order:
 #
 #   1. PATHS   locate this folder, so nothing depends on the working directory
-#   2. CODE    load the root bootstrap and any source this meeting needs
+#   2. CODE    load the root bootstrap
 #   3. IMPORTS every `using` for this meeting, in one block
+#   4. SOURCE  this meeting's own code in src/, which needs the imports first
 #
 # Section 3 is deliberately the only place a `using` appears. To see what a
 # notebook can call, read that block and nothing else.
@@ -29,6 +30,17 @@ if !isdefined(@__MODULE__, :CHEME5800_L6A_ROOT)
     const CHEME5800_L6A_ROOT = @__DIR__
 end
 
+if !isdefined(@__MODULE__, :CHEME5800_L6A_DATA)
+    const CHEME5800_L6A_DATA = joinpath(CHEME5800_L6A_ROOT, "data")
+end
+
+# The names the L6a notebooks and src/ files use for the same folders -
+if !isdefined(@__MODULE__, :_PATH_TO_SRC)
+    const _ROOT = CHEME5800_L6A_ROOT
+    const _PATH_TO_SRC = joinpath(_ROOT, "src")
+    const _PATH_TO_DATA = joinpath(_ROOT, "data")
+end
+
 
 # --- 2. CODE -----------------------------------------------------------------
 # The repository root `Include.jl` activates the course environment and imports
@@ -37,14 +49,6 @@ end
 if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
         Base.active_project() != CHEME5800_PROJECT
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
-end
-
-# `Week06Core` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week06Core)
-    include(joinpath(@__DIR__, "..", "src", "Week06Core.jl"))
 end
 
 
@@ -57,17 +61,32 @@ end
 #   VLDataScienceMachineLearningPackage   the course package
 #
 # Standard library:
-using LinearAlgebra     # factorizations, norms, and matrix operations
-using Test              # @test / @testset for the checks in the notebook
+using LinearAlgebra     # factorizations, SVD, norms, and matrix operations
+using Statistics        # means and other summaries
+using Test              # @test / @testset for the checks in the notebooks
 #
 # Packages:
+using CSV               # delimited text files
+using Colors            # colors for figures
 using DataFrames        # tabular records held as columns
-using GLPK              # the LP/MILP solver backend
-using JuMP              # the optimization modeling layer
-using MathOptInterface  # solver status codes and attributes
+using FileIO            # save / load for the saved BiGG model
+using GLPK              # linear programming solver
+using Images            # Gray images in the SVD example
+using JLD2              # the .jld2 format behind save / load
+using JSON              # BiGG model records
+using JuMP              # linear programming models
 using Plots             # figures
-using PrettyTables      # formatted table output in the notebook
-#
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .Week06Core       # from the include in section 2
+using PrettyTables      # formatted table output in the notebooks
+
+
+# --- 4. THIS MEETING'S SOURCE --------------------------------------------------
+# The L6a code in src/ is loaded after the imports because it uses JuMP macros and
+# the packages above at the top level.
+include(joinpath(_PATH_TO_SRC, "Types.jl"))
+include(joinpath(_PATH_TO_SRC, "Factory.jl"))
+include(joinpath(_PATH_TO_SRC, "Parser.jl"))
+include(joinpath(_PATH_TO_SRC, "Network.jl"))
+include(joinpath(_PATH_TO_SRC, "Handler.jl"))
+include(joinpath(_PATH_TO_SRC, "Compute.jl"))
+include(joinpath(_PATH_TO_SRC, "Eigendecomposition.jl"))
+include(joinpath(_PATH_TO_SRC, "Stoichiometric.jl"))

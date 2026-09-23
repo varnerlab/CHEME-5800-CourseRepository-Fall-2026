@@ -3,16 +3,35 @@ week = 6
 version = "1.0-prototype"
 status = "prototype"
 cadence = "meeting"
-title = "Duality, flux balance, and iterative linear solvers"
+title = "Flux balance analysis and iterative linear solvers"
 languages = ["Julia"]
 entry_notebooks = [
-  "L6a/CHEME-5800-L6a-Lecture-DualityAndSensitivity-Fall-2026.ipynb",
-  "L6b/CHEME-5800-L6b-Lab-UreaCycleFluxBalance-Fall-2026.ipynb",
-  "L6c/CHEME-5800-L6c-Lecture-StationaryIterativeMethods-Fall-2026.ipynb",
+  "L6a/CHEME-5800-L6a-Lecture-FluxBalanceAnalysis-Fall-2026.ipynb",
+  "L6a/CHEME-5800-L6a-Example-UreaCycle-FluxBalance-Fall-2026.ipynb",
+  "L6b/CHEME-5800-L6b-Lab-OverflowMetabolism-Fall-2026.ipynb",
+  "L6c/CHEME-5800-L6c-Lecture-GeneralIterativeMethod-Fall-2026.ipynb",
   "L6d/CHEME-5800-L6d-Lab-IterativeLinearSolvers-Fall-2026.ipynb",
 ]
-supporting_notebooks = []
-datasets = ["L6b/data/README.md", "L6b/data/Network.net"]
+supporting_notebooks = [
+  "L6a/CHEME-5800-L6a-Advanced-Derivation-FluxBalanceAnalysis-Fall-2026.ipynb",
+  "L6a/CHEME-5800-L6a-Example-SVD-StoichiometricMatrix-Fall-2026.ipynb",
+  "L6c/CHEME-5800-L6c-Example-FunWithIterativeSolvers-Fall-2026.ipynb",
+  "L6c/CHEME-5800-L6c-Algorithm-JacobiMethod-Fall-2026.ipynb",
+  "L6c/CHEME-5800-L6c-Algorithm-GaussSeidel-Fall-2026.ipynb",
+  "L6c/CHEME-5800-L6c-Algorithm-SOR-Fall-2026.ipynb",
+  "L6c/CHEME-5800-L6c-Advanced-Convergence-IterativeMethods-Fall-2026.ipynb",
+  "L6c/CHEME-5800-L6c-Lecture-StationaryIterativeMethods-Fall-2026.ipynb",
+]
+datasets = [
+  "L6a/data/README.md",
+  "L6a/data/Network.net",
+  "L6a/data/modelReg.mat",
+  "L6a/data/saved-model-iAT_PLT_636.jld2",
+  "L6a/figs/Fig-Urea-cycle-Schematic.png",
+  "L6a/figs/KEGG-map01100.png",
+  "L6b/data/README.md",
+  "L6b/data/e_coli_core.json",
+]
 student_paths = ["README.md", "L6a", "src"]
 instructor_only_paths = ["../../instructor/validation/week-06"]
 [validation]

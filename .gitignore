@@ -54,3 +54,6 @@ dist/
 
 # JV stuff -
 private/
+
+# Instructor scratch copies inside meeting folders; keep them out of student bundles
+weeks/*/*/tmp/

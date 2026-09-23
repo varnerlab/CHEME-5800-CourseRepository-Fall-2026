@@ -1,9 +1,22 @@
-# L5d minimum-cost-flow data
+# L5d department data
 
-`Workers-Tasks-MCMF-Bipartite.edgelist` retains the Fall 2025 network structure
-but uses corrected Fall 2026 synthetic worker–task costs. The historical file set
-every assignment cost to one, so every feasible matching had the same objective.
-The differentiated costs now support an interpretable, deterministic minimum-cost
-assignment while preserving the original capacity and conservation structure.
+Synthetic Fall teaching data for a small chemical engineering department. The
+course codes and titles are public CHEME Fall courses; the faculty (A–J), their
+loads, the staffing bounds, and every survey score are invented for this lab.
+The structure follows a real faculty–course matching model, reduced to one
+semester.
 
-SHA-256: `c3c9ec61365eaa8e4989f8112f3f7f64332a2e2f988380acf45b08a708a95a8b`
+| File | Contents |
+|---|---|
+| `Faculty.csv` | `name`, `load`: each faculty member teaches exactly `load` courses. |
+| `Courses.csv` | `course`, `min_faculty`, `max_faculty`, `title`: staffing bounds per course. |
+| `Preferences.csv` | Survey scores, one row per faculty member and one column per course. |
+| `Assignments.csv` | `name`, `course`: fixed assignments the solution must include. |
+
+Survey scores: `0` prepared to teach, `1` comfortable teaching, `2` interested
+in developing expertise, `3` needs significant support or lead time. A blank
+cell means the pairing is not an option; it is different from a `3`, which is
+an option with a high cost.
+
+Preference rows and columns follow the order of `Faculty.csv` and
+`Courses.csv`; [the `read_department(...)` function](../docs/read_department.md) checks this.

@@ -115,7 +115,7 @@ for published student bundles.
 | 3 | Stacks, queues, recursion, and testable algorithms | [Week 3](weeks/week-03/) |
 | 4 | Graph representations, traversal, and shortest paths | [Week 4](weeks/week-04/) |
 | 5 | Maximum flow and linear programming | [Week 5](weeks/week-05/) |
-| 6 | Duality, flux balance, and iterative linear solvers | [Week 6](weeks/week-06/) |
+| 6 | Flux balance analysis and iterative linear solvers | [Week 6](weeks/week-06/) |
 | 7 | SVD, data reduction, and ordinary least squares | [Week 7](weeks/week-07/) |
 | 8 | Regularization, cross-validation, and model checking | [Week 8](weeks/week-08/) |
 | 9 | Binary classification and numerical optimization | [Week 9](weeks/week-09/) |

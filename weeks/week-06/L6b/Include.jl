@@ -43,12 +43,17 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `Week06Core` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
+# `L6bOverflow` holds this meeting's own source. It is wrapped in a module so that
+# the guard below has a name meaning "this file's contents", and so that the
+# student file and the reference solution declaring the same module name stay
 # drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week06Core)
-    include(joinpath(@__DIR__, "..", "src", "Week06Core.jl"))
+if !isdefined(@__MODULE__, :L6bOverflow)
+    include(joinpath(@__DIR__, "src", "Compute.jl"))
+end
+
+# The figure helper is separate from the model and the checks.
+if !isdefined(@__MODULE__, :L6bBoundaryPlots)
+    include(joinpath(@__DIR__, "src", "BoundaryPlots.jl"))
 end
 
 
@@ -61,17 +66,14 @@ end
 #   VLDataScienceMachineLearningPackage   the course package
 #
 # Standard library:
-using LinearAlgebra     # factorizations, norms, and matrix operations
 using Test              # @test / @testset for the checks in the notebook
 #
 # Packages:
 using DataFrames        # tabular records held as columns
-using GLPK              # the LP/MILP solver backend
-using JuMP              # the optimization modeling layer
-using MathOptInterface  # solver status codes and attributes
 using Plots             # figures
 using PrettyTables      # formatted table output in the notebook
 #
 # This meeting's own source, included above. The leading dot means "a module
 # defined here", as opposed to an installed package of the same name:
-using .Week06Core       # from the include in section 2
+using .L6bOverflow      # from the include in section 2
+using .L6bBoundaryPlots # the cell-boundary figure helper

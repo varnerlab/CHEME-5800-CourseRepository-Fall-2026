@@ -35,6 +35,7 @@ include("GraphRepresentation.jl");
 include("ShortestPathAlgorithms.jl");
 include("FlowValidation.jl");
 include("LinearPrograms.jl");
+include("FluxBalance.jl");
 include("StacksQueues.jl");
 include("Recursion.jl");
 include("Graphs.jl");
@@ -136,6 +137,9 @@ export build_flow_graph, parse_constrained_edge, validate_flow;
 
 # L5c lecture material -
 export solve_fruit_problem;
+
+# L6a lecture and L6b lab material -
+export solve_flux_balance, check_flux_balance;
 
 # week-03 stack, queue and recursion material -
 export MyStack, MyQueue, isbalanced;

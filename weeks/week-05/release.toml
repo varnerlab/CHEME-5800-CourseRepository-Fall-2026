@@ -1,6 +1,6 @@
 schema_version = 2
 week = 5
-version = "1.2"
+version = "1.3"
 status = "ready"
 cadence = "meeting"
 title = "Maximum flow and linear programming"
@@ -28,9 +28,12 @@ datasets = [
   "L5c/figs/Fig-ThreeCases-LP-Schematic.svg",
   "L5c/figs/Fig-MinCostFlow-ThreeNode.svg",
   "L5d/data/README.md",
-  "L5d/data/Workers-Tasks-MCMF-Bipartite.edgelist",
+  "L5d/data/Faculty.csv",
+  "L5d/data/Courses.csv",
+  "L5d/data/Preferences.csv",
+  "L5d/data/Assignments.csv",
 ]
-student_paths = ["README.md", "L5a", "L5b", "L5c"]
+student_paths = ["README.md", "L5a", "L5b", "L5c", "L5d"]
 instructor_only_paths = ["../../instructor/validation/week-05"]
 
 [validation]

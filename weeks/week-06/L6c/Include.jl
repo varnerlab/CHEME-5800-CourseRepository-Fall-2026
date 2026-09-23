@@ -61,6 +61,7 @@ using LinearAlgebra  # factorizations, norms, and matrix operations
 using Test           # @test / @testset for the checks in the notebook
 #
 # Packages:
+using BenchmarkTools # runtime comparisons in the iterative-solvers example
 using DataFrames     # tabular records held as columns
 using Plots          # figures
 using PrettyTables   # formatted table output in the notebook

@@ -1,12 +1,12 @@
 module L5dFlowPlots
 
-import Plots # draw the assignment network and returned flows
+import Plots # draw the teaching-assignment network and its flows
 import Colors # choose contrasting edge colors for the selected plot background
+
+export plot_teaching_flow
 
 # Canvas colors for an explicit figure theme. The dark values match Plots' own
 # `theme(:dark)`, so a per-figure choice looks the same as the global setting.
-# Each entry sets the same attributes that `theme(:dark)` sets, so an explicit
-# choice overrides the global theme completely in either direction.
 const _FIGURE_THEMES = Dict(
     :light => (background_color = :white, background_color_inside = :white,
         foreground_color = :black, foreground_color_text = :black,
@@ -33,17 +33,15 @@ function _figure_theme_attributes(theme::Symbol)
     return _FIGURE_THEMES[theme]
 end
 
-export plot_cost_flow
-
 # Test whether a line segment enters a padded label rectangle in screen pixels.
 function _crosses_label(a, b, center, halfwidth, halfheight)
     low, high = 0.0, 1.0
     for (start, stop, middle, radius) in zip(a, b, center, (halfwidth, halfheight))
         delta = stop - start
         if abs(delta) < 1e-12
-            abs(start-middle) > radius && return false
+            abs(start - middle) > radius && return false
         else
-            t1, t2 = minmax((middle-radius-start)/delta, (middle+radius-start)/delta)
+            t1, t2 = minmax((middle - radius - start) / delta, (middle + radius - start) / delta)
             low, high = max(low, t1), min(high, t2)
             low > high && return false
         end
@@ -51,158 +49,218 @@ function _crosses_label(a, b, center, halfwidth, halfheight)
     return true
 end
 
-# Place labels near their edges while avoiding all edges, nodes, and earlier labels.
-function _cost_label_positions(edges, result, coordinates, atol)
-    xmin, xmax = extrema(coordinates[:,1])
-    ymin, ymax = extrema(coordinates[:,2])
-    # Approximate the drawing area of the fixed 1000-by-480 canvas, excluding margins.
-    sx, sy = 835/(xmax-xmin), 285/(ymax-ymin)
-    points = [((coordinates[i,1]-xmin)*sx, (coordinates[i,2]-ymin)*sy) for i in 1:13]
-    placed = Tuple{Float64,Float64,Float64}[]
-    labels = Tuple{Float64,Float64,String}[]
-    for edge in edges
-        result.flow[(edge.source,edge.target)] > atol || continue
-        label = "w=$(round(edge.cost; digits=4))"
-        halfwidth, halfheight = 3.6length(label)+5, 11.0
-        start, stop = points[edge.source], points[edge.target]
-        vx, vy = stop[1]-start[1], stop[2]-start[2]
-        distance = hypot(vx,vy)
-        best_score, best = Inf, (0.5(start[1]+stop[1]), 0.5(start[2]+stop[2])+25)
-        for offset in 17:47, side in (1,-1), fraction in 0.2:0.05:0.8
-            x = start[1]+fraction*vx-side*offset*vy/distance
-            y = start[2]+fraction*vy+side*offset*vx/distance
-            crossings = count(e -> _crosses_label(points[e.source],points[e.target],
-                (x,y),halfwidth,halfheight), edges)
-            nodes = count(p -> abs(x-p[1]) < halfwidth+15 &&
-                abs(y-p[2]) < halfheight+15, points)
-            overlaps = count(p -> abs(x-p[1]) < halfwidth+p[3]+4 &&
-                abs(y-p[2]) < 2halfheight+4, placed)
-            score = 1000(crossings+nodes+overlaps) + offset +
-                20abs(fraction-0.5) + (side < 0 ? 3 : 0)
+# Place each cost label on its own edge, near the faculty end, where the edges
+# leaving one faculty member are still easy to tell apart. The label sits on a
+# patch of background color, so it cannot be read as belonging to a neighbor.
+# Covering another highlighted edge, a node, or another label is ruled out;
+# covering a gray edge is tolerated. Positions are searched in screen pixels.
+function _label_positions(segments, highlighted, obstacles, requests, to_pixels, to_data, halfsize)
+    placed = Tuple{Float64,Float64}[]
+    positions = Tuple{Float64,Float64,String,Int}[]
+    pixel_segments = [(to_pixels(a), to_pixels(b)) for (a, b) in segments]
+    halfwidth, halfheight = halfsize
+    for (index, label) in requests
+        start, stop = pixel_segments[index]
+        best_score, best = Inf, start
+        for fraction in 0.1:0.01:0.5
+            x = start[1] + fraction * (stop[1] - start[1])
+            y = start[2] + fraction * (stop[2] - start[2])
+            strong = count(j -> j != index && highlighted[j] &&
+                _crosses_label(pixel_segments[j]..., (x, y), halfwidth, halfheight), eachindex(pixel_segments))
+            weak = count(j -> !highlighted[j] &&
+                _crosses_label(pixel_segments[j]..., (x, y), halfwidth, halfheight), eachindex(pixel_segments))
+            nodes = count(o -> abs(x - o[1]) < halfwidth + o[3] && abs(y - o[2]) < halfheight + o[4], obstacles)
+            overlaps = count(p -> abs(x - p[1]) < 2halfwidth + 3 && abs(y - p[2]) < 2halfheight + 3, placed)
+            score = 1000(strong + nodes + overlaps) + 10weak + 40fraction
             if score < best_score
-                best_score, best = score, (x,y)
+                best_score, best = score, (x, y)
             end
         end
-        push!(placed, (best[1],best[2],halfwidth))
-        push!(labels, (xmin+best[1]/sx, ymin+best[2]/sy, label))
+        push!(placed, best)
+        push!(positions, (to_data(best)..., label, index))
     end
-    return labels
+    return positions
 end
 
 """
-    plot_cost_flow(edges, result, coordinates;
-        title = "Minimum-cost assignment flow", atol::Real = 1e-8, theme = :auto)
+    plot_teaching_flow(department, network, result = nothing;
+        title = "Teaching-assignment network", atol::Real = 1e-8, theme = :auto)
 
-Draw the L5d network with selected flows and their costs per assignment.
+Draw the teaching-assignment network in layers: source, faculty, courses,
+course completion nodes, and sink.
 
 # Arguments
-- `edges`: Directed edge records with `source`, `target`, `cost`, and `upper`.
-- `result`: A solution with `flow`, `cost`, and `formulation.b`. Use a result
-  solved for the supplied edges; feasibility is checked separately.
-- `coordinates`: A finite 13-by-2 matrix; row i holds node i's drawing position.
-  Coordinates are dimensionless and do not affect the optimization.
-- `title`: Figure heading.
-- `atol`: Finite, nonnegative flow threshold in assignments. Flows above it
-  are highlighted; capacities at or below it are displayed as unavailable.
-- `theme`: `:auto` (default) follows the current Plots theme selected with
-  `Plots.theme(:default)` or `Plots.theme(:dark)`. `:light` or `:dark` draws
-  this figure on that background regardless of the global setting; `:default`
-  is accepted as an alias for `:light`. The global theme is not changed.
+- `department`, `network`: The department tables and the network built from
+  them by `build_teaching_network(...)`.
+- `result`: A result from `solve_flow_lp(...)` or `solve_min_cost_flow(network)`,
+  or `nothing` to draw the network before solving. An infeasible result draws
+  the network in gray and says below the title that no schedule exists.
+- `title`: Figure heading. With an optimal result, the required flow and the
+  total cost in score points are added below it.
+- `atol`: Flow threshold in assignments; edges carrying more are highlighted.
+- `theme`: `:auto` (default) follows the current Plots theme. `:light` or
+  `:dark` draws this figure on that background without changing the global
+  theme; `:default` is an alias for `:light`.
 
-# Returns and scope
-Returns a `Plots.Plot` for the lab's source 1, workers 2–4, tasks 5–8,
-completion nodes 9–12, and sink 13. Node groups are labeled above their positions.
-Blue arrows show positive flow; thin gray arrows show available unused edges;
-unavailable edges are dashed. Only positive-flow edges receive cost labels.
-The legend distinguishes positive flow from unit cost w (cost units per
-assignment). Numbers display up to four decimal places; no rounding is applied
-in the optimization or validation. This helper assumes the lab's layered layout,
-with increasing horizontal positions from source to sink.
-The canvas and annotations follow the current Plots theme unless `theme` selects
-one explicitly.
+# Returns
+A `Plots.Plot`. Every faculty → course edge is an available assignment; a blank
+survey entry has no edge. Without a result, available edges are gray and fixed
+assignments are blue. With a result, red edges carry flow, blue edges are fixed
+assignments in the schedule, and thin gray edges carry no flow. Each
+faculty → course edge that carries flow is labeled with its cost `w`: the survey
+score, or a `with_cost(...)` value. Arrow width distinguishes the schedule but does
+not scale with flow.
 """
-function plot_cost_flow(edges, result, coordinates;
-        title = "Minimum-cost assignment flow", atol::Real = 1e-8, theme = :auto)
-    size(coordinates) == (13, 2) || throw(DimensionMismatch("expected 13 node positions with two coordinates each"))
+function plot_teaching_flow(department, network, result = nothing;
+        title = "Teaching-assignment network", atol::Real = 1e-8, theme = :auto)
     canvas = _figure_theme_attributes(theme)
-    all(isfinite, coordinates) || throw(ArgumentError("node coordinates must be finite"))
     isfinite(atol) && atol >= 0 || throw(ArgumentError("atol must be finite and nonnegative"))
-    number(value) = string(round(value; digits = 4))
+    solved = !isnothing(result) && result.optimal # draw flows only for an optimal result
+    faculty, courses = department.faculty.name, department.courses.course
+    nf, nc = length(faculty), length(courses)
+    fixed_pairs = Set((network.faculty_node[name], network.course_node[course])
+        for (name, course) in department.fixed)
 
-    # Initialize the canvas from the supplied drawing positions -
-    xmin, xmax = extrema(coordinates[:, 1])
-    ymin, ymax = extrema(coordinates[:, 2])
-    dx, dy = xmax - xmin, ymax - ymin
-    dx > 0 && dy > 0 || throw(ArgumentError("the layered layout must span both axes"))
-    delivered_flow = sum(value for value in result.formulation.b if value > 0)
-    heading = title * "\nFlow = $(number(delivered_flow)) assignments   |   Total cost = $(number(result.cost))"
-    figure = Plots.plot(; axis = false, ticks = false, grid = false,
-        framestyle = :none, legend = false, title = heading, titlefontsize = 12,
-        xlims = (xmin - 0.075dx, xmax + 0.075dx),
-        ylims = (ymin - 0.22dy, ymax + 0.25dy), size = (1000, 480),
-        margin = 3Plots.mm, canvas...)
-    # Follow the selected theme while retaining blue for positive flow -
+    # Layered layout: courses one unit apart, faculty spread over the same height -
+    top = nc - 1.0
+    position = Dict{Int,Tuple{Float64,Float64}}()
+    position[network.source] = (0.0, top / 2)
+    position[network.sink] = (6.5, top / 2)
+    for (i, name) in enumerate(faculty)
+        position[network.faculty_node[name]] = (1.4, top - (i - 1) * top / max(nf - 1, 1))
+    end
+    for (k, course) in enumerate(courses)
+        position[network.course_node[course]] = (4.2, top - (k - 1))
+        position[network.completion_node[course]] = (5.3, top - (k - 1))
+    end
+    box_halfwidth, box_halfheight, radius_x = 0.36, 0.3, 0.1
+    course_nodes = Set(values(network.course_node))
+    completion_nodes = Set(values(network.completion_node))
+
+    heading = title
+    if !isnothing(result) && !solved
+        heading *= string(result.status) == "INFEASIBLE" ?
+            "\nNo feasible schedule: the solver reports INFEASIBLE" :
+            "\nNo schedule returned: the solver reports $(result.status)"
+    elseif solved
+        number(value) = isinteger(value) ? string(Int(value)) : string(round(value; digits = 4))
+        heading *= "\nFlow = $(number(network.required_flow)) assignments   |   Total cost = $(number(result.cost)) score points"
+    end
+    xlims, ylims = (-0.35, 6.85), (-1.6, top + 1.1)
+    figure = Plots.plot(; axis = false, ticks = false, grid = false, framestyle = :none,
+        legend = false, title = heading, titlefontsize = 12, xlims = xlims, ylims = ylims,
+        size = (1000, 760), margin = 3Plots.mm, canvas...)
     background = figure[:background_color]
     dark_background = (Colors.red(background) + Colors.green(background) + Colors.blue(background)) < 1.5
     label_color = figure[1][:foreground_color_subplot]
-    active_color = dark_background ? "#70c5f3" : "#0072B2"
-    muted_color = dark_background ? "#929eaa" : "#D0D5DA"
+    plot_area = figure[1][:background_color_inside] # label patches match the drawing area
+    active_color = dark_background ? "#ff786e" : "#DC143C" # crimson, as in the L5b flow figures
+    fixed_color = dark_background ? "#70c5f3" : "#0072B2"
+    muted_color = dark_background ? "#6f7a86" : "#D0D5DA"
 
-    # Draw unused edges first so they cannot obscure selected routes -
-    ordered = sort(collect(edges); by = e -> result.flow[(e.source, e.target)] > atol)
+    # Trim each edge so arrows start and stop at the node boundaries -
+    function endpoints(edge)
+        (x1, y1), (x2, y2) = position[edge.source], position[edge.target]
+        radius(v) = v in completion_nodes ? 0.5radius_x : radius_x # smaller completion markers
+        x1 += edge.source in course_nodes ? box_halfwidth : radius(edge.source)
+        x2 -= edge.target in course_nodes ? box_halfwidth : radius(edge.target)
+        return (x1, y1), (x2, y2)
+    end
+    flow_on(edge) = solved ? result.flow[(edge.source, edge.target)] : 0.0
+    style(edge) = (edge.source, edge.target) in fixed_pairs ? (fixed_color, 2.8) :
+        flow_on(edge) > atol ? (active_color, 2.8) : (muted_color, 1.0)
+
+    # Screen scale of the drawing area, used for arrowheads and labels -
+    width_px, height_px = 940.0, 640.0
+    sx, sy = width_px / (xlims[2] - xlims[1]), height_px / (ylims[2] - ylims[1])
+    to_pixels(p) = ((p[1] - xlims[1]) * sx, (p[2] - ylims[1]) * sy)
+    to_data(p) = (p[1] / sx + xlims[1], p[2] / sy + ylims[1])
+
+    # Plots' GR backend ignores arrowhead sizes, so draw each head as a small
+    # triangle, sized in pixels, and stop the line at the base of the head -
+    function draw_edge!(start, stop, color, width)
+        (px1, py1), (px2, py2) = to_pixels(start), to_pixels(stop)
+        length_px = hypot(px2 - px1, py2 - py1)
+        ux, uy = (px2 - px1) / length_px, (py2 - py1) / length_px
+        head, half = width > 1.0 ? (9.0, 3.5) : (6.0, 2.2) # head length and half-width, px
+        base = (px2 - head * ux, py2 - head * uy)
+        Plots.plot!(figure, [start[1], to_data(base)[1]], [start[2], to_data(base)[2]];
+            color = color, linewidth = width, label = "")
+        corners = [to_data((px2, py2)), to_data((base[1] - half * uy, base[2] + half * ux)),
+            to_data((base[1] + half * uy, base[2] - half * ux))]
+        Plots.plot!(figure, Plots.Shape(first.(corners), last.(corners));
+            fillcolor = color, linecolor = color, linewidth = 0.5, label = "")
+    end
+
+    # Draw unused edges first so they cannot hide the schedule -
+    ordered = sort(collect(network.edges); by = edge -> style(edge)[2])
+    segments = Tuple{Tuple{Float64,Float64},Tuple{Float64,Float64}}[]
+    highlighted = Bool[]
+    segment_colors = Any[]
+    requests = Tuple{Int,String}[]
     for edge in ordered
-        flow = result.flow[(edge.source, edge.target)]
-        selected = flow > atol
-        unavailable = edge.upper <= atol
-        color = selected ? active_color : muted_color
-        width = selected ? 2.8 : 1.0
-        x1, y1 = coordinates[edge.source, :]
-        x2, y2 = coordinates[edge.target, :]
-        distance = hypot((x2-x1)/dx, (y2-y1)/dy)
-        distance > 0 || throw(ArgumentError("connected nodes must have distinct drawing positions"))
-        inset = min(0.023/distance, 0.2) # stop arrowheads before the node markers
-        Plots.plot!(figure, [x1+inset*(x2-x1), x2-inset*(x2-x1)],
-            [y1+inset*(y2-y1), y2-inset*(y2-y1)];
-            arrow = Plots.arrow(:closed, 0.22, 0.18), color = color,
-            linewidth = width, linestyle = unavailable ? :dash : :solid, label = "")
+        (x1, y1), (x2, y2) = endpoints(edge)
+        color, width = style(edge)
+        draw_edge!((x1, y1), (x2, y2), color, width)
+        push!(segments, ((x1, y1), (x2, y2)))
+        push!(highlighted, width > 1.0)
+        push!(segment_colors, color)
+        is_option = edge.target in course_nodes && edge.source != network.source
+        if is_option && flow_on(edge) > atol
+            cost_text = isinteger(edge.cost) ? string(Int(edge.cost)) : string(round(edge.cost; digits = 2))
+            push!(requests, (length(segments), "w=$(cost_text)"))
+        end
     end
 
-    # Offset labels from the lines; keep every network edge visible and continuous.
-    for (x, y, label) in _cost_label_positions(edges, result, coordinates, atol)
-        Plots.annotate!(figure, x, y, Plots.text(label, 9, active_color))
+    # Label the cost of each assignment in the schedule, in screen pixels -
+    circle_px(v) = v in completion_nodes ? 9.0 : 13.0 # completion nodes are drawn smaller
+    obstacles = [(to_pixels(p)..., (v in course_nodes ? box_halfwidth * sx : circle_px(v)) + 2,
+        (v in course_nodes ? box_halfheight * sy : circle_px(v)) + 2) for (v, p) in position]
+    halfsize = (15.0, 7.5) # label patch half-width and half-height, in pixels
+    colors = Dict(i => color for (i, color) in enumerate(segment_colors))
+    for (x, y, label, index) in _label_positions(segments, highlighted, obstacles, requests,
+            to_pixels, to_data, halfsize)
+        hx, hy = halfsize[1] / sx, halfsize[2] / sy
+        patch = Plots.Shape([x - hx, x + hx, x + hx, x - hx], [y - hy, y - hy, y + hy, y + hy])
+        Plots.plot!(figure, patch; fillcolor = plot_area, linecolor = colors[index],
+            linewidth = 0.8, label = "")
+        Plots.annotate!(figure, x, y, Plots.text(label, 8, colors[index]))
     end
 
-    # Label the same node identifiers and roles used in the formulation -
-    for vertex in 1:13
-        color = vertex == 1 ? "#28785C" : vertex == 13 ? "#9C4D36" : "#475569"
-        Plots.scatter!(figure, [coordinates[vertex,1]], [coordinates[vertex,2]];
-            markercolor = color, markerstrokecolor = :white,
-            markerstrokewidth = 1, markersize = 12, label = "")
-        Plots.annotate!(figure, coordinates[vertex,1], coordinates[vertex,2],
-            Plots.text(string(vertex), 9, :white))
+    # Draw the nodes: circles for the source, faculty, and sink; boxes for courses -
+    for (vertex, (x, y)) in position
+        if vertex in course_nodes
+            box = Plots.Shape([x - box_halfwidth, x + box_halfwidth, x + box_halfwidth, x - box_halfwidth],
+                [y - box_halfheight, y - box_halfheight, y + box_halfheight, y + box_halfheight])
+            Plots.plot!(figure, box; fillcolor = "#475569", linecolor = :white, linewidth = 1, label = "")
+            Plots.annotate!(figure, x, y, Plots.text(network.labels[vertex], 8, :white))
+        elseif vertex in completion_nodes # unlabeled; each sits beside its course
+            Plots.scatter!(figure, [x], [y]; markercolor = "#475569", markerstrokecolor = :white,
+                markerstrokewidth = 1, markersize = 8, label = "")
+        else
+            color = vertex == network.source ? "#28785C" : vertex == network.sink ? "#9C4D36" : "#475569"
+            Plots.scatter!(figure, [x], [y]; markercolor = color, markerstrokecolor = :white,
+                markerstrokewidth = 1, markersize = 13, label = "")
+            name = vertex == network.source ? "s" : vertex == network.sink ? "t" : network.labels[vertex]
+            Plots.annotate!(figure, x, y, Plots.text(name, 9, :white))
+        end
     end
-    groups = [(1:1,"Source"),(2:4,"Workers"),(5:8,"Tasks"),
-        (9:12,"Completion"),(13:13,"Sink")]
-    for (vertices, name) in groups
-        x = sum(coordinates[vertices,1])/length(vertices)
-        Plots.annotate!(figure, x, ymax+0.17dy, Plots.text(name, 10, label_color))
+    for (x, name) in ((0.0, "Source"), (1.4, "Faculty"), (4.2, "Courses"), (5.3, "Completion"), (6.5, "Sink"))
+        Plots.annotate!(figure, x, top + 0.8, Plots.text(name, 10, label_color))
     end
 
-    # Keep the meaning of color and edge labels inside the exported figure -
-    legend_y = ymin - 0.15dy
-    for (offset, color, width, label) in [(0.03, active_color, 2.8, "Positive flow"),
-            (0.34, muted_color, 1.2, "Available, zero flow")]
-        x = xmin + offset*dx
-        Plots.plot!(figure, [x, x+0.06dx], [legend_y,legend_y]; color = color,
-            linewidth = width, label = "")
-        Plots.annotate!(figure, x+0.08dx, legend_y, Plots.text(label, 9, label_color, :left))
+    # Keep the meaning of colors and labels inside the exported figure -
+    legend = !solved ?
+        [(muted_color, 1.2, "Available assignment", 1.2), (fixed_color, 2.8, "Fixed assignment", 3.4)] :
+        [(active_color, 2.8, "In the schedule", 0.0), (fixed_color, 2.8, "Fixed assignment", 1.7),
+            (muted_color, 1.2, "Available, not used", 3.5)]
+    legend_y = -1.05
+    for (color, width, text, x) in legend # x: left end of each legend line, in data units
+        Plots.plot!(figure, [x, x + 0.35], [legend_y, legend_y]; color = color, linewidth = width, label = "")
+        Plots.annotate!(figure, x + 0.45, legend_y, Plots.text(text, 9, label_color, :left))
     end
-    Plots.annotate!(figure, xmin+0.77dx, legend_y,
-        Plots.text("w: cost / assignment", 9, label_color, :left))
-    if any(edge.upper <= atol for edge in edges)
-        Plots.annotate!(figure, (xmin+xmax)/2, ymin-0.22dy,
-            Plots.text("Dashed edges: unavailable", 9, label_color))
-    end
+    solved && Plots.annotate!(figure, 5.45, legend_y,
+        Plots.text("w: cost per assignment", 9, label_color, :left))
     return figure
 end
 

@@ -5,32 +5,97 @@ released("L6b") && include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-0
 released("L6c") && include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-06", "L6c", "Include.jl"))
 released("L6d") && include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-06", "L6d", "Include.jl"))
 
+# L6b's reference implementation; the notebook setup loads the student file.
+released("L6b") && include(joinpath(WEEK_ROOT, "L6b", "src", "Compute-solution.jl"))
+
 @meeting "L6a" begin
-    @testset "L6a dual sensitivity" begin
-        baseline = solve_resource_lp([100.0, 90.0])
-        @test baseline.decisions ≈ [42.0, 16.0]
-        @test baseline.objective ≈ 206.0
-        @test baseline.shadow_prices ≈ [0.8, 1.4]
-        @test solve_resource_lp([101.0, 90.0]).objective - baseline.objective ≈ 0.8
-        @test solve_resource_lp([100.0, 91.0]).objective - baseline.objective ≈ 1.4
-        @test_throws DimensionMismatch solve_resource_lp([1.0])
-        @test_throws ArgumentError solve_resource_lp([-1.0, 2.0])
+    @testset "L6a urea-cycle flux balance (5430 code in L6a/src)" begin
+        # The pipeline of the urea-cycle example, using the code in L6a/src.
+        listofreactions = read_reaction_file(joinpath(WEEK_ROOT, "L6a", "data", "Network.net"))
+        S, species, reactions, rd = build_stoichiometric_matrix(listofreactions)
+        @test size(S) == (18, 19)
+        model = build(MyPrimalFluxBalanceAnalysisCalculationModel, (
+            S = S, fluxbounds = build_default_bounds_array(listofreactions), species = species,
+            reactions = reactions, objective = zeros(length(reactions))))
+        ΔG = [-4.3, -5.5, -51.0, -30.3, -1220.2]
+        kcat = [10.0, 3.28, 190.0, 410.0, 10.0]
+        for (i, name) in enumerate(["v1", "v2", "v3", "v4", "v5"])
+            j = findfirst(==(name), model.reactions)
+            vmax = kcat[i] * 0.01
+            model.fluxbounds[j, 1] = ΔG[i] > -10.0 ? -vmax : 0.0
+            model.fluxbounds[j, 2] = vmax
+        end
+        model.objective[findfirst(==("b4"), model.reactions)] = -1
+        solution = solve(model)
+        flux = solution["argmax"]
+        @test -flux[findfirst(==("b4"), model.reactions)] ≈ 0.0328 atol = 1e-8 # urea export
+        @test maximum(abs, S * flux) < 1e-8 # every species balances
+        @test flux[findfirst(==("v5"), model.reactions)] ≈ 0.0 atol = 1e-10
+
+        # The saved genome-scale model used by the SVD example is readable offline.
+        saved = load(joinpath(WEEK_ROOT, "L6a", "data", "saved-model-iAT_PLT_636.jld2"))["model"]
+        @test haskey(saved, "reactions") && haskey(saved, "metabolites")
+    end
+
+    @testset "Course-package flux balance solver (used by L6b)" begin
+        S = [1.0 -1.0 0.0; 0.0 1.0 -1.0] # A -> B -> out, with uptake of A
+        solution = solve_flux_balance(S, [0.0, 0.0, 0.0], [5.0, 3.0, 10.0], [0.0, 0.0, 1.0])
+        @test solution.optimal && solution.objective ≈ 3.0
+        @test check_flux_balance(S, solution.flux, [0.0, 0.0, 0.0], [5.0, 3.0, 10.0]).valid
+        @test !solve_flux_balance(S, [4.0, 0.0, 0.0], [5.0, 3.0, 10.0], [0.0, 0.0, 1.0]).optimal
+        @test_throws DimensionMismatch solve_flux_balance(S, [0.0], [1.0], [0.0])
+        @test_throws ArgumentError solve_flux_balance(ones(1, 1), [Inf], [Inf], [1.0])
+        @test_throws ArgumentError solve_flux_balance(ones(1, 1), [-Inf], [-Inf], [1.0])
+        @test solve_flux_balance(ones(1, 1), [-Inf], [Inf], [0.0]).optimal # open bounds still work
     end
 end
 
 @meeting "L6b" begin
-    @testset "L6b urea-cycle FBA" begin
-        path = joinpath(WEEK_ROOT, "L6b", "data", "Network.net")
-        reactions = parse_reaction_file(path)
-        form = build_stoichiometric_matrix(reactions)
-        @test length(reactions) == 19
-        @test size(form.S) == (18, 19)
-        @test form.names[1:5] == ["v1", "v2", "v3", "v4", "v5"]
-        result = solve_urea_fba(reactions)
-        @test result.objective ≈ 0.0328
-        @test norm(result.residual, Inf) < 1e-10
-        @test all(result.lower .- 1e-10 .<= result.flux .<= result.upper .+ 1e-10)
-        @test_throws ArgumentError parse_reaction_file(joinpath(WEEK_ROOT, "missing.net"))
+    @testset "L6b overflow metabolism" begin
+        model = L6bOverflow.load_core_model(joinpath(WEEK_ROOT, "L6b", "data", "e_coli_core.json"))
+        @test size(model.S) == (72, 95)
+        @test length(model.exchanges) == 20
+        @test model.biomass == "BIOMASS_Ecoli_core_w_GAM"
+        flux_of(m, r, id) = r.flux[findfirst(==(id), m.reactions)]
+        growth(m) = L6bOverflow.solve_growth(m)
+
+        aerobic = growth(model)
+        @test aerobic.optimal && isapprox(aerobic.growth, 0.8739; atol = 1e-3)
+        @test L6bOverflow.flux_checks(model, aerobic).valid
+        @test abs(flux_of(model, aerobic, "EX_ac_e")) < 1e-6 # no overflow with oxygen to spare
+        @test isapprox(flux_of(model, aerobic, "EX_o2_e"), -21.80; atol = 0.01)
+
+        capped = L6bOverflow.with_uptake_limit(model, "EX_o2_e", 15.0)
+        r15 = growth(capped)
+        @test isapprox(r15.growth, 0.7178; atol = 1e-3)
+        @test isapprox(flux_of(capped, r15, "EX_ac_e"), 6.81; atol = 0.01) # acetate overflow
+        @test model.lower[findfirst(==("EX_o2_e"), model.reactions)] == -1000.0 # input unchanged
+
+        anaerobic = L6bOverflow.with_uptake_limit(model, "EX_o2_e", 0.0)
+        r0 = growth(anaerobic)
+        @test isapprox(r0.growth, 0.2117; atol = 1e-3)
+        @test flux_of(anaerobic, r0, "EX_etoh_e") > 1.0 && flux_of(anaerobic, r0, "EX_for_e") > 1.0
+
+        # Question answers recorded in the instructor notes.
+        more_glucose = L6bOverflow.with_uptake_limit(capped, "EX_glc__D_e", 20.0)
+        @test isapprox(growth(more_glucose).growth, 1.047; atol = 1e-3)
+        low_glucose = L6bOverflow.with_uptake_limit(capped, "EX_glc__D_e", 6.5)
+        @test abs(flux_of(low_glucose, growth(low_glucose), "EX_ac_e")) < 1e-6
+        blocked = L6bOverflow.with_bounds(capped, "EX_ac_e", 0.0, 0.0)
+        rb = growth(blocked)
+        @test isapprox(rb.growth, 0.663; atol = 1e-3) && flux_of(blocked, rb, "EX_etoh_e") > 1.0
+        @test isapprox(growth(L6bOverflow.with_bounds(model, "ATPM", 20.0, 20.0)).growth, 0.815; atol = 1e-3)
+
+        @test_throws ArgumentError L6bOverflow.with_uptake_limit(model, "EX_o2_e", -1.0)
+        @test_throws ArgumentError L6bOverflow.with_bounds(model, "not_a_reaction", 0.0, 1.0)
+        @test_throws ArgumentError L6bOverflow.load_core_model(joinpath(WEEK_ROOT, "missing.json"))
+
+        # The student file is the reference apart from its header, and the figure draws.
+        student = split(read(joinpath(WEEK_ROOT, "L6b", "src", "Compute.jl"), String), "module L6bOverflow"; limit = 2)[2]
+        reference = split(read(joinpath(WEEK_ROOT, "L6b", "src", "Compute-solution.jl"), String), "module L6bOverflow"; limit = 2)[2]
+        @test student == reference
+        @test L6bStudentSetup.plot_exchange_flows(model, aerobic) isa L6bStudentSetup.Plots.Plot
+        @test L6bStudentSetup.plot_exchange_flows(anaerobic, r0; theme = :dark) isa L6bStudentSetup.Plots.Plot
     end
 end
 

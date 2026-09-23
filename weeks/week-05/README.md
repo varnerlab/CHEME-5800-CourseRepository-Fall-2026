@@ -3,7 +3,7 @@
 Week 5 turns graph structure into optimization models. Students first compute and
 independently validate maximum flow, then study how capacity changes alter network
 throughput. The second half expresses resource allocation and flow conservation as
-linear programs and closes with a minimum-cost worker–task assignment.
+linear programs and closes with a minimum-cost faculty teaching assignment.
 
 ## Learning objectives
 
@@ -24,8 +24,8 @@ By the end of the week, students should be able to:
 |---|---|---|---|
 | L5a | Mon. Sep. 21 | Maximum-flow formulation and augmenting paths | [Lecture](L5a/CHEME-5800-L5a-Lecture-MaximumFlowProblems-Fall-2026.ipynb) · [Worked example](L5a/CHEME-5800-L5a-WorkedExample-MaximumFlow-Fall-2026.ipynb) |
 | L5b | Tue. Sep. 22 | Capacity sensitivity, bottlenecks, and outages | [Lab](L5b/CHEME-5800-L5b-Lab-MaximumFlowSensitivity-Fall-2026.ipynb) |
-| L5c | Wed. Sep. 23 | Linear-program formulation and resource allocation | [Lecture](L5c/CHEME-5800-L5c-Lecture-LinearProgramming-Fall-2026.ipynb) · [Fruit allocation](L5c/CHEME-5800-L5c-Example-FruitAllocation-Fall-2026.ipynb) · [Revised simplex](L5c/CHEME-5800-L5c-Algorithm-RevisedSimplex-Fall-2026.ipynb) |
-| L5d | Thu. Sep. 24 | Minimum-cost assignment as a network-flow LP | [Lab](L5d/CHEME-5800-L5d-Lab-MinimumCostAssignmentFlow-Fall-2026.ipynb) |
+| L5c | Wed. Sep. 23 | Linear-program formulation and resource allocation | [Lecture](L5c/CHEME-5800-L5c-Lecture-LinearProgramming-Fall-2026.ipynb) · [Fruit allocation](L5c/CHEME-5800-L5c-FruitProblem-Primal-Example-Fall-2026.ipynb) · [Revised simplex](L5c/CHEME-5800-L5c-RevisedSimplex-Algorithm-Fall-2026.ipynb) |
+| L5d | Thu. Sep. 24 | Faculty teaching assignment as a minimum-cost flow | [Lab](L5d/CHEME-5800-L5d-Lab-MinimumCostAssignmentFlow-Fall-2026.ipynb) |
 
 The revised-simplex notebook is the week's selected supporting algorithm notebook.
 Interior-point derivations and extended duality proofs remain deeper-study topics;
@@ -34,15 +34,14 @@ they are not parallel required notebooks.
 ## Lab implementations and reference solutions
 
 Both labs use the standard `Compute.jl` / `Compute-solution.jl` file pair, and
-each notebook loads `Compute.jl`. For L5d, complete its three TODO blocks, save
-the file, restart the notebook kernel, and run from the top. L5b is walked
-through in class, so its `Compute.jl` is already complete. The reference
-solutions are included in the same bundle for comparison.
+each notebook loads `Compute.jl`. Both labs are walked through in class, so each
+`Compute.jl` is already complete and the notebooks run from the top. The
+reference solutions are included in the same bundle for comparison.
 
 | Lab | Student file | Reference solution | Function to complete |
 |---|---|---|---|
 | L5b | [Compute.jl](L5b/src/Compute.jl) | [Compute-solution.jl](L5b/src/Compute-solution.jl) | Walked through in class; the student file ships `validate_sensitivity_flow(...)` and `cut_capacity(...)` complete. Rebuilding the validator from its docstring is an optional exercise. |
-| L5d | [Compute.jl](L5d/src/Compute.jl) | [Compute-solution.jl](L5d/src/Compute-solution.jl) | `flow_formulation(...)`: assemble the incidence matrix, required balances, costs, and bounds. |
+| L5d | [Compute.jl](L5d/src/Compute.jl) | [Compute-solution.jl](L5d/src/Compute-solution.jl) | Walked through in class; the student file ships complete. Rebuilding [the `build_teaching_network(...)` function](L5d/docs/build_teaching_network.md), which turns the department's rules into edge bounds and costs, is an optional exercise. |
 
 ## Environment and validation
 
@@ -71,8 +70,9 @@ repositories and are not part of this weekly instructional package.
 - L5c retains the Fall 2025 primal/dual lecture, fruit-allocation geometry, SVG
   schematic, and revised-simplex narrative. The example now uses the current JuMP
   API directly and handles alternate optima deliberately.
-- L5d retains the Fall 2025 assignment-network formulation while replacing the
-  degenerate equal assignment costs with documented synthetic costs. The new local
-  model exposes `A`, `b`, bounds, residuals, and selected assignments for testing.
-  Students assemble the model data in `Compute.jl`; the matching
-  `Compute-solution.jl` is included for comparison.
+- L5d replaces the Fall 2025 worker–task example with a faculty teaching-assignment
+  model: exact teaching loads, course staffing bounds, survey-score costs, and a
+  fixed assignment, followed by sabbatical and mandate scenarios. The structure
+  follows a real faculty–course matching model reduced to one semester; all
+  faculty data are synthetic. It is walked through in class, with discussion
+  questions at the end of each task.
