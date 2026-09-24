@@ -21,9 +21,9 @@ notebook-style skill, and older notebook presentation prescriptions. Do not run
 legacy style auto-fixes. A style audit finding alone does not justify a rewrite.
 
 Lecture and example notebooks have exactly three learning objectives and exactly
-three key takeaways. Use `___` only immediately before a new level-two heading at
-a major-section boundary, never between level-three subsections or after the final
-section. This replaces the older instruction to put a rule after the final Summary.
+three key takeaways. Use `___` immediately before a new level-two heading at a
+major-section boundary, and always end the final Summary with `___`. Never put one
+between level-three subsections.
 
 Keep CHEME 5800's separate requirements for student work in labs, course content,
 code, execution validation, and releases. Weekly bundles include lab reference
