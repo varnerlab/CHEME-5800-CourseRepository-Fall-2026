@@ -1,7 +1,7 @@
 # validate_flow_solution(...)
 
 ```julia
-validate_flow_solution(edges::AbstractVector{FlowEdge}, result; atol::Real = 1e-8)
+validate_flow_solution(edges::AbstractVector{FlowEdge}, result::NamedTuple; atol::Real = 1e-8)
 ```
 
 Check an optimal result's flow vector against the supplied edge bounds, recompute every node's inflow minus outflow from the edge endpoints, and recompute the total cost. Supply the edges in the same order as `result.vector`. The expected node identifiers and net inflows are taken from `result.formulation`. A result whose status is not `OPTIMAL` has no flows, and passing one raises an `ArgumentError`.

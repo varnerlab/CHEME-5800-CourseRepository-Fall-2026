@@ -1,7 +1,9 @@
 # solve_flow_lp(...)
 
 ```julia
-solve_flow_lp(network, A, b, w, lower, capacity)
+solve_flow_lp(network::NamedTuple, A::AbstractMatrix,
+    b::AbstractVector, w::AbstractVector,
+    lower::AbstractVector, capacity::AbstractVector)
 ```
 
 Solve the minimum-cost flow linear program with JuMP and GLPK:

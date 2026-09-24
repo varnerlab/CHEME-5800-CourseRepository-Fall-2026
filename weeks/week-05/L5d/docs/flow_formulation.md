@@ -25,6 +25,6 @@ Assemble the objective coefficients, node conservation equations, and bounds for
 
 ## Assumptions and scope
 
-Each `FlowEdge` has distinct endpoints, finite costs and bounds, and `0 ≤ lower ≤ upper`. Node identifiers need not be consecutive; use `vertices` to interpret matrix rows. The routine validates the source, sink, and required-flow argument, but does not establish that the requested flow is feasible. In the lab's sabbatical scenario, for example, the arrays assemble without complaint, and only the solver reports that no schedule exists.
+Each `FlowEdge` has distinct endpoints, finite costs and bounds, and `0 ≤ lower ≤ upper`. Node identifiers need not be consecutive; use `vertices` to interpret matrix rows. The routine validates the source, sink, and required-flow argument, but does not establish that the requested flow is feasible. For example, course staffing requirements can exceed the available teaching load even when all arrays have valid dimensions.
 
 See the source docstring in [Compute.jl](../src/Compute.jl), loaded through [Include.jl](../Include.jl), and Tasks 2 and 3 of [the lab](../CHEME-5800-L5d-Lab-MinimumCostAssignmentFlow-Fall-2026.ipynb).

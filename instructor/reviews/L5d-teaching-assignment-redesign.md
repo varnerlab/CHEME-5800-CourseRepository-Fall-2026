@@ -18,8 +18,15 @@ against actual solves.
 
 The repository holds real colleagues' names and survey responses, so none of it
 is copied. The lab uses ten faculty labeled A–J and twelve public CHEME Fall
-course codes and titles. The four CSV files are faculty loads, course staffing
-bounds, the survey preference matrix (0–3 or blank), and fixed assignments.
+course codes and titles. The CSV files contain faculty loads, course staffing
+bounds, and the survey preference matrix (0–3 or blank).
+At Jeff's request during the manual edit pass on September 23, blank scores now
+default to 3 and ENGRI 1120 requires one instructor. Unspecified pairings remain
+available; the input CSV preserves blanks while the loaded table shows their
+default scores. Course bounds 0–1 mean the course is optional, not required.
+The same manual pass removed predetermined faculty–course pairings and their
+input file, helper, and figure markings. The solver selects every pairing from
+the preference costs, teaching loads, and course staffing requirements.
 
 ## Model
 
@@ -32,8 +39,7 @@ edge has capacity equal to the maximum staffing.
 |---|---|---|---|---|
 | Exact teaching load | source → faculty | load | load | 0 |
 | Survey score 0–3 | faculty → course | 0 | 1 | score |
-| Blank score | no edge | | | |
-| Fixed assignment | faculty → course | 1 | 1 | score |
+| Blank input score | faculty → course | 0 | 1 | default 3 |
 | Course staffing | course → completion | min | max | 0 |
 | Course completion | completion → sink | 0 | max | 0 |
 
@@ -60,7 +66,7 @@ diagrams rather than tables.
 
 ## Files
 
-- `weeks/week-05/L5d/`: notebook (same filename), `data/` (four CSVs and
+- `weeks/week-05/L5d/`: notebook (same filename), `data/` (department tables and
   README), `src/Compute.jl`, `src/Compute-solution.jl`, `src/FlowPlots.jl`
   (rewritten for this network), `docs/`, `Include.jl`.
 - `instructor/validation/week-05/runtests.jl`: L5d ships without TODOs; new
@@ -71,100 +77,92 @@ diagrams rather than tables.
 
 ## Verification
 
-Week-5 suite, notebook execution, light and dark renders of the figure,
-`audit.py` and `notebook_style_check.py --strict`, then one codex read-only pass
-over the diff before the week-05.3 release.
+Use the Week-5 validation suite, notebook execution, light and dark figure
+inspection, and notebook JSON and local-link checks. Preserve the instructor's
+manual edits. Input-dependent counts, costs, and staffing outcomes belong in
+computed outputs rather than hardcoded prose, as requested during the manual pass.
 
-## Discussion answers (instructor only)
+## Discussion guidance (instructor only)
 
-Every number below comes from solving the model with the lab's code
-(2026-09-23). Several schedules can tie; the suite pins the ones named here.
+The manual pass changed the preference default and ENGRI 1120 staffing after
+the original redesign. The earlier numerical answer sheet is superseded.
+Read the current schedule and costs from the executed notebook and use the
+checks in `instructor/validation/week-05/runtests.jl` for the supplied fixture.
+Several schedules can tie, so compare costs and constraints before interpreting
+a change in the selected faculty. Keep the teaching explanation independent of
+input-dependent numerical results.
 
-### Task 3 live demos
+Tied schedules in the two figures students will predict against. Both
+alternatives meet every load and staffing rule at the same minimum cost, so a
+student who predicts one of them is right; the figure shows the solver's pick.
+The suite pins the schedules the figures show, so a solver update that switches
+between tied schedules fails the suite rather than changing a figure silently.
 
-* *C rates thermodynamics a 3* (`with_preference(department, "C", "CHEME-3130", 3)`):
-  C and E swap. E takes CHEME 3130 with a 1 and C joins the capstone with a 2;
-  total 7. Keeping C on thermodynamics would cost 5 + 3 = 8, so the swap wins.
-  The break-even score is 2: at 2 the swap and staying tie (both 7).
-* *B on sabbatical* (`with_load(department, "B", 0)`): infeasible. The totals
-  still fit (12 in 11–15), but only B scored CHEME 2880, so its staffing edge
-  cannot receive flow. The figure draws the network in gray and says so.
+- Starting data, cost 4. Shown: H and J join A on the capstone and E teaches
+  CHEME-5310. Tied: E joins the capstone and H teaches CHEME-6440 instead, so
+  CHEME-5310 does not run and CHEME-6440 does.
+- C rates thermodynamics a 3, cost 6. Shown: C joins the capstone and J takes
+  CHEME-3130. Tied: C takes CHEME-6110, F takes ENGRD-2190 (leaving CHEME-6110),
+  and A takes CHEME-3130 (leaving ENGRD-2190); J stays on the capstone.
 
 ### Task 1
 
-1. *Blank versus 3.* Filling blanks with 3 treats "unknown" as "willing at a
-   high cost." In the sabbatical scenario the solver would then quietly assign
-   J to CHEME 2880 with a 3 (cost 7) and report a feasible schedule, although J
-   never said they could teach the course. The infeasibility, which is the
-   useful signal, disappears. (With B present, the base cost stays 5.)
-2. *One arrow into CHEME 2880.* CHEME 2880 needs one instructor and only B's
-   edge enters it, so B teaches CHEME 2880 in every feasible schedule. B's load
-   is 1, so the network fixes B's whole schedule, and B is a single point of
-   failure: the sabbatical demo in Task 3.
-3. *The two extra assignments.* Only the electives have a maximum above their
-   minimum (0 to 1); every other course's minimum equals its maximum. So the two
-   assignments beyond the 11 required positions must go to electives, and
-   exactly two of the four run (CHEME 6310 and CHEME 6800 in the solved
-   schedule).
+- A blank receives the highest survey score. It remains available and may be
+  selected; a large cost does not prohibit an assignment. Prohibiting a pairing
+  would require an upper bound of zero or removal of its edge.
+- A default score is a modeling assumption, not evidence of the instructor's
+  preparation. The original CSV distinguishes unspecified entries from responses.
+- An optional course has a zero staffing minimum. It does not run if its
+  assigned staffing is zero. Compare total load with required staffing to see
+  how many assignments remain for optional courses.
+- The aggregate staffing check is necessary but not sufficient. Too few faculty
+  with positive loads can prevent a required teaching team from forming even
+  when the department-wide totals fit.
 
 ### Task 2
 
-1. *Lower bounds on the load edges.* With F equal to the total load (13),
-   setting those lower bounds to zero changes nothing: the source must send 13
-   units and each load edge carries at most the load, so every edge is forced to
-   its capacity (cost still 5). The lower bounds matter when F is smaller: with
-   F = 12, zero lower bounds give a schedule of cost 4 in which someone teaches
-   less than their load, while load-equal lower bounds make the model
-   infeasible. The lower bound makes a load an obligation rather than a limit.
-2. *Unavoidable cost.* The capstone needs three instructors and only A scores 0,
-   so the other two contribute at least 1 each. Everyone who listed CHEME 6110
-   scored it 1. So every schedule costs at least 3; the optimum is 5.
-3. *Fairness to J.* Other schedules tie at 5 (for example, J on the capstone and
-   I on ENGRI 1120), but every cost-5 schedule gives J a 2. Blocking all of J's
-   score-2 options raises the cost to 6; the solver's schedule then puts F on
-   the capstone with a 3, and another cost-6 schedule gives F a 2 on CHEME 6440
-   instead. Sparing the newest faculty member moves the burden to someone
-   else, and the total-cost objective cannot express that trade-off.
+- The objective sums the costs of the selected assignments. It does not count
+  the same assignment again on the load, staffing, or completion edges.
+- Load and staffing checks use the solved flows. Integrality, node balances,
+  and recomputed objective cost are checked separately.
+- A low department-wide total does not establish a fair allocation. Improving
+  J's assignments may worsen someone else's; the total-cost objective does not
+  explicitly prioritize the newest faculty member.
+- J scored CHEME-6110 and CHEME-6800 a 1, and F teaches both. Moving J to
+  CHEME-6110 sends F to J's capstone seat at 3, or to CHEME-6440 at 2 with E
+  filling the capstone seat at 1 and CHEME-5310 not running. The cheapest
+  schedule that takes J off the capstone costs 5, one more than the optimum:
+  J gains a point and F loses two.
 
 ### Task 3
 
-1. *C's score of 1* (`with_preference(department, "C", "CHEME-3130", 1)`):
-   nobody moves; the total rises from 5 to 6, one point per point on an edge in
-   use. C gives up the course once the score exceeds 2 (at 2, a tie); the
-   live demo's 3 is above that.
-2. *Mandate versus bonus.* The mandate (`with_fixed(department, "J", "CHEME-3130")`)
-   forces J onto thermodynamics at total 7, a price of 2, and moves four people
-   (J to thermodynamics, C to the capstone, H to CHEME 6440, and I to
-   ENGRI 1120; CHEME 6310 is cancelled).
-   The bonus (`with_cost(department, "J", "CHEME-3130", -1.0)`, a bonus of 3 on
-   J's score of 2) also puts J on thermodynamics; the objective is 4, which
-   includes the bonus, and the schedule's survey cost is 7. The solver takes the
-   preference once the bonus exceeds 2, the mandate's price: with a cost of 0
-   (a bonus of exactly 2) the choices tie and the solver keeps C. A bound forces
-   the assignment at any price; a cost is weighed against everyone else's
-   scores. The two solved schedules differ in who leaves the capstone (H for
-   CHEME 6440 under the mandate, E for CHEME 5310 under the bonus); these are
-   tied alternatives with the same survey cost of 7.
-3. *Fixing the sabbatical*
-   (`with_preference(with_load(department, "B", 0), "G", "CHEME-2880", 2)`):
-   G takes CHEME 2880 (score 2), I moves from CHEME 6310 into ENGRI 1120
-   (score 1), and CHEME 6310 is cancelled; total 8. With 12 assignments for 11
-   required positions, only one elective can run.
-
-### Extras, if time allows
-
-* *Flexible capstone* (`with_staffing(department, "CHEME-4320", 2, 4)`): the
-  totals become 10 ≤ 13 ≤ 16 and the cost drops to 4; the capstone runs with A
-  and H, E moves to CHEME 5310, and three electives run.
-* *Stronger pre-solve check.* For each course with a positive minimum, count the
-  faculty with a positive load and a score for it. That catches the sabbatical,
-  but it is still not sufficient: two courses can each have one eligible
-  instructor, the same person, with a load of 1. The complete condition concerns
-  every group of courses at once, which is what the solver checks.
-* *Doubling or squaring the scores.* Doubling changes only the units. Squaring
-  (0, 1, 4, 9) penalizes 2s and 3s more; on this data the schedule does not
-  change (squared total 7), and the best schedule that spares J costs 8 squared
-  points (F takes CHEME 6440 with a 2).
-* *Other ways to cover CHEME 2880:* a visiting lecturer (a new row in
-  `Faculty.csv` and `Preferences.csv`), or cancelling the course
-  (`with_staffing(department, "CHEME-2880", 0, 1)`).
+- Increasing C's thermodynamics score leaves the starting schedule feasible.
+  Compare its added cost with the cost of reassignment; tied optima may select
+  different faculty while reporting the same minimum cost.
+- C's score 1: cost 5, C keeps CHEME-3130. Score 2: cost 6, and the figure
+  shows C keeping it, but the best schedule without C on thermodynamics also
+  costs 6, so the two tie and the solver's choice is arbitrary. Score 3: cost 6,
+  C moves to the capstone and J takes CHEME-3130. The cost rises one point per
+  score point while C stays, then stops at 6, the price of moving C.
+- B's sabbatical can now be covered through a default-score pairing. Inspect
+  the replacement and the optional courses that no longer run. This example
+  illustrates the effect of the default assumption rather than infeasibility.
+- A bonus remains negotiable: the solver considers its effect on the total
+  cost of a complete schedule. The reported objective includes the bonus
+  rather than only the survey-score total.
+- J's cost of -1 on CHEME-3130: J teaches it (w=-1), C moves to the capstone
+  (w=2), total 3. The move drops J's capstone 2 and C's 0 and adds C's
+  capstone 2 plus J's new cost, so it pays only when J's cost is below 0.
+  A cost of 1 leaves the starting schedule at cost 4. Do not demonstrate a
+  cost of exactly 0: it ties, and GLPK returns a different cost-4 schedule
+  with J still on the capstone.
+- Improving G's CHEME 2880 score need not move G there: the objective also counts
+  the cost of replacing G on the course G would leave.
+- In the sabbatical schedule (cost 6), F covers CHEME-2880 at 3 and G teaches
+  ENGRI-1120 at 0. Moving G to CHEME-2880 with score s gives a best total of
+  5 + s. Score 2: G stays, cost 6. Score 1: a tie at 6. Score 0: G moves,
+  cost 5. Who then covers ENGRI-1120 is itself a tie: the figure shows J at 2
+  (F returns to CHEME-6110), and I at 1 costs the same (J returns to the
+  capstone, E to CHEME-5310, and CHEME-6310 does not run).
+- Concentrating all teaching loads on too few faculty can make a required
+  teaching team impossible, despite sufficient total load.

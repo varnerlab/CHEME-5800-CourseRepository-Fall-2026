@@ -1,7 +1,7 @@
 # assignments_by_faculty(...)
 
 ```julia
-assignments_by_faculty(department, schedule)
+assignments_by_faculty(department::NamedTuple, schedule::AbstractDataFrame)
 ```
 
 Summarize a schedule from [the `teaching_schedule(...)` function](teaching_schedule.md) by faculty member: the teaching-assignment table a department would publish.

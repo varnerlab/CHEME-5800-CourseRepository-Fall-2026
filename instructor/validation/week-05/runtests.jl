@@ -4,10 +4,11 @@ include(joinpath(@__DIR__, "..", "release_scope.jl"))
 released("L5a") && include(joinpath(WEEK_ROOT, "L5a", "Include.jl"))
 # Validate the reference implementations; notebook setup loads student scaffolds.
 released("L5b") && include(joinpath(WEEK_ROOT, "L5b", "src", "Compute-solution.jl"))
-released("L5d") && include(joinpath(WEEK_ROOT, "L5d", "src", "Compute-solution.jl"))
 released("L5b") && include(joinpath(WEEK_ROOT, "L5b", "Include.jl"))
 released("L5c") && include(joinpath(WEEK_ROOT, "L5c", "Include.jl"))
 released("L5d") && include(joinpath(WEEK_ROOT, "L5d", "Include.jl"))
+# L5d uses plain functions: setup loads their dependencies and shared edge type first.
+released("L5d") && include(joinpath(WEEK_ROOT, "L5d", "src", "Compute-solution.jl"))
 
 @meeting "L5a" begin
     @testset "L5a maximum-flow contracts" begin
@@ -42,6 +43,8 @@ end
 
 module L5dStudentSetup
 Main.released("L5d") && include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-05", "L5d", "Include.jl"))
+# Rerunning notebook setup must preserve the shared type and loaded functions.
+Main.released("L5d") && include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-05", "L5d", "Include.jl"))
 end
 
 @testset "Week 5 student scaffolds and reference files" begin
@@ -65,12 +68,12 @@ end
         department = L5dStudentSetup.read_department(joinpath(WEEK_ROOT, "L5d", "data"))
         network = L5dStudentSetup.build_teaching_network(department)
         result = L5dStudentSetup.solve_min_cost_flow(network)
-        @test result.cost == 5.0
+        @test result.cost == 4.0
         @test L5dStudentSetup.validate_flow_solution(network.edges, result).valid
         @test !occursin("# TODO 1:", read(joinpath(WEEK_ROOT, "L5d", "src", "Compute.jl"), String))
         # The student file matches the reference apart from its header comment.
-        student_body = split(read(joinpath(WEEK_ROOT, "L5d", "src", "Compute.jl"), String), "module L5dMinCostFlow"; limit = 2)[2]
-        reference_body = split(read(joinpath(WEEK_ROOT, "L5d", "src", "Compute-solution.jl"), String), "module L5dMinCostFlow"; limit = 2)[2]
+        student_body = readlines(joinpath(WEEK_ROOT, "L5d", "src", "Compute.jl"))[4:end]
+        reference_body = readlines(joinpath(WEEK_ROOT, "L5d", "src", "Compute-solution.jl"))
         @test student_body == reference_body
     end
 end
@@ -148,13 +151,16 @@ end
     @testset "L5d teaching-assignment flow" begin
         department = read_department(joinpath(WEEK_ROOT, "L5d", "data"))
         @test (nrow(department.faculty), nrow(department.courses)) == (10, 12)
-        @test department.fixed == [("A", "CHEME-4320")]
-        @test staffing_totals(department) == (total_load = 13, total_min = 11, total_max = 15, totals_ok = true)
+        @test staffing_totals(department) == (total_load = 13, total_min = 10, total_max = 14, totals_ok = true)
+        @test all(!ismissing, Matrix(department.preferences[:, 2:end]))
+        @test department.preferences[department.preferences.name .== "C", "CHEME-2880"] == [3]
+        feast = only(eachrow(department.courses[department.courses.course .== "ENGRI-1120", :]))
+        @test (feast.min_faculty, feast.max_faculty) == (1, 1)
 
-        # Network: 36 nodes; 10 load, 42 option, 12 staffing, and 12 completion edges.
+        # Every faculty-course pairing is available, including default-score pairings.
         network = build_teaching_network(department)
         @test length(network.labels) == 36
-        @test length(network.edges) == 76
+        @test length(network.edges) == 154
         capstone_staffing = only(filter(e -> e.source == network.course_node["CHEME-4320"], network.edges))
         @test capstone_staffing.target == network.completion_node["CHEME-4320"]
         @test (capstone_staffing.lower, capstone_staffing.upper) == (3.0, 3.0)
@@ -162,47 +168,64 @@ end
         @test network.required_flow == 13.0
         load_edges = filter(e -> e.source == network.source, network.edges)
         @test all(e -> e.lower == e.upper, load_edges)
-        fixed_edge = only(filter(e -> (e.source, e.target) ==
-            (network.faculty_node["A"], network.course_node["CHEME-4320"]), network.edges))
-        @test (fixed_edge.lower, fixed_edge.upper) == (1.0, 1.0)
-        @test !any(e -> (e.source, e.target) ==
-            (network.faculty_node["C"], network.course_node["CHEME-2880"]), network.edges) # blank: no edge
+        assignment_edges = filter(e -> e.source in values(network.faculty_node) &&
+            e.target in values(network.course_node), network.edges)
+        @test length(assignment_edges) == nrow(department.faculty) * nrow(department.courses)
+        @test all(e -> (e.lower, e.upper) == (0.0, 1.0), assignment_edges)
+        default_edge = only(filter(e -> (e.source, e.target) ==
+            (network.faculty_node["C"], network.course_node["CHEME-2880"]), network.edges))
+        @test (default_edge.cost, default_edge.lower, default_edge.upper) == (3.0, 0.0, 1.0)
 
         form = flow_formulation(network.edges, network.source, network.sink, network.required_flow)
-        @test size(form.A) == (36, 76)
+        @test size(form.A) == (36, 154)
         @test all(sum(form.A; dims = 1) .== 0.0)
         @test sum(form.b) == 0.0
 
         # Baseline schedule, solved from the arrays the notebook assembles by hand.
         lp = solve_flow_lp(network, form.A, form.b, form.w, form.lower, form.capacity)
-        @test lp.cost == 5.0
+        @test lp.cost == 4.0
         @test_throws DimensionMismatch solve_flow_lp(network, form.A[:, 1:end-1], form.b, form.w, form.lower, form.capacity)
         result = solve_min_cost_flow(network)
         @test result.vector == lp.vector
         @test result.status == MathOptInterface.OPTIMAL
-        @test result.cost == 5.0
+        @test result.cost == 4.0
         @test validate_flow_solution(network.edges, result).valid
         @test all(v -> v == round(v), result.vector)
         schedule = teaching_schedule(department, network, result)
         @test schedule_checks(department, schedule).all_ok
-        @test sort(schedule.name[schedule.course .== "CHEME-4320"]) == ["A", "E", "H"]
+        @test sort(schedule.name[schedule.course .== "CHEME-4320"]) == ["A", "H", "J"]
         published = assignments_by_faculty(department, schedule)
         @test published.courses[published.name .== "A"] == ["ENGRD-2190, CHEME-4320"]
         @test published.scores[published.name .== "J"] == ["2"]
         @test sort(unique(schedule.course[schedule.course .∈ Ref(["CHEME-5310", "CHEME-6310", "CHEME-6440", "CHEME-6800"])])) ==
-            ["CHEME-6310", "CHEME-6800"]
+            ["CHEME-5310", "CHEME-6310", "CHEME-6800"]
 
-        # Sabbatical: the totals check passes but no schedule exists.
+        # The default score lets another faculty member cover the sabbatical.
         sabbatical = with_load(department, "B", 0)
         @test department.faculty.load[2] == 1 # the input is unchanged
         @test staffing_totals(sabbatical).totals_ok
         sabbatical_result = solve_min_cost_flow(build_teaching_network(sabbatical))
-        @test sabbatical_result.status == MathOptInterface.INFEASIBLE
-        @test isnothing(sabbatical_result.cost)
-        @test_throws ArgumentError teaching_schedule(sabbatical, build_teaching_network(sabbatical), sabbatical_result)
+        @test sabbatical_result.status == MathOptInterface.OPTIMAL
+        @test sabbatical_result.cost == 6.0
+        sabbatical_schedule = teaching_schedule(sabbatical, build_teaching_network(sabbatical), sabbatical_result)
+        @test schedule_checks(sabbatical, sabbatical_schedule).all_ok
+        replacement = only(eachrow(sabbatical_schedule[sabbatical_schedule.course .== "CHEME-2880", :]))
+        @test replacement.name != "B"
+        @test replacement.score == 3
+        # The totals can fit even when too few faculty can form the capstone team.
+        conflict = deepcopy(department)
+        conflict.faculty.load .= 0
+        total_load = sum(department.faculty.load)
+        conflict.faculty.load[1] = fld(total_load, 2)
+        conflict.faculty.load[2] = cld(total_load, 2)
+        conflict_network = build_teaching_network(conflict)
+        conflict_result = solve_min_cost_flow(conflict_network)
+        @test staffing_totals(conflict).totals_ok
+        @test conflict_result.status == MathOptInterface.INFEASIBLE
+        @test isnothing(conflict_result.cost)
+        @test_throws ArgumentError teaching_schedule(conflict, conflict_network, conflict_result)
 
-        # Scenarios the notebook runs live or lists as questions. Several schedules can
-        # tie, so these pin the ones the notebook and the answer sheet describe.
+        # Check scenario costs and feasibility; tied schedules may choose different pairs.
         function scenario(d)
             n = build_teaching_network(d)
             r = solve_min_cost_flow(n)
@@ -212,42 +235,55 @@ end
             @test schedule_checks(d, sched).all_ok
             return (result = r, pairs = Set(zip(sched.name, sched.course)))
         end
-        base_pairs = Set(zip(schedule.name, schedule.course))
-        c3 = scenario(with_preference(department, "C", "CHEME-3130", 3)) # live demo: C and E swap
-        @test c3.result.cost == 7.0
-        @test setdiff(c3.pairs, base_pairs) == Set([("E", "CHEME-3130"), ("C", "CHEME-4320")])
-        c1 = scenario(with_preference(department, "C", "CHEME-3130", 1)) # nothing moves
-        @test c1.result.cost == 6.0
-        @test c1.pairs == base_pairs
-        mandate = scenario(with_fixed(department, "J", "CHEME-3130"))
-        @test mandate.result.cost == 7.0
-        @test ("J", "CHEME-3130") in mandate.pairs
-        @test length(department.fixed) == 1 # the input is unchanged
+        # A can leave the schedule: no individual pairing is required in the input.
+        a_leave = scenario(with_load(department, "A", 0))
+        @test a_leave.result.optimal
+        @test all(pair -> first(pair) != "A", a_leave.pairs)
+        c3 = scenario(with_preference(department, "C", "CHEME-3130", 3))
+        @test c3.result.cost == 6.0
+        @test !(("C", "CHEME-3130") in c3.pairs)
+        # Pin the tied schedule the stored figure shows, so a solver change that picks the other fails here.
+        @test ("C", "CHEME-4320") in c3.pairs && ("J", "CHEME-3130") in c3.pairs
+        c1 = scenario(with_preference(department, "C", "CHEME-3130", 1))
+        @test c1.result.cost == 5.0
+        @test ("C", "CHEME-3130") in c1.pairs
+        c2 = scenario(with_preference(department, "C", "CHEME-3130", 2)) # a tie at 6
+        @test c2.result.cost == 6.0
+        small = scenario(with_cost(department, "J", "CHEME-3130", 1.0)) # too small to move J
+        @test small.result.cost == 4.0
+        @test ("J", "CHEME-4320") in small.pairs
         bonus = scenario(with_cost(department, "J", "CHEME-3130", -1.0)) # a bonus of 3 points
-        @test bonus.result.cost == 4.0
+        @test bonus.result.cost == 3.0
         @test ("J", "CHEME-3130") in bonus.pairs
         tie = scenario(with_cost(department, "J", "CHEME-3130", 0.0)) # a bonus of exactly 2: a tie
-        @test tie.result.cost == 5.0
+        @test tie.result.cost == 4.0
         follow_up = scenario(with_preference(sabbatical, "G", "CHEME-2880", 2))
-        @test follow_up.result.cost == 8.0
-        @test setdiff(base_pairs, follow_up.pairs) == Set([("B", "CHEME-2880"), ("G", "ENGRI-1120"), ("I", "CHEME-6310")])
+        @test follow_up.result.cost == sabbatical_result.cost
+        @test ("G", "ENGRI-1120") in follow_up.pairs
+        g_moves = scenario(with_preference(sabbatical, "G", "CHEME-2880", 0))
+        @test g_moves.result.cost == 5.0
+        @test ("G", "CHEME-2880") in g_moves.pairs
         flexible = scenario(with_staffing(department, "CHEME-4320", 2, 4))
-        @test flexible.result.cost == 4.0
+        @test flexible.result.cost == 3.0
         @test department.courses.min_faculty[department.courses.course .== "CHEME-4320"] == [3] # unchanged
 
         # Input checks.
-        @test_throws ArgumentError with_fixed(department, "C", "CHEME-2880") # blank pairing
         @test_throws ArgumentError with_preference(department, "A", "CHEME-2880", 4)
         @test_throws ArgumentError with_load(department, "Z", 1)
-        @test_throws ArgumentError with_cost(department, "C", "CHEME-2880", -1.0) # blank pairing
+        @test with_cost(department, "C", "CHEME-2880", -1.0).costs[("C", "CHEME-2880")] == -1.0
+        @test_throws ArgumentError with_cost(department, "C", "UNKNOWN", -1.0)
         @test_throws ArgumentError with_cost(department, "C", "CHEME-3130", Inf)
-        # A new score, or a blank, replaces an earlier cost change for the same pairing.
+        # A blank restores the default score and clears any earlier cost override.
         rescored = with_preference(with_cost(department, "J", "CHEME-3130", -1.0), "J", "CHEME-3130", 1)
         @test isempty(rescored.costs)
-        @test with_preference(with_cost(department, "J", "CHEME-3130", -1.0), "J", "CHEME-3130", missing) isa NamedTuple
+        reset = with_preference(with_cost(department, "J", "CHEME-3130", -1.0), "J", "CHEME-3130", missing)
+        @test isempty(reset.costs)
+        @test reset.preferences[reset.preferences.name .== "J", "CHEME-3130"] == [3]
+        @test department.preferences[department.preferences.name .== "J", "CHEME-3130"] == [2]
+        @test length(build_teaching_network(reset).edges) == length(network.edges)
         half = with_cost(department, "J", "CHEME-3130", -0.5)
         half_network = build_teaching_network(half)
-        @test solve_min_cost_flow(half_network).cost == 4.5
+        @test solve_min_cost_flow(half_network).cost == 3.5
         @test plot_teaching_flow(half, half_network, solve_min_cost_flow(half_network)) isa Plots.Plot
         @test_throws ArgumentError with_staffing(department, "CHEME-4320", 4, 2)
         @test_throws ArgumentError read_department(joinpath(WEEK_ROOT, "missing"))
@@ -258,5 +294,6 @@ end
         @test plot_teaching_flow(department, network) isa Plots.Plot
         @test plot_teaching_flow(department, network, result; theme = :dark) isa Plots.Plot
         @test plot_teaching_flow(sabbatical, build_teaching_network(sabbatical), sabbatical_result) isa Plots.Plot
+        @test plot_teaching_flow(conflict, conflict_network, conflict_result) isa Plots.Plot
     end
 end

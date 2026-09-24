@@ -31,7 +31,6 @@ datasets = [
   "L5d/data/Faculty.csv",
   "L5d/data/Courses.csv",
   "L5d/data/Preferences.csv",
-  "L5d/data/Assignments.csv",
 ]
 student_paths = ["README.md", "L5a", "L5b", "L5c", "L5d"]
 instructor_only_paths = ["../../instructor/validation/week-05"]

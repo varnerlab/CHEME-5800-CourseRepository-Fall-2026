@@ -4,14 +4,16 @@
 # Every class-meeting folder carries one of these, and running it from the first
 # cell of the notebook is the only setup a student performs.
 #
-# The file is in three sections, in this order:
+# The file is in four sections, in this order:
 #
-#   1. PATHS   locate this folder, so nothing depends on the working directory
-#   2. CODE    load the root bootstrap and any source this meeting needs
-#   3. IMPORTS every `using` for this meeting, in one block
+#   1. PATHS     locate this folder, so nothing depends on the working directory
+#   2. BOOTSTRAP load the root setup and activate the course environment
+#   3. IMPORTS   every `using` for this meeting, in one block
+#   4. CODE      load this lab's types and functions
 #
-# Section 3 is deliberately the only place a `using` appears. To see what a
-# notebook can call, read that block and nothing else.
+# Section 3 is deliberately the only place a `using` appears. The local source
+# follows it because the function signatures and solver macros need those
+# packages to be available when Julia reads the files.
 #
 # The root bootstrap in section 2 activates the single pinned course environment
 # (root Project.toml and Manifest.toml). That is why no weekly folder carries a
@@ -23,8 +25,7 @@
 # --- 1. PATHS ----------------------------------------------------------------
 # `@__DIR__` is the folder holding *this* file, not `pwd()`, so the joins below
 # hold whether the notebook was launched from here or from the repository root.
-# The guard makes re-running the setup cell harmless, which matters because a
-# `const` may not be rebound once it is set.
+# The guards keep the path constants in place when the setup cell is rerun.
 if !isdefined(@__MODULE__, :CHEME5800_L5D_ROOT)
     const CHEME5800_L5D_ROOT = @__DIR__
 end
@@ -34,7 +35,7 @@ if !isdefined(@__MODULE__, :CHEME5800_L5D_DATA)
 end
 
 
-# --- 2. CODE -----------------------------------------------------------------
+# --- 2. BOOTSTRAP ------------------------------------------------------------
 # The repository root `Include.jl` activates the course environment and imports
 # the course package. It is the only place environment handling lives.
 # Reuse a completed bootstrap; reload it if the active project has changed.
@@ -43,40 +44,48 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `L5dMinCostFlow` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :L5dMinCostFlow)
-    include(joinpath(@__DIR__, "src", "Compute.jl"))
-end
-
-
-# The figure helper is separate from model assembly and solution checks.
-if !isdefined(@__MODULE__, :L5dFlowPlots)
-    include(joinpath(@__DIR__, "src", "FlowPlots.jl"))
-end
 
 # --- 3. IMPORTS --------------------------------------------------------------
-# Everything this meeting brings into scope. One `using` per line so each can
-# be annotated and each shows up on its own line in a diff.
+# Everything this meeting imports from packages. One `using` per line so each
+# can be annotated and each shows up on its own line in a diff.
 #
 # Already imported by the root bootstrap above, listed so this block is the
 # whole picture rather than most of it:
 #   VLDataScienceMachineLearningPackage   the course package
 #
 # Standard library:
-using Test              # @test / @testset for the checks in the notebook
+using LinearAlgebra: dot   # independently recompute cost from edge costs and flows
+using Test                # @test / @testset for the checks in the notebook
 #
 # Packages:
-using DataFrames        # tabular records held as columns
-using GLPK              # the LP/MILP solver backend
-using JuMP              # the optimization modeling layer
-using MathOptInterface  # solver status codes and attributes
-using Plots             # figures
-using PrettyTables      # formatted table output in the notebook
+using CSV                 # read the department input tables
+using Colors              # choose contrasting colors for the network figures
+using DataFrames          # tabular records held as columns
+using GLPK                # the LP/MILP solver backend
+using JuMP                # the optimization modeling layer
+using MathOptInterface    # solver status codes and attributes
+using Plots               # figures
+using PrettyTables        # formatted table output in the notebook
+
+
+# --- 4. CODE -----------------------------------------------------------------
+# These files define the lab's edge record and plain functions in the notebook's
+# scope. The guards load each file once per session, so rerunning setup preserves
+# the existing definitions. Restart the kernel after editing source files.
 #
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .L5dMinCostFlow   # from the include in section 2
-using .L5dFlowPlots     # the network figure helper
+# `Types.jl` defines FlowEdge, shared by the student and reference implementations.
+# Load it before the functions whose signatures use that type.
+if !isdefined(@__MODULE__, :FlowEdge)
+    include(joinpath(@__DIR__, "src", "Types.jl"))
+end
+
+# `Compute.jl` reads the department data, builds and solves the flow model, and
+# checks the resulting schedule. `Compute-solution.jl` is the reference version.
+if !isdefined(@__MODULE__, :build_teaching_network)
+    include(joinpath(@__DIR__, "src", "Compute.jl"))
+end
+
+# The figure helper is separate from model assembly and solution checks.
+if !isdefined(@__MODULE__, :plot_teaching_flow)
+    include(joinpath(@__DIR__, "src", "FlowPlots.jl"))
+end

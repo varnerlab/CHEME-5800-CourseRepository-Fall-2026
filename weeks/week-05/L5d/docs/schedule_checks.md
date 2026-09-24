@@ -1,7 +1,7 @@
 # schedule_checks(...)
 
 ```julia
-schedule_checks(department, schedule; atol::Real = 1e-8)
+schedule_checks(department::NamedTuple, schedule::AbstractDataFrame; atol::Real = 1e-8)
 ```
 
 Count each faculty member's assignments and each course's staffing in a schedule from [the `teaching_schedule(...)` function](teaching_schedule.md), and compare the counts with the department's rules.

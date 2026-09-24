@@ -1,7 +1,7 @@
 # solve_min_cost_flow(...)
 
 ```julia
-solve_min_cost_flow(network)
+solve_min_cost_flow(network::NamedTuple)
 ```
 
 Assemble the linear program for `network` with [the `flow_formulation(...)` function](flow_formulation.md) and solve it with [the `solve_flow_lp(...)` function](solve_flow_lp.md). `network` comes from [the `build_teaching_network(...)` function](build_teaching_network.md), whose nodes are numbered 1, 2, ..., n. The lab uses this shortcut for the live changes in Task 3, where rebuilding the arrays by hand would repeat Task 2.

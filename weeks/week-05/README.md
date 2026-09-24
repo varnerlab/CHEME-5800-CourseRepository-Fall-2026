@@ -71,8 +71,8 @@ repositories and are not part of this weekly instructional package.
   schematic, and revised-simplex narrative. The example now uses the current JuMP
   API directly and handles alternate optima deliberately.
 - L5d replaces the Fall 2025 worker–task example with a faculty teaching-assignment
-  model: exact teaching loads, course staffing bounds, survey-score costs, and a
-  fixed assignment, followed by sabbatical and mandate scenarios. The structure
+  model: exact teaching loads, course staffing bounds, and survey-score costs,
+  followed by preference-change and sabbatical scenarios. The structure
   follows a real faculty–course matching model reduced to one semester; all
   faculty data are synthetic. It is walked through in class, with discussion
   questions at the end of each task.
