@@ -47,6 +47,7 @@ function _flux(problem::MyPrimalFluxBalanceAnalysisCalculationModel)
     x_opt = value.(x);
     results["argmax"] = x_opt
     results["objective_value"] = objective_value(model);
+    results["termination_status"] = termination_status(model);
 
     # return -
     return results
@@ -134,6 +135,7 @@ flux bounds. The local implementation supports `MyPrimalFluxBalanceAnalysisCalcu
 - `"argmax"`: optimal flux vector, length `n`, in reaction order and the units
   of the supplied bounds. An optimum need not be unique.
 - `"objective_value"`: scalar `model.objective' * result["argmax"]`.
+- `"termination_status"`: solver termination status reported by JuMP.
 
 The input model is not mutated. An `AssertionError` is raised if JuMP does not
 report a solved, feasible problem, including an infeasible or unbounded problem.
