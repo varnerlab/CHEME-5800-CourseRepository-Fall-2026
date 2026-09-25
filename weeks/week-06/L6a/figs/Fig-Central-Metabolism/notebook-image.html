@@ -1,0 +1,15 @@
+<style>
+  .course-diagram { color-scheme: light dark; }
+  :host-context(body[data-vscode-theme-kind="vscode-light"]) .course-diagram,
+  :host-context(body[data-vscode-theme-kind="vscode-high-contrast-light"]) .course-diagram,
+  body[data-vscode-theme-kind="vscode-light"] .course-diagram,
+  body[data-vscode-theme-kind="vscode-high-contrast-light"] .course-diagram { color-scheme: light; }
+  :host-context(body[data-vscode-theme-kind="vscode-dark"]) .course-diagram,
+  :host-context(body[data-vscode-theme-kind="vscode-high-contrast"]) .course-diagram,
+  body[data-vscode-theme-kind="vscode-dark"] .course-diagram,
+  body[data-vscode-theme-kind="vscode-high-contrast"] .course-diagram { color-scheme: dark; }
+  body[data-jp-theme-light="true"] .course-diagram { color-scheme: light; }
+  body[data-jp-theme-light="false"] .course-diagram { color-scheme: dark; }
+  @media print { .course-diagram { color-scheme: only light !important; } }
+</style>
+<img class="course-diagram" src="figs/Fig-Central-Metabolism/Fig-Central-Metabolism.svg" width="1100" alt="Selected routes through glycolysis, the pentose phosphate pathway, and the TCA cycle, with branches toward lactate, nucleotides, lipids, and proteins. ATP and redox-carrier yields accompany the pathways, with a circular TCA cycle and an oxidative phosphorylation inset. Arrows may combine multiple reactions.">
