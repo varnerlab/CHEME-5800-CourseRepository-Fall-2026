@@ -1,6 +1,8 @@
 % L6a lecture companion. Source hashes and section mapping are in README.md.
 % Style files and Cornell seal are copied unchanged from L5c/slides.
 % The untitled metabolic-map slide uses the complete approved vector PDF.
+% Synchronized September 25, 2026 with the instructor-edited lecture order:
+% overview and geometry, stoichiometric matrix, flux bounds, linear program.
 \documentclass[aspectratio=169,11pt]{beamer}
 \usepackage{vnslides}
 \usepackage{tabularx}
@@ -16,7 +18,7 @@
 \newcommand{\mapsource}{\lecturesource{Metabolic Engineering. Original course figure:
   ../figs/Fig-Central-Metabolism/Fig-Central-Metabolism.tex.
   Scientific scope and biochemical sources: ../figs/Fig-Central-Metabolism/README.md.
-  Selected connections, not an organism-specific reconstruction.}}
+  Selected connections in central metabolism.}}
 
 \title{\texorpdfstring{{\vnheavy L6a}}{L6a}: Metabolic Engineering and Flux Balance Analysis}
 \subtitle{\texorpdfstring{Stoichiometry, reaction bounds, and production limits\\[3pt]CHEME 5800 Cornell University}{Stoichiometry, reaction bounds, and production limits; CHEME 5800 Cornell University}}
@@ -35,13 +37,13 @@
   {\large\textbf{\ink{Today's concepts}}}
   \vspace{0.2em}
   \begin{itemize}\setlength{\itemsep}{0.7em}
-    \item You will \hilite{represent a metabolic reaction network} with a
-      stoichiometric matrix and interpret its rows, columns, and coefficient signs.
-    \item You will \hilite{formulate a flux balance analysis problem} by combining
-      steady-state balances, reaction bounds, and a linear objective.
-    \item You will \hilite{develop and interpret flux bounds} using reaction
-      reversibility and enzyme capacity, and explain the assumptions that
-      simplify the bounds model.
+    \item You will \hilite{represent a metabolic reaction network as a
+      stoichiometric matrix} and interpret its rows, columns, and coefficient signs.
+    \item You will \hilite{formulate the flux balance analysis problem}, a linear
+      program for the unknown fluxes, and explain its objective and the
+      constraints that define the feasible solution space.
+    \item You will \hilite{develop and interpret flux bounds} from reaction
+      reversibility and enzyme capacity, and explain their biological meaning.
   \end{itemize}
   \slidenote{Lecture:}{\href{\lecturelink}{Metabolic Engineering and Flux Balance Analysis}}
   \lecturesource{Introduction and Learning Objectives.}
@@ -52,22 +54,23 @@
   \textbf{\ink{Lecture:}}
   \href{\lecturelink}{Metabolic Engineering and Flux Balance Analysis}
 
-  In this lecture, we will represent a reaction network with a stoichiometric
-  matrix and use material balances, flux bounds, and an objective to estimate
-  the reaction rates.
+  In this lecture, we introduce flux balance analysis (FBA), a tool based on
+  linear programming, to estimate reaction rates (called fluxes) in a metabolic
+  network.
 
   \vspace{1.0em}
   \textbf{\ink{Example:}}
   \href{\urealink}{Calculate fluxes in a urea-cycle model}
 
-  In this example, we will estimate reaction directions and enzyme capacities,
-  then solve a linear program to maximize urea export. We will use the material
-  balances to identify the reaction capacity that limits production.
+  In this example, we build a stoichiometric model of the urea cycle in human
+  cells, estimate reaction directions and enzyme capacities to establish the
+  flux bounds, and solve a linear program to maximize urea export. The same
+  approach applies to any metabolic network.
 
   \vspace{0.9em}
   We can explore the connections among metabolic pathways in the
   \href{https://www.kegg.jp/pathway/map01100}{KEGG metabolic pathways map}.
-  \lecturesource{Examples and Metabolic Engineering: urea-cycle example and KEGG map01100.}
+  \lecturesource{Introduction and Examples: urea-cycle example and KEGG map01100.}
 \end{frame}
 
 % A single untitled network overview introduces metabolic engineering.
@@ -78,63 +81,92 @@
 \end{frame}
 
 \begin{frame}{What Is Metabolic Engineering?}
+  Metabolic pathways encode the enzyme-catalyzed reactions that convert
+  nutrients into biomass and energy. Some pathways are highly conserved across
+  species, such as \hilite{central metabolism}: glycolysis, the pentose
+  phosphate pathway, and the TCA cycle.
+
+  \vspace{0.8em}
   \hilite{Metabolic engineering} is the directed modification of an
   organism's metabolic pathways through genetic and regulatory changes
-  to increase production of existing products or enable the production of new products.
+  to increase production of a desired compound or to enable new products.
 
   \vspace{0.8em}
   The engineering question is: how can we redirect carbon, nitrogen, and
   energy toward a target molecule while meeting the cell's other requirements?
-
-  \vspace{0.8em}
-  A \hilite{metabolic flux} is a reaction rate expressed on a specified
-  volume or biomass basis. Flux balance analysis estimates these rates
-  subject to material balances and flux bounds, for a chosen objective.
+  We describe the flow of material using \hilite{metabolic fluxes}: reaction
+  rates per unit volume or biomass.
 
   \slidenote{Early work:}{\href{https://pubmed.ncbi.nlm.nih.gov/2047876/}{Bailey (1991)};
     \href{https://pubmed.ncbi.nlm.nih.gov/1904627/}{Stephanopoulos and Vallino (1991)}.}
-  \lecturesource{Metabolic Engineering: definition, engineering question, and fluxes.
+  \lecturesource{Metabolic Engineering: pathways, definition, engineering question, and fluxes.
     Bailey, Science 252, 1668–1675 (1991).
     Stephanopoulos and Vallino, Science 252, 1675–1681 (1991).}
 \end{frame}
 
-% Flux Balance Analysis and its network/data subsections.
+% Flux Balance Analysis: definition, then the geometry figure.
 \begin{frame}{Flux Balance Analysis}
-  A metabolic reconstruction lists the reactions an organism can carry out.
-  The list alone does not specify their rates.
+  \hilite{Flux balance analysis (FBA)} estimates optimal metabolic reaction
+  rates (fluxes) from material balances and biological constraints.
 
   \vspace{0.8em}
-  \begin{enumerate}\setlength{\itemsep}{0.8em}
-    \item We express metabolite balances as \hilite{algebraic constraints}.
-    \item We restrict reaction rates using \hilite{flux bounds}.
-    \item We choose an \hilite{objective}, such as maximizing product export,
-      to select an optimal flux distribution.
-  \end{enumerate}
+  FBA uses linear programming to find the flux distribution that optimizes a
+  chosen objective function, subject to stoichiometric and capacity constraints,
+  at a \hilite{pseudo-steady state}.
 
-  \vspace{0.7em}
-  Several flux distributions may satisfy the same constraints. The objective
-  supplies the criterion for comparing them.
-  \lecturesource{Flux Balance Analysis: opening discussion.}
+  \vspace{0.8em}
+  \begin{enumerate}\setlength{\itemsep}{0.7em}
+    \item The \hilite{stoichiometric matrix} encodes the reaction network and
+      the steady-state material balances.
+    \item The \hilite{flux bounds} restrict each reaction rate using
+      reversibility and enzyme capacity.
+    \item The \hilite{linear program} combines the balances, bounds, and an
+      objective, such as maximizing product export.
+  \end{enumerate}
+  \lecturesource{Flux Balance Analysis: definition and components.}
 \end{frame}
 
-\begin{frame}{Metabolic Networks and Data Sources}
-  The modeled network depends on the organism, the compartments included,
-  and the purpose of the calculation.
+\begin{frame}{Conservation, Bounds, and Alternate Optima}
+  \centering
+  \includegraphics[width=0.92\textwidth,height=0.58\paperheight,keepaspectratio]{assets/Fig-FBA-FeasibleSpace.pdf}
 
-  \vspace{0.7em}
-  \begin{itemize}\setlength{\itemsep}{0.8em}
-    \item \hilite{Catabolic reactions} break down nutrients.
-    \item \hilite{Anabolic reactions} synthesize cellular components
-      and products.
-    \item When we model transport between \hilite{compartments}, we represent
-      a metabolite in the cytosol and the same compound in a mitochondrion
-      as distinct species.
+  \vspace{0.3em}
+  \raggedright
+  The balance equations define the null space $\mathcal N(\mathbf S)$; bounds
+  restrict it to the feasible set $\mathcal P$. The objective contours reach
+  the highlighted edge, where every point has the same optimal value
+  $Z^\star$, so the optimum is \hilite{not unique}.
+  \hilite{Flux variability analysis} fixes $Z^\star$ and finds the range of
+  each flux, the red bracket for $\hat v_1$.
+  \lecturesource{Flux Balance Analysis: geometry figure and caption.
+    Figure: ../figs/Fig-FBA-FeasibleSpace, adapted from the Varner lab chapter
+    linear-program geometry figure.}
+\end{frame}
+
+% Stoichiometric matrix, from a metabolic reconstruction.
+\begin{frame}{Stoichiometric Matrix}
+  We build $\mathbf S$ from a \hilite{metabolic reconstruction}: a curated set of
+  reactions, metabolites, and stoichiometric coefficients.
+  Let $\mathcal M$ be the set of modeled species and $\mathcal R$ the set of
+  reactions. The entry $\sigma_{ij}$ is the net coefficient of species $i$
+  in reaction $j$:
+  \[
+    \mathbf S=[\sigma_{ij}]
+      \in\mathbb R^{|\mathcal M|\times|\mathcal R|}.
+  \]
+
+  \begin{itemize}\setlength{\itemsep}{0.3em}
+    \item One \hilite{column} describes a reaction; one \hilite{row}
+      collects contributions to a species balance.
+    \item $\sigma_{ij}>0$: species $i$ is a \hilite{product} of reaction $j$.
+      $\sigma_{ij}<0$: species $i$ is a \hilite{reactant}.
+    \item $\sigma_{ij}=0$: species $i$ is not involved, or the net stoichiometry is zero.
   \end{itemize}
 
-  \vspace{0.7em}
-  Reaction records establish stoichiometry. Kinetic and physiological data
-  help specify the constraints for the conditions of interest.
-  \lecturesource{Metabolic networks and data sources.}
+  \vspace{0.2em}
+  The matrix records net stoichiometry. Regulation enters through the flux
+  bounds, not the stoichiometric matrix.
+  \lecturesource{Stoichiometric Matrix: reconstruction, definition, and coefficient signs.}
 \end{frame}
 
 \begin{frame}{Biological Data Resources}
@@ -152,132 +184,58 @@
     \bottomrule
   \end{tabularx}
   \slidenote{Readings:}{Resource names link to the papers listed in the lecture.}
-  \lecturesource{Metabolic networks and data sources: five-resource table.
+  \lecturesource{Stoichiometric Matrix: five-resource table.
     Kanehisa et al. (2025); Karp et al. (2019); Norsigian et al. (2020);
     Chang et al. (2021); Milo et al. (2010). Linked papers in the table.}
 \end{frame}
 
-\begin{frame}{Stoichiometric Matrix}
-  Let $\mathcal M$ be the set of modeled species and $\mathcal R$ the set of
-  reactions. The entry $\sigma_{ij}$ is the net coefficient of species $i$
-  in reaction $j$. We collect these coefficients in the matrix:
-  \[
-    \mathbf S=[\sigma_{ij}]
-      \in\mathbb R^{|\mathcal M|\times|\mathcal R|}.
-  \]
+\begin{frame}{Example: One Reaction Gives One Column}
+  \centering
+  \includegraphics[width=0.62\textwidth,height=0.40\paperheight,keepaspectratio]{assets/Fig-Stoichiometric-ControlVolume.pdf}
 
-  \begin{itemize}\setlength{\itemsep}{0.65em}
-    \item One \hilite{column} describes a reaction. One \hilite{row}
-      collects contributions to a species balance.
-    \item A positive $\sigma_{ij}$ means reaction $j$ produces species $i$;
-      a negative value means the reaction consumes it.
-    \item A zero $\sigma_{ij}$ means there is no net change in species $i$,
-      including when its reactant and product coefficients cancel.
-  \end{itemize}
-
-  \vspace{0.6em}
-  The coefficient signs refer to the written forward direction of each reaction.
-  The matrix records net stoichiometry, not every catalytic or regulatory interaction.
-  \lecturesource{Stoichiometric matrix: definition and coefficient signs.}
-\end{frame}
-
-\begin{frame}{One Reaction Gives One Matrix Column}
-  Reaction $j$ consumes one unit of $A$ and two units of $B$ to produce one unit of $C$.
-  With rows ordered as $(A,B,C)$, the reaction column $\mathbf s_j$ is given by:
+  \raggedright
+  The dashed boundary encloses the modeled species; material enters and leaves
+  through it. Reaction $j$ consumes one unit of $A$ and two units of $B$ to
+  produce one unit of $C$. With rows ordered $(A,B,C)$:
   \[
     A+2B\longrightarrow C,
     \qquad
-    \mathbf s_j=\begin{bmatrix}-1\\-2\\1\end{bmatrix}.
-  \]
-  Let $\hat v_j$ be the reaction flux. Its contribution to the balances is:
-  \[
-    \mathbf s_j\hat v_j
-      =\begin{bmatrix}-\hat v_j\\-2\hat v_j\\\hat v_j\end{bmatrix}.
-  \]
-  At positive flux, $B$ is consumed at twice the reaction rate.
-  For a reversible reaction, a negative flux reverses the production and
-  consumption rates. The stoichiometric column stays the same.
-  \lecturesource{Stoichiometric matrix: A + 2B to C example and reverse-flux interpretation.}
-\end{frame}
-
-% Flux Balance Analysis Formulation: assumptions, LP, and objective convention.
-\begin{frame}{The Flux Balance Approximation}
-  We assume that intracellular metabolite amounts per unit biomass remain
-  constant. We neglect explicit growth dilution and include transport and
-  exchange reactions in the network.
-
-  \vspace{0.5em}
-  The vector $\hat{\mathbf v}$ collects the reaction fluxes $\hat v_j$.
-  For each balanced species $i\in\mathcal M$, production and consumption
-  cancel across reactions $j\in\mathcal R$:
-  \[
-    \sum_{j\in\mathcal R}\sigma_{ij}\hat v_j=0,
-    \qquad\text{or}\qquad
-    \mathbf S\hat{\mathbf v}=\mathbf 0.
-  \]
-
-  \vspace{0.5em}
-  Transport reactions contribute to the same balances as the other reactions.
-
-  \vspace{0.7em}
-  Metabolite amounts per unit biomass remain constant even while reactions continue.
-  \slidenote{Derivation:}{\href{\derivationlink}{Balance assumptions and the conventional FBA approximation}}
-  \lecturesource{Flux Balance Analysis Formulation: assumptions.
-    \href{\derivationlink}{Companion balance derivation.}}
-\end{frame}
-
-\begin{frame}{Flux Balance Analysis Formulation}
-  Let $c_j$ be the objective weight of reaction $j$, and let
-  $\mathcal L_j$ and $\mathcal U_j$ be its prescribed flux bounds.
-  With the objective weights and flux bounds fixed, the linear program is:
-  \[
-    \begin{aligned}
-      \underset{\hat{\mathbf v}}{\operatorname{maximize}}\quad
-        &\sum_{j\in\mathcal R}c_j\hat v_j\\[3pt]
-      \text{subject to}\quad
-        &\sum_{j\in\mathcal R}\sigma_{ij}\hat v_j=0,
-          &&i\in\mathcal M,\\[3pt]
-        &\mathcal L_j\leq\hat v_j\leq\mathcal U_j,
-          &&j\in\mathcal R.
-    \end{aligned}
-  \]
-  A \hilite{feasible} distribution satisfies all balances and bounds.
-  An \hilite{optimal} distribution attains the best objective value
-  and need not be unique.
-  \slidenote{Readings:}{\href{https://pmc.ncbi.nlm.nih.gov/articles/PMC3108565/}{Orth et al. (2010)};
-    \href{https://pubmed.ncbi.nlm.nih.gov/30787451/}{Heirendt et al. (2019)}.}
-  \lecturesource{Flux Balance Analysis Formulation: linear program and interpretation.
-    Orth et al. (2010), What is flux balance analysis?
-    Heirendt et al. (2019), COBRA Toolbox v3.0.}
-\end{frame}
-
-\begin{frame}{An Objective for Product Export}
-  Let $p$ denote the urea exchange reaction, \texttt{b4}. We write this reaction
-  as uptake from the surroundings, so \hilite{negative flux represents export}.
-  We set its objective weight to $-1$ and all other weights to zero:
-  \[
-    c_j=\begin{cases}-1,&j=p,\\0,&j\neq p,\end{cases}
+    \mathbf s_j=\begin{bmatrix}-1\\-2\\1\end{bmatrix},
     \qquad
-    \sum_{j\in\mathcal R}c_j\hat v_j=-\hat v_p.
+    \mathbf s_j\hat v_j=\begin{bmatrix}-\hat v_j\\-2\hat v_j\\\hat v_j\end{bmatrix}.
+  \]
+  The coefficient $-2$ means $B$ is consumed at twice the reaction flux. A
+  negative flux reverses the signs; the column stays the same.
+  \lecturesource{Stoichiometric Matrix, Example: Stoichiometric Column.
+    Figure: ../figs/Fig-Stoichiometric-ControlVolume.}
+\end{frame}
+
+\begin{frame}{Exchange Reactions Cross the Boundary}
+  An \hilite{exchange reaction} connects a metabolite to the surroundings,
+  written $\emptyset$, which we do not balance. Its column has a single
+  nonzero entry. For the reactant $A$ supplied by exchange reaction $k$:
+  \[
+    \emptyset\longrightarrow A,
+    \qquad
+    \mathbf s_k=\begin{bmatrix}1\\0\\0\end{bmatrix}.
   \]
 
   \vspace{0.5em}
-  Maximizing $-\hat v_p$ makes the urea exchange flux as negative as the
-  balances and bounds allow, which maximizes urea export.
+  A positive flux brings $A$ into the control volume; a negative flux removes it.
+  The urea example writes every exchange this way. The BiGG models in the L6b
+  lab write $A\longrightarrow\emptyset$, so uptake is negative there.
 
-  \vspace{0.7em}
-  We express metabolic fluxes in $\mathrm{mmol\,gDW^{-1}\,h^{-1}}$,
-  where gDW means grams of dry biomass. Each bound has the units of its flux.
-  \lecturesource{Flux Balance Analysis Formulation: uptake-positive exchange convention,
-    urea-export objective, and flux units.}
+  \vspace{0.6em}
+  The sign convention does not affect the FBA solution, but it does affect the
+  interpretation of the fluxes.
+  \lecturesource{Stoichiometric Matrix: exchange reactions and sign conventions.}
 \end{frame}
 
 % A model for flux bounds: retain the instructor's brace notation.
 \begin{frame}{A Model for Flux Bounds}
-  For enzyme-catalyzed reaction $j$, we combine the reference capacity
-  $V_{max,j}^{\circ}$, relative enzyme abundance $e/e^{\circ}$, activity factor
-  $\theta_j$, saturation factor $f_j$, and reversibility parameter $\delta_j$
-  to define the flux bounds:
+  Flux bounds are \hilite{integrative}: they bring many types of genetic and
+  biochemical information into the problem. For enzyme-catalyzed reaction $j$,
+  a general model for the bounds is:
   \[
     \underbrace{
       -\delta_j\overbrace{
@@ -293,14 +251,15 @@
   \]
 
   \vspace{0.8em}
-  This model assumes equal forward and reverse capacities for a reversible
-  reaction. If the maximum rates differ, we need separate capacity estimates
-  for the two directions.
+  Here $V_{max,j}^{\circ}$ is the maximum reaction velocity at a characteristic
+  enzyme abundance, $e/e^{\circ}$ corrects for the actual abundance, $\theta_j$
+  is the allosteric activity, $f_j$ the substrate saturation, and $\delta_j$
+  the reversibility parameter.
 
   \vspace{0.6em}
-  We specify the parameters, enzyme abundances, and activity and saturation
-  factors \hilite{before solving} the linear program.
-  \lecturesource{A model for flux bounds: annotated bound model and fixed-parameter assumption.}
+  This model assumes equal forward and reverse capacities for a reversible
+  reaction. We fix every quantity \hilite{before solving} the linear program.
+  \lecturesource{A Model for Flux Bounds: annotated bound model and integrative role.}
 \end{frame}
 
 \begin{frame}{Reference Enzyme Capacity}
@@ -326,7 +285,7 @@
   \vspace{0.4em}
   The ratio $e/e^{\circ}$ scales the reference capacity to the actual
   abundance of the enzyme catalyzing reaction $j$.
-  \lecturesource{A model for flux bounds: maximum-velocity equation and nomenclature table.}
+  \lecturesource{A Model for Flux Bounds: maximum-velocity equation and nomenclature table.}
 \end{frame}
 
 \begin{frame}{Activity, Saturation, and Reversibility}
@@ -348,12 +307,12 @@
   \vspace{0.8em}
   Activity and substrate availability can reduce the capacity below
   $V_{max,j}^{\circ}(e/e^{\circ})$.
-  \lecturesource{A model for flux bounds: nomenclature for theta, f, and delta.}
+  \lecturesource{A Model for Flux Bounds: nomenclature for theta, f, and delta.}
 \end{frame}
 
 \begin{frame}{Simplified Bounds Model}
-  We assume the reference enzyme abundance, no allosteric effects, and
-  saturating substrates. Setting $e/e^{\circ}=\theta_j=f_j=1$ gives the bounds:
+  Let's assume $e/e^{\circ}\sim1$, no allosteric inputs $\theta_j(\dots)\sim1$,
+  and saturating substrates $f_j(\dots)\sim1$. Then the flux bounds are:
   \[
     \underbrace{-\delta_j V_{max,j}^{\circ}}_{\mathcal L_j}
       \leq\hat v_j\leq
@@ -369,9 +328,9 @@
   \end{itemize}
 
   \vspace{0.7em}
-  We need estimates of the turnover number, characteristic enzyme abundance,
-  and reaction reversibility.
-  \lecturesource{Simplified bounds model: assumptions and bound equation.}
+  The bounds are a function of the maximum reaction velocity, the turnover
+  number, and our assumed characteristic enzyme abundance.
+  \lecturesource{Simplified bounds model: assumptions, bound equation, and interpretation.}
 \end{frame}
 
 \begin{frame}{Exchange Bounds Specify the Surroundings}
@@ -391,56 +350,119 @@
   The exchange bounds specify which nutrients the system can take up and
   which products it can release. Internal reactions have separate bounds
   based on enzyme capacity and reaction direction.
-  \lecturesource{Simplified bounds model: exchange bounds, using the uptake-positive
-    convention in the urea-cycle example.}
+  \lecturesource{Urea-cycle example, Step 3: exchange bounds under the uptake-positive convention.}
 \end{frame}
 
-\begin{frame}{Example: Estimate Fluxes in the Urea Cycle}
-  In this example, we will calculate the maximum urea export rate and identify
-  the enzyme capacity that limits production.
+% Linear programming formulation: assumptions, boxed LP, and objective convention.
+\begin{frame}{The Flux Balance Approximation}
+  The FBA problem has the same structure as the minimum-cost flow problem we
+  explored previously: $\mathbf S$ plays the role of the incidence matrix, and
+  the exchange reactions take over the source and sink terms, so the right-hand
+  side is zero.
+
+  \vspace{0.5em}
+  The material balances rest on two assumptions: the amount of each metabolite
+  per gram of biomass stays constant, and growth dilution is small compared
+  with each metabolite's production and consumption rates. Then, for each
+  species $i\in\mathcal M$:
+  \[
+    \sum_{j\in\mathcal R}\sigma_{ij}\hat v_j=0,
+    \qquad\text{or}\qquad
+    \mathbf S\hat{\mathbf v}=\mathbf 0.
+  \]
+  \slidenote{Derivation:}{\href{\derivationlink}{Flux balance analysis material balances}}
+  \lecturesource{Linear Programming Formulation: analogy and assumptions.
+    \href{\derivationlink}{Companion derivation notebook.}}
+\end{frame}
+
+\begin{frame}{Flux Balance Analysis Problem}
+  Let $c_j$ be the objective weight of reaction $j$, and let
+  $\mathcal L_j$ and $\mathcal U_j$ be its flux bounds.
+  With the coefficients, weights, and bounds fixed, we solve:
+  {\small
+  \[
+    \boxed{
+    \begin{aligned}
+      \underset{\hat v_1,\hat v_2,\ldots,\hat v_{|\mathcal R|}}{\operatorname{maximize}}\quad
+        &\sum_{j\in\mathcal R}c_j\hat v_j\\[3pt]
+      \text{subject to}\quad
+        &\sum_{j\in\mathcal R}\sigma_{ij}\hat v_j=0,
+          &&i\in\mathcal M\quad\text{(material balance constraints)}\\[3pt]
+        &\mathcal L_j\leq\hat v_j\leq\mathcal U_j,
+          &&j\in\mathcal R\quad\text{(thermodynamics and kinetic constraints)}
+    \end{aligned}}
+  \]}
+  A \hilite{feasible} distribution satisfies all balances and bounds.
+  The objective selects an \hilite{optimal} distribution from the feasible set;
+  the optimal solution may \hilite{not be unique}.
+  \lecturesource{Linear Programming Formulation: boxed FBA problem and interpretation.}
+\end{frame}
+
+\begin{frame}{An Objective for Product Export}
+  Let $p$ denote the urea exchange reaction, \texttt{b4}. We write this reaction
+  as uptake from the surroundings, so \hilite{negative flux represents export}.
+  We set its objective weight to $-1$ and all other weights to zero:
+  \[
+    c_j=\begin{cases}-1,&j=p,\\0,&j\neq p,\end{cases}
+    \qquad
+    \sum_{j\in\mathcal R}c_j\hat v_j=-\hat v_p.
+  \]
+
+  \vspace{0.5em}
+  Maximizing $-\hat v_p$ makes the urea exchange flux as negative as the
+  balances and bounds allow, which maximizes urea export.
+
+  \vspace{0.7em}
+  We express metabolic fluxes in $\mathrm{mmol\,gDW^{-1}\,h^{-1}}$,
+  where gDW means grams of dry biomass. Each bound has the units of its flux.
+  \lecturesource{Urea-cycle example, Step 4: uptake-positive exchange convention,
+    urea-export objective, and flux units.}
+\end{frame}
+
+\begin{frame}{Example: Calculate Fluxes in a Urea-Cycle Model}
+  In this example, we calculate the maximum urea export rate for a
+  urea-cycle network in human cells.
 
   \vspace{0.7em}
   \begin{enumerate}\setlength{\itemsep}{0.7em}
-    \item We will build the stoichiometric matrix and estimate reaction
-      directions from thermodynamic data.
-    \item We will calculate flux bounds from enzyme turnover numbers and an
-      assumed enzyme abundance, and set the exchange bounds.
-    \item We will solve the linear program and use the material balances
-      to explain which capacity limits urea export.
+    \item We build the stoichiometric matrix, species and reaction lists, and
+      default bounds from the network file.
+    \item We assign reaction directions from Gibbs energy estimates and set
+      enzyme capacities from turnover numbers and a reference enzyme abundance.
+    \item We solve the linear program, inspect the optimal fluxes, and check the
+      solution against the balances and bounds.
   \end{enumerate}
 
   \vspace{0.7em}
-  We will also examine how a competing reaction diverts material from
-  urea production and changes the maximum export rate.
+  The same approach applies to any metabolic network, and the bounds show how
+  many types of biochemical information integrate into one problem.
   \slidenote{Example:}{\href{\urealink}{Calculate fluxes in a urea-cycle model}}
-  \lecturesource{Simplified bounds model: urea-cycle example callout.
+  \lecturesource{Linear Programming Formulation: urea-cycle example callout.
     \href{\urealink}{Companion urea-cycle example.}}
 \end{frame}
 
-% Summary: opening, exactly three takeaways, and the general modeling lesson.
+% Summary: opening, exactly three takeaways, and the closing lesson.
 \begin{frame}{Summary}
   We formulated flux balance analysis as a linear program, combining a
   metabolic network, biological constraints, and a production objective.
 
-  \vspace{0.3em}
   {\large\textbf{\ink{Key takeaways}}}
-  \vspace{0.2em}
-  \begin{itemize}\setlength{\itemsep}{0.4em}
-    \item \textbf{\ink{Stoichiometric matrix.}} We organized net production and
-      consumption coefficients into a matrix to write the material balances.
-    \item \textbf{\ink{Flux balance analysis.}} We combined material balances,
-      flux bounds, and a linear objective to estimate an optimal flux
-      distribution, which need not be unique.
-    \item \textbf{\ink{Flux bounds.}} We used enzyme capacity and reaction
-      direction to limit the allowed rates. We simplified the bounds by assuming
-      reference enzyme abundance, no allosteric effects, and saturating substrates.
+  \vspace{0.1em}
+  \begin{itemize}\setlength{\itemsep}{0.3em}
+    \item \textbf{\ink{Stoichiometric matrix.}} A mathematical representation of
+      the network built from a metabolic reconstruction: rows are metabolites,
+      columns are reactions, entries are net stoichiometric coefficients.
+    \item \textbf{\ink{Flux balance analysis.}} A linear program that estimates the
+      unknown fluxes; the objective represents production of a desired compound,
+      and the constraints are the balances and the flux bounds.
+    \item \textbf{\ink{Flux bounds.}} Constraints that define the feasible space,
+      modeled from the turnover number and a characteristic enzyme abundance;
+      they integrate genetic and biochemical information into the problem.
   \end{itemize}
 
-  \vspace{0.3em}
-  The same reaction network can support different production rates under
-  different constraints. An optimal solution describes what the model allows
-  under the conditions we specify.
-  \lecturesource{Summary: opening, three key takeaways, and closing general lesson.}
+  Flux balance analysis is a powerful tool for metabolic engineering: it lets us
+  predict how network changes affect production of a desired compound.
+  \lecturesource{Summary: opening, three key takeaways, and closing lesson.}
 \end{frame}
 
 \end{document}
