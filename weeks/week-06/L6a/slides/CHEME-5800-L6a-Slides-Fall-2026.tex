@@ -128,16 +128,13 @@
 
 \begin{frame}{Conservation, Bounds, and Alternate Optima}
   \centering
-  \includegraphics[width=0.92\textwidth,height=0.58\paperheight,keepaspectratio]{assets/Fig-FBA-FeasibleSpace.pdf}
+  \includegraphics[width=\textwidth,height=0.68\paperheight,keepaspectratio]{assets/Fig-FBA-FeasibleSpace.pdf}
 
-  \vspace{0.3em}
+  \vspace{0.4em}
   \raggedright
-  The balance equations define the null space $\mathcal N(\mathbf S)$; bounds
-  restrict it to the feasible set $\mathcal P$. The objective contours reach
-  the highlighted edge, where every point has the same optimal value
-  $Z^\star$, so the optimum is \hilite{not unique}.
-  \hilite{Flux variability analysis} fixes $Z^\star$ and finds the range of
-  each flux, the red bracket for $\hat v_1$.
+  Balances define the null space, bounds cut it to the feasible set $\mathcal P$,
+  and the objective selects an edge, so the optimum is \hilite{not unique}.
+  \hilite{Flux variability analysis} finds the range of each flux at $Z^\star$.
   \lecturesource{Flux Balance Analysis: geometry figure and caption.
     Figure: ../figs/Fig-FBA-FeasibleSpace, adapted from the Varner lab chapter
     linear-program geometry figure.}
@@ -355,16 +352,19 @@
 
 % Linear programming formulation: assumptions, boxed LP, and objective convention.
 \begin{frame}{The Flux Balance Approximation}
-  The FBA problem has the same structure as the minimum-cost flow problem we
-  explored previously: $\mathbf S$ plays the role of the incidence matrix, and
-  the exchange reactions take over the source and sink terms, so the right-hand
-  side is zero.
+  The FBA problem has the same structure as the minimum-cost flow problem:
+  $\mathbf S$ plays the role of the incidence matrix, and the exchange
+  reactions are the sources and sinks.
 
-  \vspace{0.5em}
-  The material balances rest on two assumptions: the amount of each metabolite
-  per gram of biomass stays constant, and growth dilution is small compared
-  with each metabolite's production and consumption rates. Then, for each
-  species $i\in\mathcal M$:
+  \vspace{0.6em}
+  The material balances rest on two assumptions:
+  \begin{itemize}\setlength{\itemsep}{0.5em}
+    \item The amount of each metabolite per gram of biomass stays constant.
+    \item Growth dilution is small compared with production and consumption.
+  \end{itemize}
+
+  \vspace{0.4em}
+  Then, for each species $i\in\mathcal M$:
   \[
     \sum_{j\in\mathcal R}\sigma_{ij}\hat v_j=0,
     \qquad\text{or}\qquad
@@ -446,22 +446,20 @@
   We formulated flux balance analysis as a linear program, combining a
   metabolic network, biological constraints, and a production objective.
 
+  \vspace{0.5em}
   {\large\textbf{\ink{Key takeaways}}}
-  \vspace{0.1em}
-  \begin{itemize}\setlength{\itemsep}{0.3em}
-    \item \textbf{\ink{Stoichiometric matrix.}} A mathematical representation of
-      the network built from a metabolic reconstruction: rows are metabolites,
-      columns are reactions, entries are net stoichiometric coefficients.
-    \item \textbf{\ink{Flux balance analysis.}} A linear program that estimates the
-      unknown fluxes; the objective represents production of a desired compound,
-      and the constraints are the balances and the flux bounds.
-    \item \textbf{\ink{Flux bounds.}} Constraints that define the feasible space,
-      modeled from the turnover number and a characteristic enzyme abundance;
-      they integrate genetic and biochemical information into the problem.
+  \vspace{0.3em}
+  \begin{itemize}\setlength{\itemsep}{0.9em}
+    \item \textbf{\ink{Stoichiometric matrix.}} Rows are metabolites, columns are
+      reactions, entries are net stoichiometric coefficients.
+    \item \textbf{\ink{Flux balance analysis.}} A linear program for the unknown
+      fluxes: a production objective, subject to balances and bounds.
+    \item \textbf{\ink{Flux bounds.}} Turnover number times enzyme abundance;
+      they integrate biochemical information into the problem.
   \end{itemize}
 
-  Flux balance analysis is a powerful tool for metabolic engineering: it lets us
-  predict how network changes affect production of a desired compound.
+  \vspace{0.8em}
+  FBA lets us predict how network changes affect production of a desired compound.
   \lecturesource{Summary: opening, three key takeaways, and closing lesson.}
 \end{frame}
 
