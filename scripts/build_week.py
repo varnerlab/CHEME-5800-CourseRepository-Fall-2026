@@ -22,6 +22,11 @@ ROOT_FILES = ("Include.jl", "Project.toml", "Manifest.toml", "LICENSE", "docs/sr
 PACKAGE_PATHS = ("code/Project.toml", "code/src")
 SKIP_NAMES = {".DS_Store", ".AppleDouble", "__pycache__", ".ipynb_checkpoints"}
 AUTHOR_PATH_MARKERS = (b"/Users/", b"\\Users\\", b"Desktop/julia_work", b"jl_notebook_cell_")
+# Third-party binaries (publisher PDFs) can carry other people's home-directory
+# paths in their metadata, so they are scanned only for this repository's markers.
+BINARY_PATH_MARKERS = (b"Desktop/julia_work", b"jl_notebook_cell_")
+TEXT_SUFFIXES = {".ipynb", ".jl", ".md", ".toml", ".csv", ".txt", ".svg", ".html",
+                 ".tex", ".py", ".json", ".net", ".edgelist", ".sty", ".yml", ".yaml"}
 VERSION = re.compile(r"^(\d+)\.(\d+)$")
 TAG = re.compile(r"^week-(\d{2})\.(\d+)$")
 MEETING_DIR = re.compile(r"^L\d+[a-z]$")
@@ -252,7 +257,8 @@ def validate_bundle(bundle: Path) -> None:
 
     for path in bundle_files(bundle):
         data = path.read_bytes()
-        for marker in AUTHOR_PATH_MARKERS:
+        markers = AUTHOR_PATH_MARKERS if path.suffix.lower() in TEXT_SUFFIXES else BINARY_PATH_MARKERS
+        for marker in markers:
             if marker in data:
                 raise BuildError(
                     f"author-machine path leaked into {path.relative_to(bundle)}: "

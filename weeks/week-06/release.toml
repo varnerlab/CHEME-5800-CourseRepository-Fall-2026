@@ -1,7 +1,7 @@
 schema_version = 2
 week = 6
-version = "1.0-prototype"
-status = "prototype"
+version = "1.0"
+status = "ready"
 cadence = "meeting"
 title = "Flux balance analysis and iterative linear solvers"
 languages = ["Julia"]
