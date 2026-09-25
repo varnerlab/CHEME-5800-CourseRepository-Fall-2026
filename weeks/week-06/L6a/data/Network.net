@@ -24,7 +24,7 @@ v3,M_L-Arginine_c+M_H2O_c,M_L-Ornithine_c+M_Urea_c,false
 // EC 2.1.3.3
 v4,M_Carbamoyl_phosphate_c+M_L-Ornithine_c,M_Orthophosphate_c+M_L-Citrulline_c,false
 
-// EC 1.15.13.39
+// EC 1.14.13.39
 v5,2*M_L-Arginine_c+4*M_Oxygen_c+3*M_NADPH_c+3*M_H_c,2*M_Nitric_oxide_c+2*M_L-Citrulline_c+3*M_NADP_c+4*M_H2O_c,true
 
 // Exchange reactions -

@@ -43,12 +43,9 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `Week07Core` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week07Core)
-    include(joinpath(@__DIR__, "..", "src", "Week07Core.jl"))
+# The module imports its dependencies and supports rerunning notebook setup -
+if !isdefined(@__MODULE__, :L7bBiGG)
+    include(joinpath(CHEME5800_L7B_ROOT, "src", "BiGG.jl"))
 end
 
 
@@ -61,16 +58,14 @@ end
 #   VLDataScienceMachineLearningPackage   the course package
 #
 # Standard library:
-using LinearAlgebra  # factorizations, norms, and matrix operations
-using Statistics     # mean, std, and friends
-using Test           # @test / @testset for the checks in the notebook
+using LinearAlgebra  # full SVD, norms, and matrix operations
+using Test           # checks in the notebook and validation suite
 #
 # Packages:
-using CSV            # reading delimited data files
-using DataFrames     # tabular records held as columns
-using Plots          # figures
-using PrettyTables   # formatted table output in the notebook
-#
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .Week07Core    # from the include in section 2
+using DataFrames     # metabolite and reaction coefficient tables
+using FileIO         # save / load for the cached BiGG model
+using Images         # grayscale matrix reconstructions
+using JLD2           # the .jld2 format behind save / load
+using Plots          # singular-value reconstruction plots
+
+using .L7bBiGG        # endpoint types and the BiGG download interface

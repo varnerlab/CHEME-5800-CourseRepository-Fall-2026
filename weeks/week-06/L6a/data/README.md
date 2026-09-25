@@ -17,3 +17,24 @@ The reversibility flags are a first guess. The example replaces them with estima
 from reaction free energies (eQuilibrator) and sets maximum rates from BRENDA
 turnover numbers. The schematic in `../figs/Fig-Urea-cycle-Schematic.png` comes from
 the same source.
+
+## Recorded thermodynamic and kinetic inputs
+
+`urea_thermodynamics.csv` and `urea_turnover_numbers.csv` were copied on
+2026-09-24 from `MRW-BTC4-Chapter-Varner/code/data/` (the instructor's chapter
+checkout). The tables preserve the chapter's 2026-07-22 access dates, reaction
+queries, transformed-state conditions, source publications, and parameter-selection
+notes. These are recorded inputs, not fresh database queries.
+
+The thermodynamic values are standard transformed reaction Gibbs energies;
+the -10 kJ/mol reversibility cutoff is a teaching heuristic, not an intracellular
+thermodynamic calculation. The kinetic records span organisms and assays. In
+particular, the v2 record has a species-attribution conflict, and v1 uses a
+literature-based default. The common enzyme abundance is illustrative, not a
+measured HL-60 abundance.
+
+The notebook uses `eₒ = 0.01 mmol/gDW` and multiplies turnover numbers in s⁻¹ by
+3600 to report capacities and fluxes in mmol/gDW/h. The chapter uses
+secretion-positive exchanges, whereas this network retains uptake-positive
+exchanges. Thus the same nominal solution has urea exchange flux -118.08 here
+and +118.08 in the chapter; the urea export rate is +118.08 in both.

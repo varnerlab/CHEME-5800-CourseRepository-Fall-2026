@@ -1,0 +1,529 @@
+% L6c lecture companion. Notebook hashes and coverage are recorded in README.md.
+% Style files and Cornell seal are copied unchanged from the approved L6a deck.
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{vnslides}
+\usepackage{tabularx}
+\renewcommand{\vnlecturecode}{L6c}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\lecturelink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-06/L6c/CHEME-5800-L6c-Lecture-GeneralIterativeMethod-Fall-2026.ipynb}
+\newcommand{\examplelink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-06/L6c/CHEME-5800-L6c-Example-FunWithIterativeSolvers-Fall-2026.ipynb}
+\newcommand{\jacobilink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-06/L6c/CHEME-5800-L6c-Algorithm-JacobiMethod-Fall-2026.ipynb}
+\newcommand{\gslink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-06/L6c/CHEME-5800-L6c-Algorithm-GaussSeidel-Fall-2026.ipynb}
+\newcommand{\sorlink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-06/L6c/CHEME-5800-L6c-Algorithm-SOR-Fall-2026.ipynb}
+\newcommand{\convergencelink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-06/L6c/CHEME-5800-L6c-Advanced-Convergence-IterativeMethods-Fall-2026.ipynb}
+\newcommand{\lablink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-06/L6d/CHEME-5800-L6d-Lab-IterativeLinearSolvers-Fall-2026.ipynb}
+\newcommand{\lecturesource}[1]{\note{[Sources]\par
+  \href{\lecturelink}{L6c lecture: Iterative Methods for Solving Linear Algebraic Equations.}\par
+  #1\par[/Sources]}}
+
+\title{\texorpdfstring{{\vnheavy L6c}}{L6c}: Iterative Methods for Solving Linear Algebraic Equations}
+\subtitle{\texorpdfstring{Residual corrections, convergence, and matrix splittings\\[3pt]CHEME 5800 Cornell University}{Residual corrections, convergence, and matrix splittings; CHEME 5800 Cornell University}}
+\author{Copyright Jeffrey Varner 2026. All Rights Reserved}
+
+\begin{document}
+\special{pdf:minorversion 7}
+\vntitlepage
+
+\begin{frame}{Objectives for Today}
+  How can repeated updates solve a linear system, and when do the
+  approximations approach the solution?
+
+  \vspace{0.4em}
+  {\large\textbf{\ink{Today's concepts}}}
+  \vspace{0.2em}
+  \begin{itemize}\setlength{\itemsep}{0.7em}
+    \item \hilite{Construct an iterative method}: derive a correction from
+      a matrix splitting and distinguish satisfying a tolerance from reaching an iteration limit.
+    \item \hilite{Assess convergence}: use the spectral radius, diagonal
+      dominance, and an error bound to determine whether the iterates approach the solution.
+    \item \hilite{Compare specific methods}: explain the updates and
+      computational work of Jacobi, Gauss–Seidel, and relaxation.
+  \end{itemize}
+  \slidenote{Lecture:}{\href{\lecturelink}{Iterative Methods for Solving Linear Algebraic Equations}}
+  \lecturesource{Introduction and three Learning Objectives.}
+\end{frame}
+
+\begin{frame}{Lecture and Example}
+  \textbf{\ink{Lecture:}}
+  \href{\lecturelink}{Iterative Methods for Solving Linear Algebraic Equations}
+
+  Derive residual corrections, establish convergence conditions, and compare
+  diagonal and triangular matrix splittings.
+
+  \vspace{1.1em}
+  \textbf{\ink{Example:}}
+  \href{\examplelink}{Fun with Iterative Methods}
+
+  Solve the same system with an iterative method and a direct solver.
+  Check the computed solutions, then compare the solvers' runtimes and memory allocations.
+
+  \vspace{0.8em}
+  Repeated corrections offer an alternative when a direct solution requires
+  too much computation or memory.
+  \lecturesource{Examples; motivation in the Introduction.}
+\end{frame}
+
+\begin{frame}{General Iterative Method}
+  Let $\mathbf A\in\mathbb R^{n\times n}$ be nonsingular, let
+  $\mathbf x\in\mathbb R^n$ contain the unknowns, and let
+  $\mathbf b\in\mathbb R^n$ be the right-hand side. We seek the unique solution of:
+  \[
+    \mathbf A\mathbf x=\mathbf b.
+  \]
+  An \hilite{iterate} $\mathbf x^{(k)}$ is the approximation after $k$ updates,
+  starting from the initial guess $\mathbf x^{(0)}$. The \hilite{residual} at this iterate is:
+  \[
+    \mathbf r^{(k)}=\mathbf b-\mathbf A\mathbf x^{(k)}.
+  \]
+  Each component of the residual measures the mismatch in one equation.
+  If the residual is zero, the iterate is the exact solution.
+
+  \vspace{0.6em}
+  The \hilite{solution error} is the difference between the approximation and
+  the exact solution. A small residual alone does not guarantee a small solution error.
+  \lecturesource{General iterative method: system, residual, and accuracy interpretation.}
+\end{frame}
+
+\begin{frame}{A Matrix Splitting Defines the Correction}
+  Choose a nonsingular matrix $\mathbf M$ whose systems are inexpensive to
+  solve. A \hilite{matrix splitting} writes $\mathbf A$ as:
+  \[
+    \mathbf A=\mathbf M-\mathbf N,
+    \qquad \mathbf N=\mathbf M-\mathbf A.
+  \]
+  A \hilite{correction} $\mathbf d^{(k)}$ is the vector added to the current
+  approximation. We compute the correction and update the approximation using:
+  \[
+    \underbrace{\mathbf M\mathbf d^{(k)}=\mathbf r^{(k)}}_{\text{solve for the correction}},
+    \qquad
+    \underbrace{\mathbf x^{(k+1)}=\mathbf x^{(k)}+\mathbf d^{(k)}}_{\text{apply the correction}}.
+  \]
+  A correction need not reduce the residual norm or the solution-error norm.
+
+  \vspace{0.6em}
+  A fixed splitting defines a \hilite{stationary iterative method}.
+  Choosing a diagonal or triangular $\mathbf M$ simplifies the correction solve.
+  \lecturesource{General iterative method: splitting and correction solve.}
+\end{frame}
+
+\begin{frame}{General Iterative Method: Algorithm}
+  \textbf{Initialize:} Choose $\mathbf x^{(0)}$, an absolute tolerance $\epsilon>0$
+  for the Euclidean residual norm, and a nonnegative integer update limit $\texttt{maxiter}$.
+  Set $k\gets0$ and $\texttt{converged}\gets\texttt{false}$.
+
+  \vspace{0.4em}
+  While not $\texttt{converged}$ \textbf{do}:
+  \begin{enumerate}\setlength{\itemsep}{0.15em}
+    \item Calculate $\mathbf r^{(k)}\gets\mathbf b-\mathbf A\mathbf x^{(k)}$.
+    \item Check whether to stop:
+      \begin{itemize}\setlength{\itemsep}{0.1em}
+        \item If $\|\mathbf r^{(k)}\|_2<\epsilon$, \textbf{then}: return
+          $\mathbf x^{(k)}$ with $\texttt{converged}=\texttt{true}$.
+        \item Otherwise, if $k\ge\texttt{maxiter}$, \textbf{then}: return
+          $\mathbf x^{(k)}$ with $\texttt{converged}=\texttt{false}$ and a warning.
+      \end{itemize}
+    \item Solve $\mathbf M\mathbf d^{(k)}=\mathbf r^{(k)}$.
+    \item Update $\mathbf x^{(k+1)}\gets\mathbf x^{(k)}+\mathbf d^{(k)}$.
+    \item Increment $k\gets k+1$.
+  \end{enumerate}
+  \vspace{0.3em}
+  The counter $k$ records completed updates. The \texttt{converged} flag reports
+  whether the residual tolerance was met. Both return statements terminate the algorithm.
+  \lecturesource{General iterative method: pseudocode. Preserve the 2025 Initialize/While/numbered-step/nested-conditional format.}
+\end{frame}
+
+\begin{frame}{Update Direction: The Stationary Form}
+  Substitute the splitting into the system, then use the current approximation
+  on the right-hand side:
+  \[
+    \begin{aligned}
+      (\mathbf M-\mathbf N)\mathbf x&=\mathbf b,\\
+      \mathbf M\mathbf x&=\mathbf b+\mathbf N\mathbf x,\\[3pt]
+      \mathbf M\mathbf x^{(k+1)}&=\mathbf b+\mathbf N\mathbf x^{(k)}.
+    \end{aligned}
+  \]
+  Define the iteration matrix $\mathbf G$ and constant vector $\mathbf c$:
+  \[
+    \mathbf x^{(k+1)}=
+    \underbrace{\mathbf M^{-1}\mathbf N}_{\mathbf G}\mathbf x^{(k)}
+    +\underbrace{\mathbf M^{-1}\mathbf b}_{\mathbf c}.
+  \]
+  The matrix $\mathbf G$ and vector $\mathbf c$ remain fixed as $k$ increases.
+  We can also express this update as a correction added to the current approximation.
+  \lecturesource{Update direction: splitting identity and stationary iteration.}
+\end{frame}
+
+\begin{frame}{Update Direction: A Residual Correction}
+  With $\mathbf I$ the identity matrix, substitute
+  $\mathbf N=\mathbf M-\mathbf A$ into the stationary update:
+  \[
+    \begin{aligned}
+      \mathbf x^{(k+1)}
+      &=\mathbf M^{-1}\mathbf b+(\mathbf I-\mathbf M^{-1}\mathbf A)\mathbf x^{(k)}\\[3pt]
+      &=\mathbf x^{(k)}+\mathbf M^{-1}
+        \underbrace{(\mathbf b-\mathbf A\mathbf x^{(k)})}_{\text{residual }\mathbf r^{(k)}}\\[3pt]
+      &=\mathbf x^{(k)}+\underbrace{\mathbf M^{-1}\mathbf r^{(k)}}_{\text{correction }\mathbf d^{(k)}}.
+    \end{aligned}
+  \]
+  Thus, the correction solves $\mathbf M\mathbf d^{(k)}=\mathbf r^{(k)}$.
+
+  \vspace{0.6em}
+  The exact solution is a \hilite{fixed point}: its residual is zero, so
+  the update leaves the solution unchanged. We must still determine whether
+  iterates starting from other initial guesses approach this fixed point.
+  \lecturesource{Update direction: residual derivation and stationary-iteration callout.}
+\end{frame}
+
+\begin{frame}{Convergence: Propagation of the Error}
+  Let $\mathbf x^\star$ be the exact solution and define the solution error
+  by $\mathbf e^{(k)}=\mathbf x^{(k)}-\mathbf x^\star$.
+  Subtract the fixed-point equation from the update:
+  \[
+    \begin{aligned}
+      \mathbf e^{(k+1)}
+      &=(\mathbf G\mathbf x^{(k)}+\mathbf c)
+       -(\mathbf G\mathbf x^\star+\mathbf c)\\
+      &=\mathbf G\mathbf e^{(k)},\\[5pt]
+      \mathbf e^{(k)}&=\mathbf G^k\mathbf e^{(0)}.
+    \end{aligned}
+  \]
+  The residual and the solution error are related by $\mathbf r^{(k)}=-\mathbf A\mathbf e^{(k)}$.
+
+  \vspace{0.7em}
+  \hilite{Convergence} means $\mathbf e^{(k)}\to\mathbf0$ as $k\to\infty$.
+  The iteration converges from every initial guess if and only if $\mathbf G^k\to\mathbf0$.
+  \lecturesource{Convergence: error recurrence. \href{\convergencelink}{Advanced convergence companion.}}
+\end{frame}
+
+\begin{frame}{The Spectral-Radius Convergence Condition}
+  Let $\lambda_i$ denote the eigenvalues of $\mathbf G$.
+  The \hilite{spectral radius} of $\mathbf G$ is the largest eigenvalue magnitude:
+  \[
+    \rho(\mathbf G)=\max_i|\lambda_i|.
+  \]
+  The stationary iteration converges to the solution from every initial
+  guess if and only if:
+  \[
+    \boxed{\rho(\mathbf G)<1.}
+  \]
+  The condition $\rho(\mathbf G)<1$ guarantees that the error approaches zero.
+  The error norm may nevertheless increase during some updates.
+  \slidenote{Derivation:}{\href{\convergencelink}{Error propagation and the spectral-radius criterion}}
+  \lecturesource{Convergence: spectral-radius condition. Advanced companion: necessity, sufficiency, and Jordan blocks.}
+\end{frame}
+
+\begin{frame}{Convergence Need Not Be Monotone}
+  Take the following iteration matrix and initial error:
+  \[
+    \mathbf G=\begin{bmatrix}1/2&2\\0&1/2\end{bmatrix},
+    \qquad\mathbf e^{(0)}=\begin{bmatrix}0\\1\end{bmatrix}.
+  \]
+  Both eigenvalues of $\mathbf G$ are $1/2$, but the first update increases the error norm:
+  \[
+    \mathbf e^{(1)}=\begin{bmatrix}2\\1/2\end{bmatrix},
+    \qquad \|\mathbf e^{(1)}\|_2=\frac{\sqrt{17}}2\approx2.06>1.
+  \]
+  Repeated multiplication nevertheless gives:
+  \[
+    \mathbf G^k=2^{-k}\begin{bmatrix}1&4k\\0&1\end{bmatrix}\longrightarrow\mathbf0.
+  \]
+  The factor $2^{-k}$ decays faster than $k$ grows, so the error approaches zero.
+  \lecturesource{Convergence: eventual versus monotone decay. Exact example from the advanced convergence companion, Convergence need not be monotone.}
+\end{frame}
+
+\begin{frame}{Diagonal Dominance}
+  Write $a_{ij}$ for entry $(i,j)$ of $\mathbf A$.
+  \hilite{Strict diagonal dominance by rows} requires:
+  \[
+    |a_{ii}|>\sum_{j\ne i}|a_{ij}|,
+    \qquad i=1,\ldots,n.
+  \]
+  The magnitude of each diagonal entry exceeds the sum of the magnitudes
+  of the other entries in that row.
+
+  \vspace{0.8em}
+  \begin{itemize}\setlength{\itemsep}{0.7em}
+    \item This condition guarantees convergence of \hilite{Jacobi}
+      and \hilite{Gauss–Seidel} from every initial guess.
+    \item The inequality must hold in \hilite{every row}.
+    \item Strict diagonal dominance is sufficient for convergence, but it is not necessary.
+  \end{itemize}
+  \lecturesource{Convergence: Diagonal dominance.}
+\end{frame}
+
+\begin{frame}{Why Diagonal Dominance Works for Jacobi}
+  Assume that $\mathbf A$ is strictly diagonally dominant by rows.
+  Let $\mathbf D$ be the diagonal matrix formed from the diagonal entries of $\mathbf A$. Jacobi uses $\mathbf M=\mathbf D$ and $\mathbf N=\mathbf D-\mathbf A$, giving:
+  \[
+    \mathbf G_J=\mathbf D^{-1}(\mathbf D-\mathbf A),
+    \qquad
+    \|\mathbf G_J\|_\infty
+    =\max_i\frac{\sum_{j\ne i}|a_{ij}|}{|a_{ii}|}<1.
+  \]
+  The induced infinity-norm is the largest absolute row sum.
+  For any eigenpair $(\lambda,\mathbf v)$ with $\mathbf v\ne\mathbf0$:
+  \[
+    \begin{aligned}
+      |\lambda|\,\|\mathbf v\|_\infty
+      &=\|\mathbf G_J\mathbf v\|_\infty
+      \le\|\mathbf G_J\|_\infty\|\mathbf v\|_\infty,\\
+      \rho(\mathbf G_J)&\le\|\mathbf G_J\|_\infty<1.
+    \end{aligned}
+  \]
+  Thus, strict row diagonal dominance guarantees convergence of Jacobi.
+  Proving convergence of Gauss–Seidel requires a separate argument.
+  \lecturesource{Convergence: Diagonal dominance, Jacobi row-sum proof.}
+\end{frame}
+
+\begin{frame}{Rate of Convergence and an Error Bound}
+  Suppose an induced matrix norm satisfies $q=\|\mathbf G\|<1$.
+  Use its corresponding vector norm to bound the error:
+  \[
+    \begin{aligned}
+      \|\mathbf e^{(k)}\|
+      &=\|\mathbf G^k\mathbf e^{(0)}\|\\
+      &\le\|\mathbf G^k\|\,\|\mathbf e^{(0)}\|\\
+      &\le q^k\|\mathbf e^{(0)}\|.
+    \end{aligned}
+  \]
+  The \hilite{contraction factor} $q$ satisfies
+  $\|\mathbf e^{(k+1)}\|\le q\|\mathbf e^{(k)}\|$.
+  A smaller $q$ gives a smaller upper bound for the same initial error.
+
+  \vspace{0.7em}
+  If the chosen norm gives $q\ge1$, the bound does not show that the error approaches zero,
+  even when $\rho(\mathbf G)<1$.
+
+  \vspace{0.5em}
+  With $q<1$, each update reduces the error norm until the error is zero.
+  \lecturesource{Convergence: Rate of convergence and an iteration bound.}
+\end{frame}
+
+\begin{frame}{A Sufficient Iteration Count}
+  Let $E_0\ge\|\mathbf e^{(0)}\|$, with $E_0>0$. Choose a solution-error tolerance
+  $0<\epsilon_e<E_0$ and assume $0<q<1$.
+  Requiring $q^kE_0\le\epsilon_e$ gives:
+  \[
+    \begin{aligned}
+      k\ln q&\le\ln(\epsilon_e/E_0),\\[3pt]
+      k&\ge\left\lceil\frac{\ln(E_0/\epsilon_e)}{-\ln q}\right\rceil.
+    \end{aligned}
+  \]
+  Dividing by $\ln q<0$ reverses the inequality. The ceiling rounds the count
+  up to an integer. The error may reach the tolerance in fewer updates.
+
+  \vspace{0.5em}
+  For $q=0.5$, $E_0=1$, and $\epsilon_e=10^{-3}$, the bound gives
+  \hilite{10 updates}, since $2^{-10}\approx9.77\times10^{-4}$.
+
+  \vspace{0.5em}
+  If $E_0\le\epsilon_e$, no update is needed. If $q=0$, one update gives the exact solution.
+  \slidenote{Scope:}{$\epsilon_e$ bounds solution error; the algorithm uses residual tolerance $\epsilon$. The initial error bound $E_0$ may be unknown.}
+  \lecturesource{Convergence: sufficient count, numerical anchor, and boundary cases.}
+\end{frame}
+
+\begin{frame}{Specific Methods}
+  Split $\mathbf A$ into its diagonal matrix $\mathbf D$, strictly lower triangular
+  part $\mathbf L$, and strictly upper triangular part $\mathbf U$:
+  \[
+    \mathbf A=\mathbf D+\mathbf L+\mathbf U.
+  \]
+  With nonzero diagonal entries and relaxation factor $\omega>0$,
+  the matrices used in the correction solves are:
+  \[
+    \begin{aligned}
+      \mathbf M_J&=\mathbf D, &&\text{Jacobi},\\[4pt]
+      \mathbf M_{GS}&=\mathbf D+\mathbf L, &&\text{Gauss–Seidel},\\[4pt]
+      \mathbf M_\omega&=\frac1\omega\mathbf D+\mathbf L,
+        &&\text{successive over-relaxation}.
+    \end{aligned}
+  \]
+  Each method converts the same residual into a different correction.
+  \lecturesource{Specific Methods: common D + L + U convention and choices of M.}
+\end{frame}
+
+\begin{frame}{Jacobi: Independent Component Updates}
+  For Jacobi, the correction solves $\mathbf D\mathbf d^{(k)}=\mathbf r^{(k)}$.
+  Solving each row gives the corresponding component of the next iterate:
+  \[
+    x_i^{(k+1)}=\frac1{a_{ii}}
+    \left(b_i-\sum_{j\ne i}a_{ij}x_j^{(k)}\right),
+    \qquad i=1,\ldots,n.
+  \]
+  Every component update uses the \hilite{previous iterate} $\mathbf x^{(k)}$.
+  Keep $\mathbf x^{(k)}$ unchanged until all components of $\mathbf x^{(k+1)}$ are ready.
+
+  \vspace{0.6em}
+  The iteration matrix is:
+  \[
+    \mathbf G_J=-\mathbf D^{-1}(\mathbf L+\mathbf U).
+  \]
+  Component updates can run in parallel. Strict row diagonal dominance
+  guarantees convergence.
+  \slidenote{Algorithm:}{\href{\jacobilink}{The Jacobi Method}}
+  \lecturesource{Specific Methods: Jacobi. Component formula and iteration matrix from the Jacobi companion.}
+\end{frame}
+
+\begin{frame}{Gauss–Seidel: Sequential Component Updates}
+  Solve $(\mathbf D+\mathbf L)\mathbf d^{(k)}=\mathbf r^{(k)}$
+  by forward substitution. The equivalent component update is:
+  \[
+    x_i^{(k+1)}=\frac1{a_{ii}}\left(
+      b_i-\sum_{j<i}a_{ij}x_j^{(k+1)}-\sum_{j>i}a_{ij}x_j^{(k)}
+    \right).
+  \]
+  When updating component $i$, use the \hilite{new values} for components $j<i$
+  and the values from the previous iterate for components $j>i$.
+  The iteration matrix is:
+  \[
+    \mathbf G_{GS}=-(\mathbf D+\mathbf L)^{-1}\mathbf U.
+  \]
+  Strict row diagonal dominance guarantees convergence. Reusing updated values
+  can reduce the iteration count, but Gauss–Seidel is not always faster than Jacobi.
+  \slidenote{Algorithm:}{\href{\gslink}{The Gauss–Seidel Method}}
+  \lecturesource{Specific Methods: Gauss–Seidel. Component formula and signed iteration matrix from the companion. Empty sums are zero.}
+\end{frame}
+
+\begin{frame}{Successive Over-Relaxation}
+  The relaxation factor $\omega$ changes each sequential component update.
+  The correction solves:
+  \[
+    (\mathbf D+\omega\mathbf L)\mathbf d^{(k)}=\omega\mathbf r^{(k)}.
+  \]
+  Applying the correction gives:
+  \[
+    x_i^{(k+1)}=(1-\omega)x_i^{(k)}
+      +\frac{\omega}{a_{ii}}\left(
+        b_i-\sum_{j<i}a_{ij}x_j^{(k+1)}-\sum_{j>i}a_{ij}x_j^{(k)}
+      \right).
+  \]
+  When updating component $i$, the components $j<i$ already contain their relaxed values.
+  The iteration matrix is:
+  \[
+    \mathbf G_\omega=(\mathbf D+\omega\mathbf L)^{-1}
+      \bigl((1-\omega)\mathbf D-\omega\mathbf U\bigr).
+  \]
+  \slidenote{Algorithm:}{\href{\sorlink}{Successive Over-Relaxation}}
+  \lecturesource{Specific Methods: SOR; correction, component formula, and iteration matrix from the SOR companion.}
+\end{frame}
+
+\begin{frame}{Relaxation and Convergence}
+  The relaxation factor $\omega$ scales the change from the previous value
+  of a component to the value obtained by solving its row equation:
+
+  \vspace{0.5em}
+  \begin{itemize}\setlength{\itemsep}{0.65em}
+    \item $0<\omega<1$: \hilite{under-relaxation}, taking a partial step.
+    \item $\omega=1$: the Gauss–Seidel update.
+    \item $1<\omega<2$: \hilite{over-relaxation}, stepping beyond the row-equation solution.
+  \end{itemize}
+
+  \vspace{0.7em}
+  If $\mathbf A$ is \hilite{symmetric positive definite}, convergence is
+  guaranteed for $0<\omega<2$. Strict diagonal dominance alone does not
+  guarantee convergence over that entire interval.
+
+  \vspace{0.5em}
+  A suitable factor can reduce the iteration count. The best choice depends
+  on the matrix; formulas for an optimal factor need additional assumptions.
+  \slidenote{Reading:}{\href{https://netlib.org/linalg/html_templates/node16.html}{Choosing the relaxation factor};
+    \href{\sorlink}{special-case formula in the algorithm notebook}.}
+  \lecturesource{Specific Methods: relaxation regimes and SPD guarantee.
+    Netlib Templates, Choosing the Value of omega.
+    SOR companion: symmetric positive definite tridiagonal special case.}
+\end{frame}
+
+\begin{frame}{Work per Iteration}
+  A \hilite{sweep} updates all $n$ components once. For these methods,
+  each completed iteration checks the residual and performs one full sweep.
+
+  \vspace{0.6em}
+  \renewcommand{\arraystretch}{1.45}
+  \begin{tabularx}{\textwidth}{@{}lY@{}}
+    \toprule
+    Method & Correction work and dependencies\\
+    \midrule
+    Jacobi & Diagonal solve; components use the same previous iterate.\\
+    Gauss–Seidel & Lower triangular solve; later rows depend on earlier updates.\\
+    Relaxation & Relaxed lower triangular solve; the factor changes convergence.\\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{0.7em}
+  For dense matrices, a full iteration requires work proportional to $n^2$.
+  Sparse implementations can work with the stored nonzero entries.
+
+  \vspace{0.6em}
+  Runtime depends on both the \hilite{cost per iteration} and the
+  \hilite{number of iterations} needed to meet the residual tolerance.
+  \lecturesource{Specific Methods: cost per sweep and total runtime.}
+\end{frame}
+
+\begin{frame}{Example: Fun with Iterative Methods}
+  The example constructs a symmetric, strictly diagonally dominant matrix
+  with positive diagonal entries. These properties make the matrix positive definite.
+
+  \vspace{0.6em}
+  \begin{enumerate}\setlength{\itemsep}{0.65em}
+    \item Check symmetry and positive diagonal entries. Verify strict diagonal
+      dominance in \hilite{every row}.
+    \item Solve the system with an iterative method and a direct solver.
+      Check the final residual norm and the norm of the difference between solutions.
+    \item Benchmark both solvers with the same settings used above.
+      Compare the timing distributions and memory allocations.
+  \end{enumerate}
+
+  \vspace{0.5em}
+  The iterative solver forms explicit inverses and stores the iterates, adding to
+  its runtime and memory use. The comparison applies to this implementation and test system.
+  \slidenote{Example:}{\href{\examplelink}{Fun with Iterative Methods}}
+  \lecturesource{Specific Methods: example callout and interpretation.
+    Companion example: Tasks 1--3. Uses the corrected shared stopping loop;
+    archived iterates stop at the first residual norm satisfying tolerance.}
+\end{frame}
+
+\begin{frame}{Lab: Compare Iterative Linear Solvers}
+  In \href{\lablink}{L6d}, solve the same diagonally dominant system with
+  Jacobi, Gauss–Seidel, and successive over-relaxation.
+
+  \vspace{0.8em}
+  \begin{itemize}\setlength{\itemsep}{0.8em}
+    \item Compare each result with the \hilite{direct solution}.
+    \item Use \hilite{residual-norm histories} and the solver's status flag to check
+      whether the residual tolerance was met.
+    \item Compare iteration counts and explore the effect of the
+      relaxation factor.
+  \end{itemize}
+
+  \vspace{0.7em}
+  Interpret speed only after checking the solution. A smaller iteration count
+  is meaningful when the methods meet the same residual tolerance
+  for the same system and initial guess.
+  \slidenote{Lab:}{\href{\lablink}{Compare Jacobi, Gauss–Seidel, and SOR}}
+  \lecturesource{Lab. Linked L6d notebook: learning objectives and Summary.}
+\end{frame}
+
+\begin{frame}{Summary}
+  We developed stationary iterative methods by converting the residual
+  into a correction through a matrix splitting.
+
+  \vspace{0.4em}
+  {\large\textbf{\ink{Key takeaways}}}
+  \vspace{0.2em}
+  \begin{itemize}\setlength{\itemsep}{0.65em}
+    \item \textbf{Residual-based corrections.} The splitting determines the
+      correction solve. Reaching an iteration limit does not establish convergence.
+    \item \textbf{Convergence and error bounds.} The iteration matrix
+      characterizes convergence. Diagonal dominance and contracting norms
+      provide useful sufficient conditions and bounds.
+    \item \textbf{Choosing a method.} Independent, sequential, and relaxed
+      updates affect both computational work and convergence.
+  \end{itemize}
+
+  \vspace{0.6em}
+  The example and lab connect these results to measured residual norms,
+  iteration counts, and runtimes.
+  \lecturesource{Summary: three key takeaways and concluding connection.}
+\end{frame}
+
+\end{document}

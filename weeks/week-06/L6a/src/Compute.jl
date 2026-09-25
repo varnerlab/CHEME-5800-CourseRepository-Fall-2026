@@ -2,7 +2,11 @@
 
 
 """
-Private logic to solve the FBA problem for the `MyPrimalFluxBalanceAnalysisCalculationModel` model type
+    _flux(problem::MyPrimalFluxBalanceAnalysisCalculationModel) -> Dict{String,Any}
+
+Build and solve the steady-state linear program with GLPK. Maximize `c' * x`
+subject to `S*x == 0` and the supplied lower/upper flux bounds. The input model
+is not modified. See `solve` for dimensions, result keys, and failure behavior.
 """
 function _flux(problem::MyPrimalFluxBalanceAnalysisCalculationModel)
 
@@ -15,8 +19,8 @@ function _flux(problem::MyPrimalFluxBalanceAnalysisCalculationModel)
     lb = fluxbounds[:, 1]; # lower bounds
     ub = fluxbounds[:, 2]; # upper bounds
         
-    # species constraints -
-    A = problem.S; # constraint matrix
+    # Steady-state species balances -
+    A = problem.S; # species rows × reaction columns
 
     # how many variables do we have?
     d = length(c);
@@ -25,11 +29,11 @@ function _flux(problem::MyPrimalFluxBalanceAnalysisCalculationModel)
     model = Model(GLPK.Optimizer)
     @variable(model, lb[i,1] <= x[i=1:d] <= ub[i,1], start=0.0) # we have d variables
     
-    # set objective function -   
+    # Maximize the weighted signed fluxes -
     @objective(model, Max, transpose(c)*x);
     @constraints(model, 
         begin
-            A*x == 0 # my material balance constraints 
+            A*x == 0 # zero net production of every balanced species
         end
     );
 
@@ -58,8 +62,12 @@ This function takes a vector of real numbers and returns a vector of the same si
 i.e., the exponential of the input vector divided by the sum of the exponential of the input vector.
 
 
+This direct exponential implementation does not shift the input for numerical
+stability. Use values for which the exponentials and their sum are finite and
+nonzero; extreme inputs can overflow or underflow. The input is not modified.
+
 ### Arguments
-- `x::Array{Float64,1}`: a vector of real numbers.
+- `x::Array{Float64,1}`: a nonempty vector of dimensionless real values.
 
 ### Returns
 - `::Array{Float64,1}`: a vector of the same size as the input vector with the softmax of the input vector.
@@ -109,16 +117,28 @@ function binary(S::Array{Float64,2})::Array{Int64,2}
 end
 
 """
-    solve(model::AbstractFluxCalculationModel)
+    solve(model::AbstractFluxCalculationModel) -> Dict{String,Any}
 
-Solve the flux calculation model.
+Maximize `model.objective' * flux` subject to `model.S * flux == 0` and the
+flux bounds. The local implementation supports `MyPrimalFluxBalanceAnalysisCalculationModel`.
 
 ### Arguments
-- `model::AbstractFluxCalculationModel`: the flux calculation model to solve. The correct method
-  will be called based on the type of the model.
+- `model`: populated model with `S` of size `m × n`, `fluxbounds` of size
+  `n × 2` (lower, upper), and `objective` of length `n`. All reaction-indexed
+  entries follow `model.reactions`; species follow the rows of `S`.
+  Fluxes and bounds must use consistent units (mmol/gDW/h in the urea example).
+  Positive flux follows the written reaction; uptake-positive exchanges
+  therefore require a negative objective coefficient to maximize export.
 
 ### Returns
-- `Dict{String,Any}`: a dictionary with the results of the optimization.
+- `"argmax"`: optimal flux vector, length `n`, in reaction order and the units
+  of the supplied bounds. An optimum need not be unique.
+- `"objective_value"`: scalar `model.objective' * result["argmax"]`.
+
+The input model is not mutated. An `AssertionError` is raised if JuMP does not
+report a solved, feasible problem, including an infeasible or unbounded problem.
+Model construction and solver errors propagate to the caller. Array dimensions
+and units are the caller's responsibility; this wrapper does not validate them.
 """
 function solve(model::AbstractFluxCalculationModel)
     return _flux(model);
@@ -131,10 +151,12 @@ end
 Enumerate all possible cases of `n` binary variables
 
 ### Arguments
-- `number_of_variables::Int`: the number of binary variables to enumerate.
+- `number_of_variables::Int`: number of binary variables, from 0 through 8.
+  The implementation converts row indices to `UInt8`, so larger cases are unsupported.
 
 ### Returns
-- `Array{Int,2}`: a 2D array with all possible cases of `n` binary variables.
+- `Array{Int,2}`: a `2^n × n` matrix. Row `i` contains the bits of `i-1`,
+  most significant bit first; columns identify the binary variables.
 """
 function enumerate_binary_variable_cases(number_of_variables::Int)
 

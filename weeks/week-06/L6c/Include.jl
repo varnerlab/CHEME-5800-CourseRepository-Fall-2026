@@ -58,6 +58,7 @@ end
 #
 # Standard library:
 using LinearAlgebra  # factorizations, norms, and matrix operations
+using Random         # reproducible test systems with a local random-number generator
 using Test           # @test / @testset for the checks in the notebook
 #
 # Packages:

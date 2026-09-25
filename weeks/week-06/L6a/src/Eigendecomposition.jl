@@ -1,5 +1,7 @@
 """
-Private helper that computes the reduced row echelon form (RREF) of a matrix in-place using
+    _rref!(A::AbstractMatrix, eps_val=nothing)
+
+Compute the reduced row echelon form (RREF) of a matrix in-place using
 partial pivoting. Operates on floating-point or rational element types.
 
 ### Arguments
@@ -7,26 +9,32 @@ partial pivoting. Operates on floating-point or rational element types.
 - `eps_val`: pivot tolerance. Defaults to `eps(norm(A, Inf))` for floating-point types and `zero(T)` for rational types.
 
 ### Returns
-- `A`: the input matrix, reduced in-place to RREF form.
+- `A`: the same matrix, reduced in-place to RREF form.
+
+Integer matrices raise `ArgumentError`; convert to floating-point or rational
+entries first. Use a nonnegative absolute pivot tolerance. Small entries in a
+skipped pivot column are set to zero when the tolerance is positive.
 """
 function _rref!(A::AbstractMatrix{T}, eps_val=nothing) where {T<:Union{AbstractFloat,Rational}}
     if eps_val === nothing
         eps_val = T <: Rational ? zero(T) : eps(norm(A, Inf))
     end
     nr, nc = size(A)
-    i = j = 1
+    i = j = 1 # next pivot row and candidate pivot column
     while i <= nr && j <= nc
         (m, mi) = findmax(abs.(A[i:nr,j]))
-        mi = mi+i - 1
+        mi = mi+i - 1 # convert the slice position to a matrix row
         if m <= eps_val
             if eps_val > 0
                 A[i:nr,j] .= zero(T)
             end
             j += 1
         else
+            # Move the largest remaining column entry into the pivot row -
             for k=j:nc
                 A[i, k], A[mi, k] = A[mi, k], A[i, k]
             end
+            # Normalize the pivot, then eliminate its column in all other rows -
             d = A[i,j]
             for k = j:nc
                 A[i,k] /= d
@@ -53,11 +61,15 @@ function _rref!(A::AbstractMatrix{T}, eps_val=nothing) where {T<:Integer}
 end
 
 """
-Private helper that computes the upper triangular form of a matrix using Gaussian elimination
+    _upper_triangular(matrix::Matrix) -> Matrix
+
+Compute the upper triangular form of a matrix using Gaussian elimination
 (without pivoting). Returns a copy; the input is not modified.
 
 ### Arguments
-- `matrix::Matrix`: the input matrix.
+- `matrix::Matrix`: matrix with floating-point or rational entries and nonzero
+  elimination pivots. No pivot checks are made: a zero pivot can cause division
+  by zero, and integer storage can fail when an update is nonintegral.
 
 ### Returns
 - `Matrix`: the upper triangular form of the input matrix.
@@ -77,14 +89,14 @@ function _upper_triangular(matrix::Matrix)
 end
 
 """
-Private helper that returns the right singular vector corresponding to the smallest singular value of `A`.
-Used as a fallback nullspace vector when RREF-based extraction fails.
+    _smallest_singular_vector(A::Matrix{Float64}) -> Vector{Float64}
 
-### Arguments
-- `A::Matrix{Float64}`: the input matrix.
-
-### Returns
-- `Array{Float64,1}`: the right singular vector for the smallest singular value (last row of `Vt` from the SVD).
+Return the unit right singular vector in the last row of the thin SVD's `Vt`.
+`A` must be a nonempty matrix and is not modified. The vector has length
+`size(A, 2)` and minimizes the residual norm among the returned right singular
+vectors. A nonzero smallest singular value gives a nonzero residual; this is
+not necessarily a nullspace vector. For a wide matrix, the thin SVD omits the
+additional right-nullspace directions.
 """
 function _smallest_singular_vector(A::Matrix{Float64})::Array{Float64,1}
     F = svd(A)
@@ -92,15 +104,18 @@ function _smallest_singular_vector(A::Matrix{Float64})::Array{Float64,1}
 end
 
 """
-Private helper that computes a single nullspace vector of `A` using RREF.
-If no free variable exists (i.e., `A` has full column rank), falls back to `_smallest_singular_vector`.
+    _nullspace_vector(A::Matrix{Float64}; tol::Float64=1e-10) -> Vector{Float64}
 
-### Arguments
-- `A::Matrix{Float64}`: the input matrix.
-- `tol::Float64`: pivot tolerance used in RREF (default `1e-10`).
+Find one nullspace candidate using RREF of a copy of `A`. The input is unchanged.
+`tol` is an absolute pivot tolerance. If a free column exists, set its variable
+to one, set other free variables to zero, and solve for the pivot variables.
+This vector is not normalized; its norm need not be one.
 
-### Returns
-- `Array{Float64,1}`: a vector `x` such that `A*x ≈ 0`, with unit 2-norm.
+If no free column exists, or the candidate norm is too small, return the unit
+right singular vector for the smallest singular value in the thin SVD instead.
+For a full-column-rank matrix this fallback has a nonzero residual and is not
+an exact nullspace vector. Check `norm(A*x)` before interpreting the result.
+Inputs must be nonempty; `tol` should be positive. These conditions are not validated.
 """
 function _nullspace_vector(A::Matrix{Float64}; tol::Float64 = 1e-10)::Array{Float64,1}
     R = _rref!(copy(A), tol)
@@ -128,7 +143,7 @@ function _nullspace_vector(A::Matrix{Float64}; tol::Float64 = 1e-10)::Array{Floa
     end
 
     x = zeros(n)
-    free_col = free_cols[end]
+    free_col = free_cols[end] # choose one free variable; other free variables stay zero
     x[free_col] = 1.0
     for idx in eachindex(pivot_cols)
         row = pivot_rows[idx]
@@ -151,7 +166,7 @@ end
 """
     ⊗(a::Array{Float64,1},b::Array{Float64,1}) -> Array{Float64,2}
 
-Compute the outer product of two vectors `a` and `b` and returns a matrix.
+Compute the outer product of `a` and `b`, returning a new matrix without modifying either input.
 
 ### Arguments
 - `a::Array{Float64,1}`: a vector of length `m`.
@@ -181,15 +196,26 @@ end
 """
     qriteration(A::Array{Float64,2}; maxiter::Int64 = 10, tolerance::Float64 = 1e-9) -> Tuple
 
-Computes the eigenvalues and eigenvectors of a real matrix `A` using the QR iteration method.
+Estimate real eigenpairs using unshifted QR iteration. This retained teaching
+helper is not used by the urea notebook. Use a nonempty square matrix whose QR
+iterates converge to a real diagonal form (for example, suitable symmetric
+matrices); general real matrices with complex eigenpairs are not supported.
+The input is not modified. Convergence and eigenpair residuals are not certified.
 
 ### Arguments
 - `A::Array{Float64,2}`: a real matrix of size `n x n`.
-- `maxiter::Int64`: the maximum number of iterations (default is `10`).
-- `tolerance::Float64`: the tolerance for the stopping criterion (default is `1e-9`).
+- `maxiter::Int64`: positive maximum number of iterations (default `10`).
+- `tolerance::Float64`: positive absolute tolerance on the 2-norm of successive
+  diagonal estimates; also used for RREF pivots (default `1e-9`).
 
 ### Returns
-- `Tuple`: a tuple of two elements: the first element is an array of eigenvalues and the second element is a dictionary of eigenvectors.
+- `(values, vectors)`: ascending eigenvalue estimates and a dictionary whose
+  integer keys match their positions. Vectors are normalized unless both
+  extraction attempts fail, in which case a zero vector is returned.
+
+Reaching `maxiter` returns the current estimates without a convergence flag.
+The first diagonal comparison uses `diag(Q)` from the initial factorization.
+Check `norm(A*v - λ*v)` for each returned eigenpair before using it.
 """
 function qriteration(A::Array{Float64,2}; 
     maxiter::Int64 = 10, tolerance::Float64 = 1e-9)::Tuple{Array{Float64,1}, Dict{Int64,Array{Float64,1}}}
@@ -215,7 +241,7 @@ function qriteration(A::Array{Float64,2};
         # update
         AD = transpose(Q)*AD*Q
 
-        # check: should we continute to iterate?
+        # Check the change in the diagonal estimates -
         λ′ = diag(AD);
         ϵ = norm(λ - λ′)
         if (ϵ < tolerance)
@@ -246,7 +272,7 @@ function qriteration(A::Array{Float64,2};
         # compute a scaling normalizing parameter
         d = norm(EVUS);
 
-        # compute the scaled eigenvector - not sure why the (-1)^(i+1)?
+        # Normalize the vector; the alternating sign is arbitrary for an eigenvector -
         if !(isfinite(d)) || d <= eps(Float64)
             EVUS = _smallest_singular_vector(AH)
             d = norm(EVUS)
@@ -267,16 +293,25 @@ end
     poweriteration(A::Array{<:Number,2}, v::Array{<:Number,1}; 
         maxiter::Int = 100, ϵ::Float64 = 0.0001)
 
-This function computes the dominant eigenvector and eigenvalue of a matrix using the power iteration method.
+Estimate a dominant eigenpair by normalized power iteration without modifying
+the inputs. This retained helper is not used by the urea notebook. Convergence
+requires a dominant eigenvalue separated in magnitude and an initial vector
+with a component in its eigendirection. Zero iterates are not handled.
 
 ### Arguments
-- `A::Array{<:Number,2}`: A square matrix of real numbers.
-- `v::Array{<:Number,1}`: An initial guess for the eigenvector.
+- `A::Array{<:Number,2}`: nonempty square numeric matrix.
+- `v::Array{<:Number,1}`: nonzero initial vector of matching length, preferably unit norm.
 - `maxiter::Int = 100`: The maximum number of iterations (optional).
-- `ϵ::Float64 = 0.0001`: The convergence criterion (optional).
+- `ϵ::Float64 = 0.0001`: tolerance on the squared 2-norm of the change in
+  successive vectors. Sign/phase changes can prevent this criterion from passing.
 
 ### Output
-- A named tuple containing the dominant eigenvector and eigenvalue.
+- `(vector=v, value=λ)`: the last accepted vector and its Rayleigh quotient.
+  The newly computed `w` that triggers stopping is not copied into `v`.
+
+The routine stops on the change criterion or iteration limit. Its legacy
+"Converged" message is printed in either case, and the return value has no
+convergence flag. Check the eigenpair residual; the message is not a certificate.
 """
 function poweriteration(A::Array{<:Number,2}, v::Array{<:Number,1}; 
     maxiter::Int = 100, ϵ::Float64 = 0.0001)::NamedTuple
@@ -294,7 +329,7 @@ function poweriteration(A::Array{<:Number,2}, v::Array{<:Number,1};
         # check if we should stop
         if (norm(w - v)^2 ≤ ϵ || loopcount ≥ maxiter)
             should_we_stop = true;
-            println("Converged in $(loopcount) iterations"); # let the user know how many iterations it took
+            println("Converged in $(loopcount) iterations"); # legacy message also appears when the iteration limit is reached
         else
             v = w; # update the vector
             loopcount = loopcount + 1; # update the loop count

@@ -14,19 +14,16 @@ entry_notebooks = [
 ]
 supporting_notebooks = [
   "L6a/CHEME-5800-L6a-Advanced-Derivation-FluxBalanceAnalysis-Fall-2026.ipynb",
-  "L6a/CHEME-5800-L6a-Example-SVD-StoichiometricMatrix-Fall-2026.ipynb",
   "L6c/CHEME-5800-L6c-Example-FunWithIterativeSolvers-Fall-2026.ipynb",
   "L6c/CHEME-5800-L6c-Algorithm-JacobiMethod-Fall-2026.ipynb",
   "L6c/CHEME-5800-L6c-Algorithm-GaussSeidel-Fall-2026.ipynb",
   "L6c/CHEME-5800-L6c-Algorithm-SOR-Fall-2026.ipynb",
   "L6c/CHEME-5800-L6c-Advanced-Convergence-IterativeMethods-Fall-2026.ipynb",
-  "L6c/CHEME-5800-L6c-Lecture-StationaryIterativeMethods-Fall-2026.ipynb",
 ]
 datasets = [
   "L6a/data/README.md",
   "L6a/data/Network.net",
   "L6a/data/modelReg.mat",
-  "L6a/data/saved-model-iAT_PLT_636.jld2",
   "L6a/figs/Fig-Urea-cycle-Schematic.png",
   "L6a/figs/KEGG-map01100.png",
   "L6b/data/README.md",

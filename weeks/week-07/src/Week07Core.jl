@@ -1,20 +1,9 @@
 module Week07Core
 
-import CSV
-import DataFrames
 import LinearAlgebra: Diagonal, dot, svd
 import Statistics: mean
 
-export explained_energy, load_return_matrix, ols_fit, regression_report, truncated_svd
-
-function load_return_matrix(path::AbstractString)
-    isfile(path) || throw(ArgumentError("return-matrix file does not exist: $(path)"))
-    frame = CSV.read(path, DataFrames.DataFrame)
-    DataFrames.ncol(frame) >= 2 || throw(ArgumentError("return matrix requires a date and at least one series"))
-    matrix = Matrix{Float64}(frame[:, DataFrames.Not(:date)])
-    all(isfinite, matrix) || throw(ArgumentError("return matrix contains non-finite values"))
-    return (dates = frame.date, tickers = String.(DataFrames.names(frame, DataFrames.Not(:date))), matrix = matrix, frame = frame)
-end
+export explained_energy, ols_fit, regression_report, truncated_svd
 
 function explained_energy(values::AbstractVector{<:Real})
     all(>=(0), values) || throw(ArgumentError("singular values must be nonnegative"))

@@ -9,6 +9,9 @@ This allows using `+(buffer, line)` as a concise alternative to `push!(buffer, l
 ### Arguments
 - `buffer::Array{String,1}`: the string array to append to.
 - `line::String`: the string to append.
+
+### Returns
+Return the same, mutated `buffer`, as with `push!`.
 """
 function +(buffer::Array{String,1}, line::String)
     push!(buffer, line)
@@ -17,8 +20,13 @@ end
 """
     read_reaction_file(path_to_file::String) -> Array{String,1}
 
-Read in aVFF reaction file and return an array of records as strings.
-The comments are lines starting with "//".
+Read VFF reaction records, preserving file order. Discard empty lines and any
+line containing `//` anywhere; inline comments cause the whole record to be
+excluded. Whitespace-only lines are not filtered and other whitespace is retained.
+Each record is `name,reactants,products,is_reversible`; species on either side
+are separated by `+`, optional coefficients use `coefficient*species`, and
+`[]` or `∅` denotes the surroundings. This reader does not validate the records.
+File-access errors propagate to the caller.
 
 ### Arguments
 - `path_to_file::String`: the path to the VFF reaction file.

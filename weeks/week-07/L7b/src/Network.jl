@@ -5,20 +5,20 @@
 function _http_get_call_with_url(url::String)::String
 
     # should we check if this string is formatted as a URL?
-    if (occursin("http://", url) == false)
+    if !startswith(url, "http://") && !startswith(url, "https://")
         throw(ArgumentError("url $(url) is not properly formatted"))
     end
 
-    # ok, so we are going to make a HTTP GET call with the URL that was passed in -
-    # we want to handle the errors on our own, so do NOT have HTTP.jl throw an excpetion -
-    response = HTTP.request("GET", url; status_exception = false)
+    # Read the response with Julia's Downloads standard library -
+    body = IOBuffer()
+    response = Downloads.request(url; output = body)
 
     if (response.status != 200)
         throw(ArgumentError("HTTP GET call failed with status code $(response.status)"))
     end
 
     # return the body -
-    return response.body |> String;
+    return String(take!(body));
 end
 
 # This function calls the HTTP GET call, and then processes the response.
@@ -26,8 +26,7 @@ end
 function _api(model::Type{T}, complete_url_string::String;
     handler::Function = _default_handler_process_bigg_response) where T <: AbstractBiggEndpointModel
 
-    # execute the HTTP GET call. This is a blocking call, it uses the HTTP.jl package
-    # For more information on the HTTP.jl package, see: https://github.com/JuliaWeb/HTTP.jl
+    # Retrieve the model response before parsing its records -
     result_string = _http_get_call_with_url(complete_url_string);
 
     # process and return -

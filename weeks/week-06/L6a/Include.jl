@@ -24,8 +24,7 @@
 # --- 1. PATHS ----------------------------------------------------------------
 # `@__DIR__` is the folder holding *this* file, not `pwd()`, so the joins below
 # hold whether the notebook was launched from here or from the repository root.
-# The guard makes re-running the setup cell harmless, which matters because a
-# `const` may not be rebound once it is set.
+# The guard avoids repeating constant definitions when the setup cell is rerun.
 if !isdefined(@__MODULE__, :CHEME5800_L6A_ROOT)
     const CHEME5800_L6A_ROOT = @__DIR__
 end
@@ -69,11 +68,7 @@ using Test              # @test / @testset for the checks in the notebooks
 using CSV               # delimited text files
 using Colors            # colors for figures
 using DataFrames        # tabular records held as columns
-using FileIO            # save / load for the saved BiGG model
 using GLPK              # linear programming solver
-using Images            # Gray images in the SVD example
-using JLD2              # the .jld2 format behind save / load
-using JSON              # BiGG model records
 using JuMP              # linear programming models
 using Plots             # figures
 using PrettyTables      # formatted table output in the notebooks
@@ -85,8 +80,6 @@ using PrettyTables      # formatted table output in the notebooks
 include(joinpath(_PATH_TO_SRC, "Types.jl"))
 include(joinpath(_PATH_TO_SRC, "Factory.jl"))
 include(joinpath(_PATH_TO_SRC, "Parser.jl"))
-include(joinpath(_PATH_TO_SRC, "Network.jl"))
-include(joinpath(_PATH_TO_SRC, "Handler.jl"))
 include(joinpath(_PATH_TO_SRC, "Compute.jl"))
 include(joinpath(_PATH_TO_SRC, "Eigendecomposition.jl"))
 include(joinpath(_PATH_TO_SRC, "Stoichiometric.jl"))

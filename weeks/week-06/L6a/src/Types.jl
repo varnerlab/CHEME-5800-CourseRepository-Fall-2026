@@ -1,49 +1,19 @@
 """
-Abstract base type for all BiGG database API endpoint models.
-Subtypes represent specific API endpoints and carry any required parameters.
-"""
-abstract type AbstractBiggEndpointModel end
-
-"""
 Abstract base type for all flux calculation models.
 Subtypes carry the data required to formulate and solve a flux balance problem.
 """
 abstract type AbstractFluxCalculationModel end
 
 """
-    MyBiggModelsEndpointModel <: AbstractBiggEndpointModel
-
-Endpoint model for the BiGG `/api/v2/models` listing endpoint.
-No parameters are required; instantiate with `MyBiggModelsEndpointModel()`.
-"""
-struct MyBiggModelsEndpointModel <: AbstractBiggEndpointModel
-
-    # methods -
-    MyBiggModelsEndpointModel() = new();
-end
-
-"""
-    MyBiggModelsDownloadModelEndpointModel <: AbstractBiggEndpointModel
-
-Endpoint model for downloading a specific BiGG model via `/api/v2/models/<bigg_id>/download`.
-
-### Fields
-- `bigg_id::String`: the BiGG model identifier (e.g., `"iJO1366"`).
-"""
-mutable struct MyBiggModelsDownloadModelEndpointModel <: AbstractBiggEndpointModel
-
-    # data -
-    bigg_id::String
-
-    # methods -
-    MyBiggModelsDownloadModelEndpointModel() = new();
-end
-
-"""
     MyPrimalFluxBalanceAnalysisCalculationModel <: AbstractFluxCalculationModel
 
 Data model for the primal flux balance analysis (FBA) problem.
-Populate all fields, then pass to `solve` to obtain the optimal flux distribution.
+The zero-argument constructor leaves fields uninitialized. Use `build` to attach
+all arrays before calling `solve`; the model itself performs no validation.
+The solver maximizes `objective' * flux` subject to `S*flux == 0` and the bounds.
+Fluxes and bounds use the same rate units (mmol/gDW/h in the urea example).
+Positive flux follows the written reaction direction; the objective coefficients
+select the desired signed fluxes.
 
 ### Fields
 - `S::Array{Float64,2}`: stoichiometric matrix (species × reactions).

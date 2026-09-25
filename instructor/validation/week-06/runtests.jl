@@ -9,6 +9,7 @@ released("L6d") && include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-0
 released("L6b") && include(joinpath(WEEK_ROOT, "L6b", "src", "Compute-solution.jl"))
 
 @meeting "L6a" begin
+    include(joinpath(@__DIR__, "l6a_stoichiometry.jl"))
     @testset "L6a urea-cycle flux balance (5430 code in L6a/src)" begin
         # The pipeline of the urea-cycle example, using the code in L6a/src.
         listofreactions = read_reaction_file(joinpath(WEEK_ROOT, "L6a", "data", "Network.net"))
@@ -17,24 +18,25 @@ released("L6b") && include(joinpath(WEEK_ROOT, "L6b", "src", "Compute-solution.j
         model = build(MyPrimalFluxBalanceAnalysisCalculationModel, (
             S = S, fluxbounds = build_default_bounds_array(listofreactions), species = species,
             reactions = reactions, objective = zeros(length(reactions))))
-        ΔG = [-4.3, -5.5, -51.0, -30.3, -1220.2]
-        kcat = [10.0, 3.28, 190.0, 410.0, 10.0]
-        for (i, name) in enumerate(["v1", "v2", "v3", "v4", "v5"])
-            j = findfirst(==(name), model.reactions)
-            vmax = kcat[i] * 0.01
-            model.fluxbounds[j, 1] = ΔG[i] > -10.0 ? -vmax : 0.0
+        # Use the same parameter records and mmol/gDW/h basis as the reviewed notebook.
+        thermo = CSV.read(joinpath(WEEK_ROOT, "L6a", "data", "urea_thermodynamics.csv"), DataFrame)
+        turnover = CSV.read(joinpath(WEEK_ROOT, "L6a", "data", "urea_turnover_numbers.csv"), DataFrame)
+        reversibility = Dict(row.reaction => Int(row.dg_prime_standard_kj_per_mol > -10.0)
+            for row in eachrow(thermo))
+        for row in eachrow(turnover)
+            j = findfirst(==(row.reaction), model.reactions)
+            vmax = row[Symbol("model_kcat_s-1")] * 0.01 * 3600.0
+            model.fluxbounds[j, 1] = -reversibility[row.reaction] * vmax
             model.fluxbounds[j, 2] = vmax
         end
         model.objective[findfirst(==("b4"), model.reactions)] = -1
         solution = solve(model)
         flux = solution["argmax"]
-        @test -flux[findfirst(==("b4"), model.reactions)] ≈ 0.0328 atol = 1e-8 # urea export
+        @test -flux[findfirst(==("b4"), model.reactions)] ≈ 118.08 atol = 1e-8 # urea export, mmol/gDW/h
         @test maximum(abs, S * flux) < 1e-8 # every species balances
         @test flux[findfirst(==("v5"), model.reactions)] ≈ 0.0 atol = 1e-10
 
-        # The saved genome-scale model used by the SVD example is readable offline.
-        saved = load(joinpath(WEEK_ROOT, "L6a", "data", "saved-model-iAT_PLT_636.jld2"))["model"]
-        @test haskey(saved, "reactions") && haskey(saved, "metabolites")
+
     end
 
     @testset "Course-package flux balance solver (used by L6b)" begin
@@ -118,4 +120,8 @@ end
         @test_throws ArgumentError stationary_solve(A, b; method = :unknown)
         @test_throws ArgumentError stationary_solve(A, b; method = :sor, omega = 2.0)
     end
+end
+
+@meeting "L6c" begin
+    include(joinpath(@__DIR__, "course_solver_stopping.jl"))
 end

@@ -1,179 +1,135 @@
 function _solve(A::AbstractMatrix{T}, b::AbstractVector{T}, xₒ::AbstractVector{T}, algorithm::JacobiMethod;
     ϵ::Float64 = 1e-6, maxiterations::Int64 = 1000, ω::Float64 = 1.0) where T <: Number
 
-    # initialize -
-    is_ok_to_terminate = false;
-    k = 0; # initialize iteration counter to 0
-    archive = Dict{Int, Array{Float64,1}}(); # we store every iteration in this dictionary
+    # Initialize -
+    k = 0; # number of completed corrections
+    archive = Dict{Int, Array{Float64,1}}(); # retain the initial guess and every iterate
+    archive[0] = copy(xₒ);
 
-    # setup -
-    archive[0] = copy(xₒ); # store the initial guess in the archive
-    k += 1;  # update the iteration counter -
-
-    # split the matrix A -
+    # Prepare the correction matrix -
     D = diag(A) |> a-> diagm(a);
-    U = triu(A,1);
-    L = tril(A,-1);
-
-    # check: if any zeros on the diagonal, throw an error -
     if (any(diag(A) .== 0.0))
         error("Matrix A has zero(s) on the diagonal, cannot proceed with Jacobi Method.")
     end
-    DI = inv(D); # compute the inverse of the diagonal matrix D
+    DI = inv(D); # inverse of the diagonal correction matrix
 
-    # iterate -
-    prev_residual = Inf;
-    while (is_ok_to_terminate == false)
-
-        # compute the residual -
-        x = copy(archive[k-1]);
+    # Iterate -
+    while true
+        x = archive[k]; # read the current iterate without changing the archive
         r = b - A*x;
         current_residual = norm(r);
-        d = DI * r;
 
-        # check the error condition -
+        # Test convergence before the limit so the last allowed correction can succeed -
         if (current_residual < ϵ)
-            is_ok_to_terminate = true;
-        elseif (k > maxiterations)
+            return archive;
+        elseif (k >= maxiterations)
             @warn "Jacobi method did not converge within $maxiterations iterations. Final residual: $current_residual"
-            is_ok_to_terminate = true;
-        elseif (current_residual > 1e10)  # Check for divergence
+            return archive;
+        elseif (current_residual > 1e10) # existing large-residual safeguard
             @warn "Jacobi method appears to be diverging. Residual: $current_residual"
-            is_ok_to_terminate = true;
-        else
-            is_ok_to_terminate = false;
+            return archive;
         end
 
-        y = x + d; # generate new solution vector at k
-        archive[k] = y; # save new solution vector in archive
-        k += 1;  # update the iteration counter
-        prev_residual = current_residual;
+        # Compute and store a correction only when continuing -
+        d = DI * r;
+        k += 1;
+        archive[k] = x + d; # key k records exactly k completed corrections
     end
-
-    # return archive -
-    return archive;
 end
 
 function _solve(A::AbstractMatrix{T}, b::AbstractVector{T}, xₒ::AbstractVector{T}, algorithm::GaussSeidelMethod;
     ϵ::Float64 = 1e-6, maxiterations::Int64 = 1000, ω::Float64 = 1.0) where T <: Number
 
-    # initialize -
-    is_ok_to_terminate = false;
-    k = 0; # initialize iteration counter to 0
-    archive = Dict{Int, Array{Float64,1}}(); # we store every iteration in this dictionary
+    # Initialize -
+    k = 0; # number of completed corrections
+    archive = Dict{Int, Array{Float64,1}}(); # retain the initial guess and every iterate
+    archive[0] = copy(xₒ);
 
-    # setup
-    archive[0] =  copy(xₒ);; # store the initial guess in the archive
-    k += 1;  # update the iteration counter -
-
-    # split the matrix A -
+    # Prepare the correction matrix -
     D = diag(A) |> a-> diagm(a);
-    U = triu(A,1);
     L = tril(A,-1);
-
-    # check: (D+L) must be invertible, if not, throw an error -
     if (det(D+L) == 0.0)
         error("Matrix D+L is not invertible, cannot proceed with Gauss-Seidel Method.")
     end
-    C = inv(D + L); # compute the inverse of the matrix D+L
+    C = inv(D + L); # inverse of the lower triangular correction matrix
 
-        # iterate -
-    prev_residual = Inf;
-    while (is_ok_to_terminate == false)
-
-        x = copy(archive[k-1]); # grab the current solution vector, create a copy so we don't overwrite the data in the archive
-        r = b - A*x; # compute the residual
+    # Iterate -
+    while true
+        x = archive[k]; # read the current iterate without changing the archive
+        r = b - A*x;
         current_residual = norm(r);
-        d = C * r; # compute the direction vector
 
-        # check the error condition -
+        # Test convergence before the limit so the last allowed correction can succeed -
         if (current_residual < ϵ)
-            is_ok_to_terminate = true;
-        elseif (k > maxiterations)
+            return archive;
+        elseif (k >= maxiterations)
             @warn "Gauss-Seidel method did not converge within $maxiterations iterations. Final residual: $current_residual"
-            is_ok_to_terminate = true;
-        elseif (current_residual > 1e10)  # Check for divergence
+            return archive;
+        elseif (current_residual > 1e10) # existing large-residual safeguard
             @warn "Gauss-Seidel method appears to be diverging. Residual: $current_residual"
-            is_ok_to_terminate = true;
-        else
-            is_ok_to_terminate = false;
+            return archive;
         end
 
-        # update the archive -
-        y = x + d; # generate new solution vector at k
-        archive[k] = y; # grab a copy of the solution vector at k+1 (do I need to make a copy here?)
-        k += 1;  # update the iteration counter -
-        prev_residual = current_residual;
+        # Compute and store a correction only when continuing -
+        d = C * r;
+        k += 1;
+        archive[k] = x + d; # key k records exactly k completed corrections
     end
-
-    # return archive -
-    return archive;
 end
 
 function _solve(A::AbstractMatrix{T}, b::AbstractVector{T}, xₒ::AbstractVector{T}, algorithm::SuccessiveOverRelaxationMethod;
     ϵ::Float64 = 1e-6, maxiterations::Int64 = 1000, ω::Float64 = 1.0) where T <: Number
 
-    # initialize -
-    is_ok_to_terminate = false;
-    k = 0; # initialize iteration counter to 0
-    archive = Dict{Int, Array{Float64,1}}(); # we store every iteration in this dictionary
+    # Initialize -
+    k = 0; # number of completed corrections
+    archive = Dict{Int, Array{Float64,1}}(); # retain the initial guess and every iterate
+    archive[0] = copy(xₒ);
 
-    # setup -
-    archive[0] = copy(xₒ); # store the initial guess in the archive
-    k += 1;  # update the iteration counter -
-
-    # split the matrix A -
+    # Prepare the correction matrix -
     D = diag(A) |> a-> diagm(a);
-    U = triu(A,1);
     L = tril(A,-1);
-
-    # check -
     if (det(D + ω*L) == 0.0)
         error("Matrix D + ω*L is not invertible, cannot proceed with Successive Over-Relaxation Method.")
     end
-    C = inv(D + ω*L);
+    C = inv(D + ω*L); # inverse of the relaxed lower triangular correction matrix
 
-        # Grok: Impl me -
-    prev_residual = Inf;
-    while (is_ok_to_terminate == false)
-
-        x = copy(archive[k-1]); # grab the current solution vector, create a copy so we don't overwrite the data in the archive
-        r = b - A*x; # compute the residual
+    # Iterate -
+    while true
+        x = archive[k]; # read the current iterate without changing the archive
+        r = b - A*x;
         current_residual = norm(r);
-        d = ω * C * r; # compute the direction vector
 
-        # check the error condition -
+        # Test convergence before the limit so the last allowed correction can succeed -
         if (current_residual < ϵ)
-            is_ok_to_terminate = true;
-        elseif (k > maxiterations)
+            return archive;
+        elseif (k >= maxiterations)
             @warn "SOR method did not converge within $maxiterations iterations. Final residual: $current_residual"
-            is_ok_to_terminate = true;
-        elseif (current_residual > 1e10)  # Check for divergence
+            return archive;
+        elseif (current_residual > 1e10) # existing large-residual safeguard
             @warn "SOR method appears to be diverging. Residual: $current_residual"
-            is_ok_to_terminate = true;
-        else
-            is_ok_to_terminate = false;
+            return archive;
         end
 
-        # update the archive -
-        y = x + d;
-        archive[k] = y; # grab a copy of the solution vector at k+1 (do I need to make a copy here?)
-        k += 1;  # update the iteration counter -
-        prev_residual = current_residual;
+        # Compute and store a correction only when continuing -
+        d = ω * C * r;
+        k += 1;
+        archive[k] = x + d; # key k records exactly k completed corrections
     end
-
-    # Successive Over-Relaxation method
-    return archive;
 end
 
 # -- PUBLIC METHODS BELOW HERE ---------------------------------------------------------------------------------------------------------------------------------------- #
 
 """
     solve(A::AbstractMatrix{T}, b::AbstractVector{T}, xₒ::AbstractVector{T};
-    algorithm::AbstractLinearSolverAlgorithm = JacobiMethod(), ϵ::Float64 = 0.01, maxiterations::Int64 = 100) where T <: Number
+    algorithm::AbstractLinearSolverAlgorithm = JacobiMethod(), ϵ::Float64 = 1e-6, maxiterations::Int64 = 1000, ω::Float64 = 1.0) where T <: Number
 
 The `solve` function solves the linear system of equations `Ax = b` using the specified algorithm.
-The function returns the solution vector `x` for each iteration of an iterative method.
+The function returns an archive of iterates, including the initial guess at key zero.
+Each later key counts completed corrections. The residual is checked before the correction limit,
+so a satisfactory initial guess takes zero corrections and convergence on the final allowed
+correction succeeds. A warning reports an unmet limit or the large-residual safeguard;
+the current archive is returned without another correction. Check the final residual to
+distinguish convergence from a warning return.
 
 ### Arguments
 - `A::AbstractMatrix{T}`: The system matrix `A` in the linear system of equations `Ax = b`.
@@ -181,16 +137,18 @@ The function returns the solution vector `x` for each iteration of an iterative 
 - `xₒ::AbstractVector{T}`: The initial guess for the solution vector `x`.
 - `algorithm::AbstractLinearSolverAlgorithm`: The algorithm to use to solve the linear system of equations. The default algorithm is `JacobiMethod()`.
 - `ϵ::Float64`: The error tolerance for the iterative method. The default value is `1e-6`.
-- `maxiterations::Int64`: The maximum number of iterations for the iterative method. The default value is `1000`.
+- `maxiterations::Int64`: The maximum number of corrections, which must be nonnegative. The default value is `1000`.
 - `ω::Float64`: The relaxation factor for the Successive Over-Relaxation method. The default value is `1.0`. This parameter is only used if the `SuccessiveOverRelaxationMethod` algorithm is selected.
 
 ### Returns
-- `d::Dict{Int,Array{T,1}}`: The solution vector `x` for each iteration of an iterative method. The keys of the dictionary are the iteration numbers, and the values are the solution vectors at each iteration.
+- `d::Dict{Int,Array{Float64,1}}`: The initial guess at key `0` and the solution vectors after each completed correction. The largest key never exceeds `maxiterations`; the archive contains one more entry than the correction count.
 """
 function solve(A::AbstractMatrix{T}, b::AbstractVector{T}, xₒ::AbstractVector{T};
     algorithm::AbstractLinearSolverAlgorithm = JacobiMethod(),
     ϵ::Float64 = 1e-6, maxiterations::Int64 = 1000, ω::Float64 = 1.0) where T <: Number
 
+
+    maxiterations >= 0 || throw(ArgumentError("maxiterations must be nonnegative"));
 
     # return -
     return _solve(A, b, xₒ, algorithm, ϵ = ϵ, maxiterations = maxiterations, ω = ω);
