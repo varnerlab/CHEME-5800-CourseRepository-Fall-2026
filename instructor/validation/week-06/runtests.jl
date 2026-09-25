@@ -96,8 +96,8 @@ end
         student = split(read(joinpath(WEEK_ROOT, "L6b", "src", "Compute.jl"), String), "module L6bOverflow"; limit = 2)[2]
         reference = split(read(joinpath(WEEK_ROOT, "L6b", "src", "Compute-solution.jl"), String), "module L6bOverflow"; limit = 2)[2]
         @test student == reference
-        @test L6bStudentSetup.plot_exchange_flows(model, aerobic) isa L6bStudentSetup.Plots.Plot
-        @test L6bStudentSetup.plot_exchange_flows(anaerobic, r0; theme = :dark) isa L6bStudentSetup.Plots.Plot
+        @test L6bBoundaryPlots.plot_exchange_flows(model, aerobic) isa Plots.Plot
+        @test L6bBoundaryPlots.plot_exchange_flows(anaerobic, r0; theme = :dark) isa Plots.Plot
     end
 end
 
