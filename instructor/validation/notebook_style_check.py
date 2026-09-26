@@ -63,6 +63,9 @@ import subprocess
 import sys
 
 LINK = re.compile(r"\[([^\]]*?)\]\((https?://[^)]+)\)")
+# Any markdown link, including a relative one such as (src/Factory.jl). A name
+# inside it is linked; LINK alone decides which URLs the vocabulary suggests.
+ANY_LINK = re.compile(r"\[([^\]]*?)\]\(([^)]+)\)")
 BACKTICK = re.compile(r"`([^`\n]+)`")
 ERRORISH = re.compile(r"^[A-Z]\w*(Error|Exception)$")
 MACRO = re.compile(r"^@\w+$")
@@ -122,7 +125,7 @@ def build_link_vocabulary(paths):
 
 
 def link_spans(source):
-    return [(m.start(), m.end()) for m in LINK.finditer(source)]
+    return [(m.start(), m.end()) for m in ANY_LINK.finditer(source)]
 
 
 def is_linkable(name, vocabulary):
