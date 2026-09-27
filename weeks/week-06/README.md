@@ -46,4 +46,4 @@ Validate from the repository root:
 julia --startup-file=no --project=. instructor/validation/week-06/runtests.jl
 ```
 
-The stoichiometric-matrix SVD example is now in [L7b](../week-07/L7b/CHEME-5800-L7b-Example-SVD-StoichiometricMatrix-Fall-2026.ipynb).
+The stoichiometric-matrix SVD example is now in week 7 (L7b).
