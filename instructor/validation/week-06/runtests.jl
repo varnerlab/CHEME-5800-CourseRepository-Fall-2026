@@ -137,3 +137,7 @@ end
 @meeting "L6c" begin
     include(joinpath(@__DIR__, "course_solver_stopping.jl"))
 end
+
+@meeting "L6d" begin
+    include(joinpath(@__DIR__, "l6d_oxygen.jl"))
+end

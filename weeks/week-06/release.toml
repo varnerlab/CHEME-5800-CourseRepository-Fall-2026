@@ -13,6 +13,7 @@ entry_notebooks = [
   "L6d/CHEME-5800-L6d-Lab-IterativeLinearSolvers-Fall-2026.ipynb",
 ]
 supporting_notebooks = [
+  "L6d/CHEME-5800-L6d-Derivation-OxygenDiffusionReaction-Fall-2026.ipynb",
   "L6a/CHEME-5800-L6a-Advanced-Derivation-FluxBalanceAnalysis-Fall-2026.ipynb",
   "L6c/CHEME-5800-L6c-Example-FunWithIterativeSolvers-Fall-2026.ipynb",
   "L6c/CHEME-5800-L6c-Algorithm-JacobiMethod-Fall-2026.ipynb",

@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="470" viewBox="0 0 960 470" role="img" aria-labelledby="title desc">
+  <title id="title">Oxygen delivery to a tissue slice and its five-point stencil</title>
+  <desc id="desc">Left: a square tissue slice spans minus L to L in x and y. Four inward arrows show oxygen supplied at concentration c_s on every lateral edge. Cell density is uniform throughout the interior, which consumes oxygen at rate R(c) = k_r c. The broad faces are sealed. Right: the interior concentration theta_i,j is coupled to its four nearest neighbors, spaced h apart in the dimensionless coordinates.</desc>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --ink: #17242f;
+      --muted: #526675;
+      --tissue: #eef3f7;
+      --center: #e1f0fa;
+      --accent: #0072b2;
+      --line: #8295a3;
+      --rule: #d7e0e6;
+      --paper: #ffffff;
+    }
+    @media screen and (prefers-color-scheme: dark) {
+      :root {
+        --ink: #eef3f7;
+        --muted: #bdcbd5;
+        --tissue: #35424d;
+        --center: #264c65;
+        --accent: #70c5f3;
+        --line: #9cafbd;
+        --rule: #536370;
+        --paper: #30343b;
+      }
+    }
+    @media print {
+      :root {
+        --ink: #17242f;
+        --muted: #526675;
+        --tissue: #eef3f7;
+        --center: #e1f0fa;
+        --accent: #0072b2;
+        --line: #8295a3;
+        --rule: #d7e0e6;
+        --paper: #ffffff;
+      }
+    }
+    text { font-family: Arial, Helvetica, sans-serif; fill: var(--ink); }
+    .heading { font-size: 21px; font-weight: 600; }
+    .note { font-size: 15px; fill: var(--muted); }
+    .label { font-size: 17px; }
+    .math, .math text { font-family: 'Times New Roman', Times, serif; font-size: 23px; }
+    .sub { font-size: 14px; }
+    .axis { stroke: var(--line); stroke-width: 1.4; fill: none; }
+    .supply { stroke: var(--accent); stroke-width: 2.4; stroke-linecap: round; fill: none; }
+    .link { stroke: var(--line); stroke-width: 1.8; fill: none; }
+    .node { fill: var(--paper); stroke: var(--accent); stroke-width: 1.8; }
+  </style>
+  <defs>
+    <marker id="supply-arrow" viewBox="0 0 16 12" refX="15" refY="6" markerWidth="16" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M 1 1 L 15 6 L 1 11 L 4.5 6 Z" fill="var(--accent)"/>
+    </marker>
+    <marker id="axis-arrow" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="10" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M 1 1 L 9 4 L 1 7 L 3 4 Z" fill="var(--line)"/>
+    </marker>
+  </defs>
+
+  <!-- Panel headings share the same baseline and center alignment. -->
+  <text x="247" y="31" text-anchor="middle" class="heading">Oxygen delivery to the tissue</text>
+  <text x="730" y="31" text-anchor="middle" class="heading">A balance at each grid point</text>
+  <line x1="480" y1="58" x2="480" y2="425" stroke="var(--rule)" stroke-width="1"/>
+
+  <!-- Dimensional tissue domain: the arrows cross its four lateral boundaries. -->
+  <text x="254" y="73" text-anchor="middle" class="label">
+    <tspan font-family="'Times New Roman', Times, serif" font-style="italic" font-size="21">c</tspan>
+    <tspan> = </tspan>
+    <tspan font-family="'Times New Roman', Times, serif" font-style="italic" font-size="21">c</tspan><tspan baseline-shift="sub" font-size="12">s</tspan>
+    <tspan> on all four edges</tspan>
+  </text>
+  <rect x="136" y="110" width="236" height="236" fill="var(--tissue)" stroke="var(--ink)" stroke-width="1.8"/>
+  <path d="M 254 89 V 151" class="supply" marker-end="url(#supply-arrow)"/>
+  <path d="M 254 369 V 305" class="supply" marker-end="url(#supply-arrow)"/>
+  <path d="M 94 228 H 176" class="supply" marker-end="url(#supply-arrow)"/>
+  <path d="M 414 228 H 332" class="supply" marker-end="url(#supply-arrow)"/>
+
+  <text x="254" y="205" text-anchor="middle" class="label">Uniform cell density</text>
+  <text x="254" y="246" text-anchor="middle" class="math"><tspan font-style="italic">R</tspan>(<tspan font-style="italic">c</tspan>) = <tspan font-style="italic">k</tspan><tspan baseline-shift="sub" class="sub">r</tspan><tspan font-style="italic"> c</tspan></text>
+
+  <!-- Coordinate axes sit outside the domain; ticks align with its edges and center. -->
+  <path d="M 72 391 H 399" class="axis" marker-end="url(#axis-arrow)"/>
+  <path d="M 72 391 V 97" class="axis" marker-end="url(#axis-arrow)"/>
+  <path d="M 136 386 V 396 M 254 386 V 396 M 372 386 V 396 M 67 110 H 77 M 67 228 H 77 M 67 346 H 77" class="axis"/>
+  <g class="math" text-anchor="middle" font-style="italic">
+    <text x="136" y="420">−L</text>
+    <text x="372" y="420">L</text>
+    <text x="413" y="398">x</text>
+    <text x="72" y="85">y</text>
+  </g>
+  <text x="254" y="419" text-anchor="middle" class="label">0</text>
+  <g class="math" text-anchor="end" font-style="italic">
+    <text x="58" y="117">L</text>
+    <text x="58" y="353">−L</text>
+  </g>
+  <text x="58" y="234" text-anchor="end" class="label">0</text>
+
+  <!-- Dimensionless five-point stencil, with every value inside its own node. -->
+  <text x="734" y="73" text-anchor="middle" class="note">Four nearest neighbors, each a distance h away</text>
+  <path d="M 628 228 H 840 M 734 122 V 334" class="link"/>
+  <circle cx="628" cy="228" r="34" class="node"/>
+  <circle cx="840" cy="228" r="34" class="node"/>
+  <circle cx="734" cy="122" r="34" class="node"/>
+  <circle cx="734" cy="334" r="34" class="node"/>
+  <circle cx="734" cy="228" r="39" fill="var(--center)" stroke="var(--accent)" stroke-width="2.2"/>
+  <g class="math" text-anchor="middle">
+    <text x="628" y="233">θ<tspan baseline-shift="sub" class="sub">i−1,j</tspan></text>
+    <text x="840" y="233">θ<tspan baseline-shift="sub" class="sub">i+1,j</tspan></text>
+    <text x="734" y="127">θ<tspan baseline-shift="sub" class="sub">i,j+1</tspan></text>
+    <text x="734" y="339">θ<tspan baseline-shift="sub" class="sub">i,j−1</tspan></text>
+    <text x="734" y="233">θ<tspan baseline-shift="sub" class="sub">i,j</tspan></text>
+    <text x="681" y="215" font-style="italic">h</text>
+    <text x="752" y="180" font-style="italic">h</text>
+  </g>
+  <text x="734" y="417" text-anchor="middle" class="math">ξ = <tspan font-style="italic">x</tspan>/<tspan font-style="italic">L</tspan>,   η = <tspan font-style="italic">y</tspan>/<tspan font-style="italic">L</tspan>,   θ = <tspan font-style="italic">c</tspan>/<tspan font-style="italic">c</tspan><tspan baseline-shift="sub" class="sub">ref</tspan></text>
+
+  <text x="247" y="457" text-anchor="middle" class="note">Broad faces sealed; oxygen uniform through thickness.</text>
+  <text x="734" y="457" text-anchor="middle" class="note">One grid balance becomes one matrix row.</text>
+</svg>

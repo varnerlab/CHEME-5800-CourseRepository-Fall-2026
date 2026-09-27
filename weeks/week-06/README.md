@@ -11,7 +11,7 @@ iterations then solve linear systems through repeated local updates.
 | L6a | Flux balance analysis | [Lecture](L6a/CHEME-5800-L6a-Lecture-FluxBalanceAnalysis-Fall-2026.ipynb) · [Advanced derivation](L6a/CHEME-5800-L6a-Advanced-Derivation-FluxBalanceAnalysis-Fall-2026.ipynb) · [HL-60 urea-cycle example](L6a/CHEME-5800-L6a-Example-UreaCycle-FluxBalance-Fall-2026.ipynb) |
 | L6b | Overflow metabolism in *E. coli* | [Lab](L6b/CHEME-5800-L6b-Lab-OverflowMetabolism-Fall-2026.ipynb) |
 | L6c | Jacobi, Gauss–Seidel, SOR, and convergence | [Lecture](L6c/CHEME-5800-L6c-Lecture-GeneralIterativeMethod-Fall-2026.ipynb) · [Iterative-solvers example](L6c/CHEME-5800-L6c-Example-FunWithIterativeSolvers-Fall-2026.ipynb) |
-| L6d | Residual-based solver comparison | [Lab](L6d/CHEME-5800-L6d-Lab-IterativeLinearSolvers-Fall-2026.ipynb) |
+| L6d | Dimensionless oxygen diffusion and reaction | [Lab](L6d/CHEME-5800-L6d-Lab-IterativeLinearSolvers-Fall-2026.ipynb) · [PDE-to-matrix derivation](L6d/CHEME-5800-L6d-Derivation-OxygenDiffusionReaction-Fall-2026.ipynb) |
 
 The flux balance material is adapted from the CHEME 5430/5450 Spring 2026 lecture
 ([varnerlab/Lecture-5430-FluxBalanceAnalysis](https://github.com/varnerlab/Lecture-5430-FluxBalanceAnalysis)).
@@ -39,6 +39,15 @@ complete and matches [Compute-solution.jl](L6b/src/Compute-solution.jl) apart fr
 its header. Rebuilding `solve_growth(...)` from its docstring is an optional
 exercise. The lab's model, `L6b/data/e_coli_core.json`, is the BiGG *E. coli* core
 model (Orth et al. 2010).
+
+L6d models oxygen delivery in a square tissue slice using the Thiele modulus and
+prescribed edge concentrations. Its [derivation](L6d/CHEME-5800-L6d-Derivation-OxygenDiffusionReaction-Fall-2026.ipynb)
+connects the dimensional material balance to the dimensionless PDE and the
+five-point linear system. The lab uses the course solvers from L6c and includes
+short student exercises for a Jacobi correction and a change in edge supply.
+The model helper [Compute.jl](L6d/src/Compute.jl) is complete;
+[Compute-solution.jl](L6d/src/Compute-solution.jl) includes the exercise answers
+in its header and the matching helper implementation.
 
 Validate from the repository root:
 
