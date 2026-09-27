@@ -478,25 +478,25 @@
     archived iterates stop at the first residual norm satisfying tolerance.}
 \end{frame}
 
-\begin{frame}{Lab: Compare Iterative Linear Solvers}
-  In \href{\lablink}{L6d}, solve the same diagonally dominant system with
-  Jacobi, Gauss–Seidel, and successive over-relaxation.
+\begin{frame}{Lab: Oxygen Delivery in a Tissue Slice}
+  In \href{\lablink}{L6d}, solve the dimensionless steady oxygen balance in a
+  tissue slice with Jacobi, Gauss–Seidel, and successive over-relaxation.
 
   \vspace{0.8em}
   \begin{itemize}\setlength{\itemsep}{0.8em}
     \item Compare each result with the \hilite{direct solution}.
-    \item Use \hilite{residual-norm histories} and the solver's status flag to check
-      whether the residual tolerance was met.
-    \item Compare iteration counts and explore the effect of the
-      relaxation factor.
+    \item Use \hilite{residual-norm histories} to check whether the residual
+      tolerance was met.
+    \item Compare iteration counts, then change the \hilite{Thiele modulus}
+      and the edge oxygen supply.
   \end{itemize}
 
   \vspace{0.7em}
   Interpret speed only after checking the solution. A smaller iteration count
   is meaningful when the methods meet the same residual tolerance
   for the same system and initial guess.
-  \slidenote{Lab:}{\href{\lablink}{Compare Jacobi, Gauss–Seidel, and SOR}}
-  \lecturesource{Lab. Linked L6d notebook: learning objectives and Summary.}
+  \slidenote{Lab:}{\href{\lablink}{Oxygen delivery in a tissue slice}}
+  \lecturesource{Lab section.}
 \end{frame}
 
 \begin{frame}{Summary}

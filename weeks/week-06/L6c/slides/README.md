@@ -43,7 +43,7 @@ Source notebook snapshots (SHA-256):
 
 | Notebook | SHA-256 |
 |---|---|
-| CHEME-5800-L6c-Lecture-GeneralIterativeMethod-Fall-2026.ipynb | `dff7018b7a0775ab1bf04cc46322b6bf364a11d622c30d3f291ecda615d1ca27` |
+| CHEME-5800-L6c-Lecture-GeneralIterativeMethod-Fall-2026.ipynb | `0cd302902f0abec2d032253ce69159b82a8042c90cc1b0917116f1daf80b262a` |
 | CHEME-5800-L6c-Example-FunWithIterativeSolvers-Fall-2026.ipynb | `06053f84410220781ce5f89b9412a97aba25677ce2c349b6d0e9e8def8305968` |
 | CHEME-5800-L6c-Algorithm-JacobiMethod-Fall-2026.ipynb | `56cfe43454de56d499ec7f1c838faf8d4417096b79206c353c008c5a083f6333` |
 | CHEME-5800-L6c-Algorithm-GaussSeidel-Fall-2026.ipynb | `749343a2c0eaabed7ac63f492cc35c401ed0a7a583c32fe2b8d6a8597492e7c7` |
