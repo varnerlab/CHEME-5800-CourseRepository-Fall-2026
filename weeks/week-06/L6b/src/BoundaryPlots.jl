@@ -88,8 +88,10 @@ function plot_exchange_flows(model, result; title = "What crosses the cell bound
     left, right, bottom, top = 3.3, 6.7, 0.2, 7.0
     Plots.plot!(figure, Plots.Shape([left, right, right, left], [bottom, bottom, top, top]);
         fillcolor = cell_fill, linecolor = label_color, linewidth = 1.2, label = "")
-    Plots.annotate!(figure, (left + right) / 2, (bottom + top) / 2 + 0.3,
-        Plots.text("E. coli\ncore metabolism", 11, label_color))
+    Plots.annotate!(figure, (left + right) / 2, (bottom + top) / 2 + 0.5,
+        Plots.text("E. coli", 11, label_color; family = "Helvetica Oblique"))
+    Plots.annotate!(figure, (left + right) / 2, (bottom + top) / 2 + 0.1,
+        Plots.text("core metabolism", 11, label_color))
 
     # Arrow widths scale with the largest displayed flux -
     ids = vcat(first.(_INPUTS), first.(_OUTPUTS))

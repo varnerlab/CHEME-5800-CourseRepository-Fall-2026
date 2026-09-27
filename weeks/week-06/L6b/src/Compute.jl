@@ -1,6 +1,6 @@
 # L6b is walked through in class, so this file ships the complete implementation.
-# It matches src/Compute-solution.jl apart from this header. After class, try
-# rewriting solve_growth(...) from its docstring and compare.
+# It matches src/Compute-solution.jl apart from this header. Students build the
+# growth objective in the notebook (Task 2).
 module L6bOverflow
 
 # Packages this file uses. JSON reads the BiGG model file, DataFrame holds the

@@ -87,6 +87,18 @@ end
         rb = growth(blocked)
         @test isapprox(rb.growth, 0.663; atol = 1e-3) && flux_of(blocked, rb, "EX_etoh_e") > 1.0
         @test isapprox(growth(L6bOverflow.with_bounds(model, "ATPM", 20.0, 20.0)).growth, 0.815; atol = 1e-3)
+        knockout = L6bOverflow.with_bounds(model, "CYTBD", 0.0, 0.0) # Your turn, third change
+        rk = growth(knockout)
+        @test isapprox(rk.growth, 0.2117; atol = 1e-3) && abs(flux_of(knockout, rk, "EX_o2_e")) < 1e-6
+        @test isapprox(flux_of(knockout, rk, "EX_ac_e"), 8.50; atol = 0.01)
+
+        # The Task 2 objective the students build in the notebook, and its unsolved stub.
+        c = zeros(Float64, length(model.reactions))
+        c[findfirst(==(model.biomass), model.reactions)] = 1.0
+        @test isapprox(solve_flux_balance(model.S, model.lower, model.upper, c).objective, aerobic.growth; atol = 1e-6)
+        notebook = read(joinpath(WEEK_ROOT, "L6b", "CHEME-5800-L6b-Lab-OverflowMetabolism-Fall-2026.ipynb"), String)
+        @test occursin("# TODO 1:", notebook) && occursin("# TODO 2:", notebook)
+        @test occursin("my_result = nothing;", notebook)
 
         @test_throws ArgumentError L6bOverflow.with_uptake_limit(model, "EX_o2_e", -1.0)
         @test_throws ArgumentError L6bOverflow.with_bounds(model, "not_a_reaction", 0.0, 1.0)

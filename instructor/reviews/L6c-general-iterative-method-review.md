@@ -52,3 +52,33 @@ These files were inspected but not edited, including companions with pre-existin
 - **SOR algorithm:** the relaxation-parameter formula needs its matrix-structure assumptions; it is not a general optimal-parameter formula.
 
 These limitations prevent treating the linked bundle as fully validated. The final score applies to the requested lecture only.
+
+## Voice-lesson pass, 2026-09-27
+
+Applied the guide's cross-round lessons ("What the rounds show so far, for both
+courses") to the lecture and the Fun with Iterative Solvers example, at the
+instructor's request.
+
+- Lecture: objectives as a definition sentence plus a "We'll" sentence; the
+  itinerary paragraph became an example sentence and "Let's get started!"; the
+  stationary-iteration box now writes the fixed-point equation the convergence
+  derivation subtracts; four unproposed denials or edge cases cut; takeaway 1
+  lost the sentence that repeated objective 1. Takeaway labels stay nouns, as in
+  the instructor's L6a lecture. Two figures added under `figs/`: the
+  Jacobi/Gauss–Seidel sweep and the error bound for q = 0.5, 0.8, 0.9 (crossings
+  10, 31, 66 at tolerance 1e-3).
+- Example: objectives rewritten; stage and trailing comments, `∈`, two
+  student-prompt comments; text `pretty_table` output; "Check:" headings and
+  "What do we see?" labels; the archive named with its type; the "does not
+  establish" sentences cut or merged; claim-label takeaways; outputs refreshed.
+- `code/src/Solvers.jl`: Jacobi, Gauss–Seidel, and SOR now solve with the
+  diagonal or lower triangular correction matrix instead of forming `inv(...)`,
+  matching the lecture's "we do not need to form an explicit inverse". Same
+  iteration counts (18, 11, 14) on the example system; iterates agree to ~1e-17;
+  week-6 suite passes.
+- Slides: the example slide no longer says the solver forms explicit inverses,
+  and the two lecture cuts (the E0/q = 0 boundary cases, "not always faster than
+  Jacobi") were mirrored in the deck. README scope text, frame table, and the
+  lecture and example SHA-256 snapshots updated; PDF rebuilt (24 pages, no
+  overfull boxes). The new lecture figures are not in the deck.
+- Algorithm and advanced notebooks untouched.

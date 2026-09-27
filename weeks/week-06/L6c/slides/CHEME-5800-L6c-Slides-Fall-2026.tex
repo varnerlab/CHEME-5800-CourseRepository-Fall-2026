@@ -315,11 +315,8 @@
   \vspace{0.5em}
   For $q=0.5$, $E_0=1$, and $\epsilon_e=10^{-3}$, the bound gives
   \hilite{10 updates}, since $2^{-10}\approx9.77\times10^{-4}$.
-
-  \vspace{0.5em}
-  If $E_0\le\epsilon_e$, no update is needed. If $q=0$, one update gives the exact solution.
   \slidenote{Scope:}{$\epsilon_e$ bounds solution error; the algorithm uses residual tolerance $\epsilon$. The initial error bound $E_0$ may be unknown.}
-  \lecturesource{Convergence: sufficient count, numerical anchor, and boundary cases.}
+  \lecturesource{Convergence: sufficient count and numerical anchor.}
 \end{frame}
 
 \begin{frame}{Specific Methods}
@@ -379,7 +376,7 @@
     \mathbf G_{GS}=-(\mathbf D+\mathbf L)^{-1}\mathbf U.
   \]
   Strict row diagonal dominance guarantees convergence. Reusing updated values
-  can reduce the iteration count, but Gauss–Seidel is not always faster than Jacobi.
+  can reduce the iteration count, but it introduces dependencies between updates.
   \slidenote{Algorithm:}{\href{\gslink}{The Gauss–Seidel Method}}
   \lecturesource{Specific Methods: Gauss–Seidel. Component formula and signed iteration matrix from the companion. Empty sums are zero.}
 \end{frame}
@@ -474,8 +471,7 @@
   \end{enumerate}
 
   \vspace{0.5em}
-  The iterative solver forms explicit inverses and stores the iterates, adding to
-  its runtime and memory use. The comparison applies to this implementation and test system.
+  The iterative solver stores every iterate, adding to its runtime and memory use. The comparison applies to this implementation and test system.
   \slidenote{Example:}{\href{\examplelink}{Fun with Iterative Methods}}
   \lecturesource{Specific Methods: example callout and interpretation.
     Companion example: Tasks 1--3. Uses the corrected shared stopping loop;

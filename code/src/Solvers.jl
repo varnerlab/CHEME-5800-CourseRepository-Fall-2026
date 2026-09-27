@@ -7,11 +7,10 @@ function _solve(A::AbstractMatrix{T}, b::AbstractVector{T}, xₒ::AbstractVector
     archive[0] = copy(xₒ);
 
     # Prepare the correction matrix -
-    D = diag(A) |> a-> diagm(a);
     if (any(diag(A) .== 0.0))
         error("Matrix A has zero(s) on the diagonal, cannot proceed with Jacobi Method.")
     end
-    DI = inv(D); # inverse of the diagonal correction matrix
+    D = Diagonal(diag(A)); # diagonal correction matrix; solving with it divides by each diagonal entry
 
     # Iterate -
     while true
@@ -31,7 +30,7 @@ function _solve(A::AbstractMatrix{T}, b::AbstractVector{T}, xₒ::AbstractVector
         end
 
         # Compute and store a correction only when continuing -
-        d = DI * r;
+        d = D \ r; # solve D d = r without forming an inverse
         k += 1;
         archive[k] = x + d; # key k records exactly k completed corrections
     end
@@ -46,12 +45,10 @@ function _solve(A::AbstractMatrix{T}, b::AbstractVector{T}, xₒ::AbstractVector
     archive[0] = copy(xₒ);
 
     # Prepare the correction matrix -
-    D = diag(A) |> a-> diagm(a);
-    L = tril(A,-1);
-    if (det(D+L) == 0.0)
+    if (any(diag(A) .== 0.0)) # a triangular matrix is invertible exactly when its diagonal has no zeros
         error("Matrix D+L is not invertible, cannot proceed with Gauss-Seidel Method.")
     end
-    C = inv(D + L); # inverse of the lower triangular correction matrix
+    C = LowerTriangular(A); # D + L, the diagonal and strictly lower triangular entries of A
 
     # Iterate -
     while true
@@ -71,7 +68,7 @@ function _solve(A::AbstractMatrix{T}, b::AbstractVector{T}, xₒ::AbstractVector
         end
 
         # Compute and store a correction only when continuing -
-        d = C * r;
+        d = C \ r; # forward substitution solves (D + L) d = r without forming an inverse
         k += 1;
         archive[k] = x + d; # key k records exactly k completed corrections
     end
@@ -86,12 +83,12 @@ function _solve(A::AbstractMatrix{T}, b::AbstractVector{T}, xₒ::AbstractVector
     archive[0] = copy(xₒ);
 
     # Prepare the correction matrix -
-    D = diag(A) |> a-> diagm(a);
-    L = tril(A,-1);
-    if (det(D + ω*L) == 0.0)
+    if (any(diag(A) .== 0.0)) # D + ω*L has the diagonal of A, so it is invertible exactly when that diagonal has no zeros
         error("Matrix D + ω*L is not invertible, cannot proceed with Successive Over-Relaxation Method.")
     end
-    C = inv(D + ω*L); # inverse of the relaxed lower triangular correction matrix
+    D = Diagonal(diag(A));
+    L = tril(A,-1);
+    C = LowerTriangular(D + ω*L); # relaxed lower triangular correction matrix
 
     # Iterate -
     while true
@@ -111,7 +108,7 @@ function _solve(A::AbstractMatrix{T}, b::AbstractVector{T}, xₒ::AbstractVector
         end
 
         # Compute and store a correction only when continuing -
-        d = ω * C * r;
+        d = ω * (C \ r); # forward substitution; the ω factor matches M = D/ω + L
         k += 1;
         archive[k] = x + d; # key k records exactly k completed corrections
     end

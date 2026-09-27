@@ -28,7 +28,7 @@ Requirements: XeLaTeX and `latexmk`. The style uses Helvetica Neue when availabl
 | 4–6 | Linear system, residual, matrix splitting, and general algorithm |
 | 7–9 | Stationary form, residual-correction derivation, and error propagation |
 | 10–13 | Spectral-radius criterion, temporary error growth, strict diagonal dominance, and the Jacobi proof |
-| 14–15 | Contracting-norm bound, sufficient iteration count, and boundary cases |
+| 14–15 | Contracting-norm bound and sufficient iteration count |
 | 16–20 | Common splitting convention; Jacobi, Gauss–Seidel, and SOR updates; relaxation assumptions |
 | 21–23 | Work per iteration, Fun with Iterative Methods example, and L6d lab |
 | 24 | Summary with three key takeaways |
@@ -37,14 +37,14 @@ Requirements: XeLaTeX and `latexmk`. The style uses Helvetica Neue when availabl
 
 Notebook-section mappings and supporting references appear in Beamer source notes, omitted from the projected PDF. Notebook hyperlinks point to their repository locations. The temporary-growth example comes from the advanced convergence companion; component updates come from the algorithm companions. The SOR reading is the lecture's Netlib reference.
 
-The deck defines the iterate, residual, correction, and solution error explicitly. It distinguishes mathematical convergence from satisfying the residual stopping test. The algorithm checks the residual before the update limit and returns immediately. The iteration-count bound concerns solution error and is distinguished from the residual stopping tolerance. SOR's full convergence interval is stated for symmetric positive definite matrices. The benchmark discussion acknowledges explicit inverses and stored iterates in the course implementation; the slides make no universal performance ranking.
+The deck defines the iterate, residual, correction, and solution error explicitly. It distinguishes mathematical convergence from satisfying the residual stopping test. The algorithm checks the residual before the update limit and returns immediately. The iteration-count bound concerns solution error and is distinguished from the residual stopping tolerance. SOR's full convergence interval is stated for symmetric positive definite matrices. The benchmark discussion acknowledges the stored iterates in the course implementation; the slides make no universal performance ranking.
 
 Source notebook snapshots (SHA-256):
 
 | Notebook | SHA-256 |
 |---|---|
-| CHEME-5800-L6c-Lecture-GeneralIterativeMethod-Fall-2026.ipynb | `a06bacdd0a5388d679ac6793bfd6e35f1aae9fad8674b0e810f6ed2f65ba4b74` |
-| CHEME-5800-L6c-Example-FunWithIterativeSolvers-Fall-2026.ipynb | `48f99c5f264e32fb15d16170057a0d3430accb3858684857aab92bf1f6ccb4ba` |
+| CHEME-5800-L6c-Lecture-GeneralIterativeMethod-Fall-2026.ipynb | `dff7018b7a0775ab1bf04cc46322b6bf364a11d622c30d3f291ecda615d1ca27` |
+| CHEME-5800-L6c-Example-FunWithIterativeSolvers-Fall-2026.ipynb | `06053f84410220781ce5f89b9412a97aba25677ce2c349b6d0e9e8def8305968` |
 | CHEME-5800-L6c-Algorithm-JacobiMethod-Fall-2026.ipynb | `56cfe43454de56d499ec7f1c838faf8d4417096b79206c353c008c5a083f6333` |
 | CHEME-5800-L6c-Algorithm-GaussSeidel-Fall-2026.ipynb | `749343a2c0eaabed7ac63f492cc35c401ed0a7a583c32fe2b8d6a8597492e7c7` |
 | CHEME-5800-L6c-Algorithm-SOR-Fall-2026.ipynb | `18a3b30f804fa8094f1b80a3a39ceab210c04948654996b6f168085eb3bfbdb3` |

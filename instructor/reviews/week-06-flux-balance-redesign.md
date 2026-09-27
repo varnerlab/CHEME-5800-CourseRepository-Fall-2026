@@ -37,7 +37,11 @@ curation pass. Jeff chose the BiGG E. coli core model instead.
 - Lab `CHEME-5800-L6b-Lab-OverflowMetabolism-Fall-2026.ipynb`, live walkthrough in
   the L5d format (lean text; predict, run, discuss; flow diagrams; parameter
   changes in the questions). Code complete in `src/Compute.jl`, with
-  `src/Compute-solution.jl` identical apart from its header.
+  `src/Compute-solution.jl` identical apart from its header. Two student pieces
+  (added 2026-09-26), both in the notebook and off the critical path: Task 2 has
+  the students build the growth objective `c` and call `solve_flux_balance(...)`
+  (TODO 1 and TODO 2, checked against `result.growth`); Task 3 ends with a
+  Your turn cell of three commented changes to uncomment one at a time.
 - Data: `e_coli_core.json` from BiGG Models (Orth et al. 2010; King et al. 2016),
   committed with a README.
 - Task 1: load the model and build S. Task 2: maximize growth on glucose with
@@ -110,10 +114,30 @@ protons), no acetate.
 **Task 2.**
 - *No acetate with plenty of oxygen:* glucose is the only limit, and respiration
   makes far more ATP per glucose than making acetate, so the best solution burns
-  every glucose. Plain FBA charges nothing for respiratory capacity, so it never
+  every glucose. The question now states this premise; in the model, maximizing
+  ATPM on glucose 10 gives 17.5 ATP per glucose with oxygen and 2.75 without. Plain FBA charges nothing for respiratory capacity, so it never
   overflows while oxygen is free.
 - *Cap oxygen below 21.8:* growth falls and acetate appears (next cell: O₂ ≤ 15
   gives growth 0.718, acetate 6.81).
+- *Build the objective yourself (TODO 1 and TODO 2):*
+  ```julia
+  c = zeros(Float64, length(model.reactions));
+  c[findfirst(==(model.biomass), model.reactions)] = 1.0;
+  my_result = solve_flux_balance(model.S, model.lower, model.upper, c);
+  ```
+  `my_result.objective` is 0.8739, the same as `result.growth`. Until both TODOs
+  are done the cell's test set errors, which stops Run All there; the later cells
+  still run one at a time because nothing downstream uses `my_result`.
+
+**Task 3 Your turn.** The first two changes are the question's tests, answered
+below. The third, `with_bounds(model, "CYTBD", 0.0, 0.0)` with oxygen unlimited,
+matches no oxygen exactly: growth 0.212, O₂ uptake 0, acetate 8.50, ethanol 8.28,
+formate 17.80, a little CO₂ taken up. `CYTBD` is the core model's only reaction
+that consumes oxygen, so without it oxygen is useless and the feasible set is the
+anaerobic one. Real *E. coli* has three terminal oxidases (bo₃, bd-I, bd-II); the
+core model carries only the two bd enzymes, as this one reaction (gene rule
+(b0978 and b0979) or (b0733 and b0734)). With the cell run and nothing uncommented,
+it throws "Uncomment one change above, then run this cell again".
 
 **Task 3 questions.**
 - *O₂ ≤ 15, glucose 20:* growth 1.047 (up from 0.718); acetate 24.09 and formate
