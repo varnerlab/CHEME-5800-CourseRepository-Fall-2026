@@ -6,6 +6,9 @@ saved notebook. Nothing was committed as part of the review.
 
 Target: [Fun with SVD example](../../weeks/week-07/L7a/CHEME-5800-L7a-Example-FunWithSVD-Fall-2026.ipynb).
 
+Companion records: [L7a lecture](L7a-dimensionality-reduction-lecture-review.md) and
+[L7a slide deck](L7a-dimensionality-reduction-slides-review.md).
+
 The notebook was ported the same day from the instructor's hand-made Fall 2025
 example, with the scikit-image `camera` photograph (CC0) replacing the unlicensed
 `lake_gray` image. Most of the prose is his; the review changed only what is listed

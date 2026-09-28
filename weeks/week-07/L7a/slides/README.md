@@ -4,7 +4,7 @@
 
 The 23-slide deck follows the [Dimensionality Reduction lecture](../CHEME-5800-L7a-Lecture-SVDAndDataReduction-Fall-2026.ipynb) in its order: the dimensionality-reduction problem, the empirical covariance matrix and its eigendecomposition, the move from eigendecomposition to the singular value decomposition, full and compact SVD, PCA from the SVD, the sum of rank-one blocks, and the Eckart–Young theorem. Three learning objectives align with three closing takeaways.
 
-**Review status:** Created and checked September 27, 2026; ready for instructor review.
+**Review status:** Reviewed and approved by the instructor on September 27, 2026, with the L7a lecture and example. See the [review record](../../../../instructor/reviews/L7a-dimensionality-reduction-slides-review.md).
 
 The style files and Cornell seal are copied unchanged from L6c, which matches the approved L6a deck. The deck keeps their 16:9 format, typography, palette, title page, and footer. Text, equations, and tables are editable in the LaTeX source.
 
