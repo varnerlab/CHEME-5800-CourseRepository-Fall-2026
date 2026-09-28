@@ -2,7 +2,7 @@
 
 **Status:** Reviewed and approved by the instructor on September 24, 2026. Approval covers the current saved notebook, including all three tasks, the cumulative grayscale reconstruction, the conservation and flux-feasibility discussion, and the Summary. The polish round is closed.
 
-**Notebook:** [L7b Example: Stoichiometric Structure and Singular Value Decomposition](../../weeks/week-07/L7b/CHEME-5800-L7b-Example-SVD-StoichiometricMatrix-Fall-2026.ipynb)
+**Notebook:** [L7b Example: Stoichiometric Structure and Singular Value Decomposition](../../weeks/week-07/L7b/CHEME-5800-L7b-Lab-SVD-StoichiometricMatrix-Fall-2026.ipynb)
 
 **Final editorial score:** 9/10, compared with 6/10 before the polish round. Scores are editorial judgments, not measured learning outcomes.
 
@@ -43,3 +43,5 @@ Migration validation:
 - Updated week indexes, release manifests, lecture links, the planning queue, and the existing L6a slide hyperlinks. The deck rebuilt successfully, and its SVD links point to L7b.
 
 Relocated notebook SHA-256: `d87b8c22e63dcb53c8c64795a6262b3d180bab574d2fb573ab45902c793a0c57`
+
+Renamed to `CHEME-5800-L7b-Lab-SVD-StoichiometricMatrix-Fall-2026.ipynb` and converted to a live lab on September 27, 2026; see [L7b-svd-stoichiometric-lab.md](L7b-svd-stoichiometric-lab.md). The checksums above describe the earlier example.

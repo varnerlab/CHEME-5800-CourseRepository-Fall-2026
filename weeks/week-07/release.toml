@@ -7,13 +7,14 @@ title = "SVD, data reduction, and ordinary least squares"
 languages = ["Julia"]
 entry_notebooks = [
   "L7a/CHEME-5800-L7a-Lecture-SVDAndDataReduction-Fall-2026.ipynb",
-  "L7b/CHEME-5800-L7b-Example-SVD-StoichiometricMatrix-Fall-2026.ipynb",
+  "L7a/CHEME-5800-L7a-Example-FunWithSVD-Fall-2026.ipynb",
+  "L7b/CHEME-5800-L7b-Lab-SVD-StoichiometricMatrix-Fall-2026.ipynb",
   "L7c/CHEME-5800-L7c-Lecture-OrdinaryLeastSquares-Fall-2026.ipynb",
   "L7d/CHEME-5800-L7d-Lab-HousingPriceOLS-Fall-2026.ipynb",
 ]
 supporting_notebooks = []
-datasets = ["L7b/data/README.md", "L7b/data/saved-model-iAT_PLT_636.jld2"]
-student_paths = ["README.md", "L7a", "src"]
+datasets = ["L7a/data/README.md", "L7a/data/camera.png", "L7b/data/README.md", "L7b/data/saved-model-iAT_PLT_636.jld2"]
+student_paths = ["README.md", "L7a"]
 instructor_only_paths = ["../../instructor/validation/week-07"]
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-07/runtests.jl"

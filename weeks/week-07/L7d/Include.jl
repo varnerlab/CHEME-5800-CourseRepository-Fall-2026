@@ -39,12 +39,10 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `Week07Core` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week07Core)
-    include(joinpath(@__DIR__, "..", "src", "Week07Core.jl"))
+# `L7dOLS` holds this lab's own source: the least-squares fit and its accuracy
+# report. The guard skips the include when the setup cell is run again.
+if !isdefined(@__MODULE__, :L7dOLS)
+    include(joinpath(CHEME5800_L7D_ROOT, "src", "OLS.jl"))
 end
 
 
@@ -67,6 +65,6 @@ using DataFrames     # tabular records held as columns
 using Plots          # figures
 using PrettyTables   # formatted table output in the notebook
 #
-# This meeting's own source, included above. The leading dot means "a module
+# This lab's own source, included above. The leading dot means "a module
 # defined here", as opposed to an installed package of the same name:
-using .Week07Core    # from the include in section 2
+using .L7dOLS        # ols_fit and regression_report

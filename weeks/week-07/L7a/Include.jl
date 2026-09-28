@@ -29,6 +29,10 @@ if !isdefined(@__MODULE__, :CHEME5800_L7A_ROOT)
     const CHEME5800_L7A_ROOT = @__DIR__
 end
 
+if !isdefined(@__MODULE__, :CHEME5800_L7A_DATA)
+    const CHEME5800_L7A_DATA = joinpath(CHEME5800_L7A_ROOT, "data")
+end
+
 
 # --- 2. CODE -----------------------------------------------------------------
 # The repository root `Include.jl` activates the course environment and imports
@@ -37,14 +41,6 @@ end
 if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
         Base.active_project() != CHEME5800_PROJECT
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
-end
-
-# `Week07Core` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week07Core)
-    include(joinpath(@__DIR__, "..", "src", "Week07Core.jl"))
 end
 
 
@@ -64,9 +60,6 @@ using Test           # @test / @testset for the checks in the notebook
 # Packages:
 using CSV            # reading delimited data files
 using DataFrames     # tabular records held as columns
+using Images         # load(...) for the image file, Gray pixels, and the ⊗ outer product
 using Plots          # figures
 using PrettyTables   # formatted table output in the notebook
-#
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .Week07Core    # from the include in section 2

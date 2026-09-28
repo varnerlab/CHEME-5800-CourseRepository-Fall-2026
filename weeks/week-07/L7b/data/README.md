@@ -1,7 +1,7 @@
 # Human platelet metabolic model
 
 `saved-model-iAT_PLT_636.jld2` stores the cached BiGG model used by the
-[L7b stoichiometric-matrix SVD example](../CHEME-5800-L7b-Example-SVD-StoichiometricMatrix-Fall-2026.ipynb).
+[L7b stoichiometric-matrix SVD lab](../CHEME-5800-L7b-Lab-SVD-StoichiometricMatrix-Fall-2026.ipynb).
 The JLD2 file contains the `model` record with 738 metabolites and 1008 reactions.
 
 Source: the `iAT_PLT_636` model from [BiGG Models](http://bigg.ucsd.edu/),

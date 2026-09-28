@@ -1,26 +1,9 @@
-module Week07Core
+module L7dOLS
 
-import LinearAlgebra: Diagonal, dot, svd
-import Statistics: mean
+import LinearAlgebra # methods behind the backslash least-squares solve
+import Statistics: mean # averages in the accuracy report
 
-export explained_energy, ols_fit, regression_report, truncated_svd
-
-function explained_energy(values::AbstractVector{<:Real})
-    all(>=(0), values) || throw(ArgumentError("singular values must be nonnegative"))
-    total = sum(abs2, values)
-    total > 0 || throw(ArgumentError("at least one singular value must be positive"))
-    return cumsum(abs2.(values)) ./ total
-end
-
-function truncated_svd(matrix::AbstractMatrix{<:Real}, rank::Integer)
-    1 <= rank <= min(size(matrix)...) || throw(ArgumentError("rank is outside the matrix dimensions"))
-    factorization = svd(Float64.(matrix))
-    approximation = factorization.U[:, 1:rank] * Diagonal(factorization.S[1:rank]) *
-        factorization.Vt[1:rank, :]
-    relative_error = sqrt(sum(abs2, Float64.(matrix) - approximation) / sum(abs2, Float64.(matrix)))
-    return (approximation = approximation, singular_values = factorization.S,
-        explained = explained_energy(factorization.S), relative_error = relative_error)
-end
+export ols_fit, regression_report
 
 function ols_fit(X::AbstractMatrix{<:Real}, y::AbstractVector{<:Real}; intercept::Bool = true)
     size(X, 1) == length(y) || throw(DimensionMismatch("X rows must match y"))

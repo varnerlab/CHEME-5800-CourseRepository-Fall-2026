@@ -67,5 +67,6 @@ using FileIO         # save / load for the cached BiGG model
 using Images         # grayscale matrix reconstructions
 using JLD2           # the .jld2 format behind save / load
 using Plots          # singular-value reconstruction plots
+using PrettyTables   # plain-text tables of nullspace weights and fluxes
 
 using .L7bBiGG        # endpoint types and the BiGG download interface
