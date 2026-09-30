@@ -39,11 +39,16 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# Local helpers assemble the tissue balances and draw the concentration field.
-# The iterative methods themselves come from the course package, as in L6c.
-if !isdefined(@__MODULE__, :L6dOxygen)
-    include(joinpath(@__DIR__, "src", "Compute.jl"))
-end
+# `L6dOxygen` assembles the tissue balances and holds the student Jacobi
+# implementation, `my_jacobi(...)`. The include is deliberately unguarded:
+# students edit `src/Compute.jl` during the lab, and re-running this setup file
+# must reload those edits. Julia 1.12 replaces the module silently. Notebook
+# calls stay qualified (`L6dOxygen.build_tissue_system(...)`) so they resolve
+# against the replacement module. Gauss-Seidel and SOR come from the course
+# package, as in L6c.
+include(joinpath(@__DIR__, "src", "Compute.jl"))
+
+# Supplied plotting helper for the concentration maps; loaded once.
 if !isdefined(@__MODULE__, :L6dTissuePlots)
     include(joinpath(@__DIR__, "src", "TissuePlots.jl"))
 end
@@ -66,7 +71,11 @@ using DataFrames     # tabular records held as columns
 using Plots          # figures
 using PrettyTables   # formatted table output in the notebook
 #
-# This meeting's own source, included above. The leading dot means "a module
+# The plotting helper is included above. The leading dot means "a module
 # defined here", as opposed to an installed package of the same name:
-using .L6dOxygen     # dimensionless tissue balances and residual checks
 using .L6dTissuePlots # concentration maps
+#
+# There is deliberately no `using .L6dOxygen`. Re-running this file replaces
+# that module, and on Julia 1.12 a second `using` of the replacement makes every
+# exported name ambiguous. The notebook calls L6dOxygen.my_jacobi(...) and
+# friends by their qualified names instead.

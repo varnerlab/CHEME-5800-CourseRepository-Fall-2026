@@ -1,10 +1,10 @@
-# L6d supplies the model assembly; students complete a Jacobi update in the notebook.
-# This file matches Compute-solution.jl apart from this header.
+# L6d model assembly and the student Jacobi implementation. Students complete
+# my_jacobi(...) below; everything else matches Compute-solution.jl.
 module L6dOxygen
 
-import LinearAlgebra: norm # Euclidean length of the residual vector
+import LinearAlgebra: norm, diag # residual norm and the diagonal of A
 
-export build_tissue_system, tissue_field, summarize_archive
+export build_tissue_system, tissue_field, summarize_archive, my_jacobi
 
 """
     build_tissue_system(n::Integer, phi::Real; boundary::Real = 1.0)
@@ -39,7 +39,7 @@ Throw `ArgumentError` if `n < 1`, or if `phi` or `boundary` is negative or nonfi
 
 # Example
 ```julia
-model = build_tissue_system(15, 2.0; boundary = 1.0);
+model = L6dOxygen.build_tissue_system(15, 2.0; boundary = 1.0);
 theta = model.A \\ model.b; # solve the assembled steady balances
 ```
 """
@@ -130,9 +130,9 @@ Throw `DimensionMismatch` unless `length(theta) == model.n^2`.
 
 # Example
 ```julia
-model = build_tissue_system(15, 2.0);
+model = L6dOxygen.build_tissue_system(15, 2.0);
 theta = model.A \\ model.b;
-field = tissue_field(model, theta);
+field = L6dOxygen.tissue_field(model, theta);
 center_concentration = field[9, 9]; # center of the 17 × 17 grid, including edges
 ```
 """
@@ -158,7 +158,9 @@ end
 """
     summarize_archive(model, archive; tolerance::Real = 1e-8)
 
-Read the iterate archive returned by the course `solve(...)` function.
+Read an iterate archive returned by the course `solve(...)` function or by
+`my_jacobi(...)`: compute the residual norm of every stored iterate and report
+whether the last one meets the tolerance.
 
 # Arguments
 - `model`: NamedTuple from `build_tissue_system`; uses the matrix `A` and vector `b`.
@@ -182,10 +184,10 @@ must follow the course solver's key and vector-size conventions described above.
 
 # Example
 ```julia
-model = build_tissue_system(3, 2.0);
+model = L6dOxygen.build_tissue_system(3, 2.0);
 initial = zeros(9);
 archive = Dict(0 => initial); # an archive containing only the initial guess
-result = summarize_archive(model, archive);
+result = L6dOxygen.summarize_archive(model, archive);
 result.iterations # 0; result.residuals contains the initial residual norm
 ```
 """
@@ -213,6 +215,92 @@ function summarize_archive(model, archive; tolerance::Real = 1e-8)
     converged = last(residuals) < tolerance; # also detects stopping at the iteration limit
     return (solution = solution, iterations = iterations,
         residuals = residuals, converged = converged)
+end
+
+"""
+    my_jacobi(A::AbstractMatrix, b::AbstractVector, theta_initial::AbstractVector;
+        ϵ::Real = 1e-8, maxiterations::Integer = 1000)
+
+Solve `A*θ = b` with the Jacobi method, following the five-step algorithm in
+the L6c Jacobi notebook. Each correction divides the residual by the diagonal
+of `A` and adds the result to the current iterate.
+
+# Arguments
+- `A::AbstractMatrix`: square coefficient matrix with nonzero diagonal entries.
+- `b::AbstractVector`: right-hand side, one entry per row of `A`.
+- `theta_initial::AbstractVector`: initial guess, one entry per unknown. It is
+  copied, so the caller's vector is unchanged.
+- `ϵ::Real = 1e-8`: finite, positive tolerance on the Euclidean norm of the
+  residual `b - A*θ`.
+- `maxiterations::Integer = 1000`: nonnegative limit on the number of corrections.
+
+# Returns
+A `Dict{Int, Vector{Float64}}` archive with the same convention as the course
+`solve(...)` function: key zero holds a copy of the initial guess, and key `k`
+holds the iterate after exactly `k` completed corrections. The largest key is
+the number of corrections performed.
+
+# Stopping
+Before each correction, compute the residual of the current iterate. Return the
+archive when its Euclidean norm is strictly less than `ϵ`. Otherwise, if
+`k >= maxiterations`, print a warning and return the archive. Checking the
+residual first means an acceptable initial guess needs no correction, and an
+iterate that first meets tolerance after the last allowed correction still
+counts as converged. The course solver uses the same rule for the systems in
+this lab, so the two archives can be compared key by key. The course solver
+also stops early when the residual norm exceeds `1e10`; this function does not.
+
+# Errors
+Throw `DimensionMismatch` if `A` is not square or if `b` or `theta_initial` do
+not match its size. Throw `ArgumentError` if any diagonal entry of `A` is zero,
+if `ϵ` is nonpositive or nonfinite, or if `maxiterations` is negative.
+
+# Example
+```julia
+model = L6dOxygen.build_tissue_system(15, 2.0);
+archive = L6dOxygen.my_jacobi(model.A, model.b, zeros(225); ϵ = 1e-8, maxiterations = 2000);
+theta = archive[maximum(keys(archive))]; # the last stored iterate
+```
+"""
+function my_jacobi(A::AbstractMatrix, b::AbstractVector, theta_initial::AbstractVector;
+    ϵ::Real = 1e-8, maxiterations::Integer = 1000)
+
+    # Check the arguments; this part is complete -
+    number_of_equations = size(A, 1);
+    if size(A, 2) != number_of_equations
+        throw(DimensionMismatch("A must be square; received size $(size(A))"))
+    end
+    if length(b) != number_of_equations || length(theta_initial) != number_of_equations
+        throw(DimensionMismatch("b and theta_initial must have one entry per row of A"))
+    end
+    if any(iszero, diag(A))
+        throw(ArgumentError("every diagonal entry of A must be nonzero for Jacobi"))
+    end
+    if !isfinite(ϵ) || ϵ <= 0
+        throw(ArgumentError("ϵ must be finite and positive"))
+    end
+    if maxiterations < 0
+        throw(ArgumentError("maxiterations must be nonnegative"))
+    end
+
+    # Store the initial guess; key k will hold the iterate after k corrections -
+    archive = Dict{Int, Vector{Float64}}();
+    archive[0] = copy(theta_initial); # copy, so the caller's vector is unchanged
+    diagonal = diag(A); # one divisor per equation
+    k = 0; # number of completed corrections
+
+    # TODO 1: Start a loop. Read the current iterate theta = archive[k] and
+    # compute the residual r = b - A*theta before changing anything.
+
+    # TODO 2: Stop when the residual is small or the limit is reached. If
+    # norm(r) < ϵ, return archive. Otherwise, if k >= maxiterations, print a
+    # warning with @warn and return archive.
+
+    # TODO 3: Apply the correction. Store theta + r ./ diagonal as archive[k + 1],
+    # then add one to k and continue the loop.
+
+    throw(ErrorException("Oooops! The `my_jacobi(...)` function is not implemented yet - " *
+                         "we'd better fix that. Complete TODO 1 through TODO 3."))
 end
 
 end

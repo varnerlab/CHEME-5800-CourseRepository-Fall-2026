@@ -13,7 +13,15 @@ from nbconvert import HTMLExporter
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output-dir', type=Path)
 args = parser.parse_args()
-root = Path(__file__).resolve().parents[3] / 'weeks/week-06/L6d'
+source_root = Path(__file__).resolve().parents[3] / 'weeks/week-06/L6d'
+# Execute a sibling copy so the reference my_jacobi(...) can replace the student
+# stub without touching the tracked lab; the relative path to the root Include.jl
+# is unchanged because the copy sits at the same depth.
+root = source_root.parent / '.L6d-review-copy'
+import atexit; atexit.register(shutil.rmtree, root, True) # registered first, so a failed copy is also removed
+shutil.rmtree(root, ignore_errors=True)
+shutil.copytree(source_root, root, ignore=shutil.ignore_patterns('.ipynb_checkpoints'))
+shutil.copyfile(root/'src'/'Compute-solution.jl', root/'src'/'Compute.jl')
 out = args.output_dir or Path(tempfile.mkdtemp(prefix='l6d-oxygen-review-'))
 out.mkdir(parents=True, exist_ok=True)
 os.environ['GKSwstype']='100'
@@ -21,8 +29,6 @@ os.environ['JUPYTER_RUNTIME_DIR']=str(out/'runtime')
 os.environ['IPYTHONDIR']=str(out/'ipython')
 source=nbformat.read(root/'CHEME-5800-L6d-Lab-IterativeLinearSolvers-Fall-2026.ipynb',as_version=4)
 answers={
- 'my_residual = nothing;':'my_residual = model.b - model.A * theta_initial;',
- 'my_next = nothing;':'my_next = theta_initial + my_residual ./ diag(model.A);',
  'reduced_boundary = nothing;':'reduced_boundary = β / 2;'
 }
 for old,new in answers.items():
@@ -31,9 +37,9 @@ for old,new in answers.items():
 client=NotebookClient(source,timeout=180,kernel_name='julia-1.12',resources={'metadata':{'path':str(root)}})
 client.execute()
 nbformat.write(source,out/'lab-completed.ipynb')
-print('Completed all lab code cells with the three reference answers.',flush=True)
-shutil.copytree(root/'figs',out/'figs',dirs_exist_ok=True)
-for name,nb in [('lab',source),('derivation',nbformat.read(root/'CHEME-5800-L6d-Derivation-OxygenDiffusionReaction-Fall-2026.ipynb',as_version=4))]:
+print('Completed all lab code cells with the reference my_jacobi and boundary answer.',flush=True)
+shutil.copytree(source_root/'figs',out/'figs',dirs_exist_ok=True)
+for name,nb in [('lab',source),('derivation',nbformat.read(source_root/'CHEME-5800-L6d-Derivation-OxygenDiffusionReaction-Fall-2026.ipynb',as_version=4))]:
  html,_=HTMLExporter().from_notebook_node(nb)
  (out/(name+'.html')).write_text(html)
 print('Rendered lab and derivation to',out,flush=True)

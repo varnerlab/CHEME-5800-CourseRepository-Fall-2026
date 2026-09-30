@@ -47,7 +47,7 @@ Throw `DimensionMismatch` if `theta` does not have `model.n^2` entries.
 
 # Example
 ```julia
-model = build_tissue_system(15, 2.0);
+model = L6dOxygen.build_tissue_system(15, 2.0);
 theta = model.A \\ model.b;
 plot_tissue(model, theta; title = "Steady oxygen field", theme = :dark)
 ```

@@ -28,24 +28,54 @@ an explicit four-unknown example.
 
 ## Student work and discussion answers
 
-The model and plot helpers ship complete, following L6b's pattern. The three
-notebook assignments to complete are:
+Update (September 30, 2026): the one-step Jacobi update in the notebook was
+replaced by a full implementation task, following the L3d and L4d pattern.
+Students complete `my_jacobi(...)` in the `L6dOxygen` module in
+`L6d/src/Compute.jl`: the docstring, argument checks, and archive setup ship
+complete, and three TODO comments follow the five-step pseudocode of the L6c
+Jacobi notebook (residual, stopping test with the strict tolerance checked
+before the correction limit, diagonal correction). Until they are done, the
+function throws the house "Oooops! ... not implemented yet" error.
+`L6d/src/Compute-solution.jl` is the completed reference. The notebook checks
+the student archive against the course package Jacobi archive key by key, then
+uses the student archive for the Jacobi row of the comparison table and the
+snapshot plots; Gauss–Seidel and SOR remain course-package calls.
+
+Because students edit the module file, `Include.jl` includes `Compute.jl`
+unguarded and has no `using .L6dOxygen`; the notebook calls
+`L6dOxygen.build_tissue_system(...)` and friends by qualified name, so
+re-running the setup cell reloads the edits without a kernel restart.
+
+The one remaining notebook assignment is:
 
 ```julia
-my_residual = model.b - model.A * theta_initial;
-my_next = theta_initial + my_residual ./ diag(model.A);
 reduced_boundary = β / 2;
 ```
 
-These answers are also in the header of `L6d/src/Compute-solution.jl`, whose
-module matches `Compute.jl`. The validation runner fills only an in-memory copy
-of the student notebook and leaves the distributed exercises unanswered.
+The validation runner executes a sibling copy of the L6d folder with the
+reference source swapped in, fills the boundary answer in memory, and removes
+the copy at exit, so the distributed files stay unanswered.
 
-1. Doubling the half-width doubles the Thiele modulus and lowers center oxygen.
-2. With the defaults, SOR uses the fewest corrections. All three methods agree
-   with the same direct steady solution within the specified tolerance.
-3. Halving edge oxygen halves center oxygen (and every other concentration).
-   The right-hand side changes; the matrix does not.
+1. (Task 1, revised September 30) Each row has diagonal `4 + (phi*h)^2` and at
+   most four off-diagonal entries of magnitude one, so the off-diagonal sum is at
+   most 4. For `phi > 0` the diagonal exceeds it in every row (default grid:
+   4.0625 versus 4.0), so the matrix is strictly diagonally dominant, and the
+   L6c lecture says this is sufficient for Jacobi and Gauss–Seidel to converge
+   from any initial guess. For `phi = 0` interior rows tie at 4 and strict
+   dominance fails, although the methods still converge on this problem.
+   The former Task 1 question (doubling `L` doubles `phi`, lowering center
+   oxygen) duplicated the Task 3 prediction and was replaced.
+2. (Task 2, revised September 30) Gauss–Seidel uses each new concentration as
+   soon as it is computed, so each sweep does more work toward the solution;
+   with the defaults it needs 266 corrections versus 528 for Jacobi, and SOR
+   with relaxation 1.5 needs 78. All three methods agree with the same direct
+   steady solution within the specified tolerance.
+3. (Task 3, revised September 30) Yes: for fixed `phi` the field is linear in
+   the edge concentration, so raising `beta` from 1 to about 5.68 (the ratio
+   0.390557/0.068769) restores the original center value in the larger slice.
+   Only the right-hand side changes; the matrix depends on `phi`, not `beta`.
+   The former question (is center oxygen halved; which of A or b changed)
+   repeated the cell's own prediction and was answered by the paragraph above it.
 
 Default grid: 15 interior points per direction, 225 unknowns, spacing 0.125.
 Default modulus: 2; boundary concentration: 1; absolute residual tolerance:

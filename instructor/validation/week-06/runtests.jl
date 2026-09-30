@@ -5,8 +5,9 @@ released("L6b") && include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-0
 released("L6c") && include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-06", "L6c", "Include.jl"))
 released("L6d") && include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-06", "L6d", "Include.jl"))
 
-# L6b's reference implementation; the notebook setup loads the student file.
+# L6b's and L6d's reference implementations; the notebook setups load the student files.
 released("L6b") && include(joinpath(WEEK_ROOT, "L6b", "src", "Compute-solution.jl"))
+released("L6d") && include(joinpath(WEEK_ROOT, "L6d", "src", "Compute-solution.jl"))
 
 @meeting "L6a" begin
     include(joinpath(@__DIR__, "l6a_stoichiometry.jl"))

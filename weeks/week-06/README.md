@@ -43,11 +43,12 @@ model (Orth et al. 2010).
 L6d models oxygen delivery in a square tissue slice using the Thiele modulus and
 prescribed edge concentrations. Its [derivation](L6d/CHEME-5800-L6d-Derivation-OxygenDiffusionReaction-Fall-2026.ipynb)
 connects the dimensional material balance to the dimensionless PDE and the
-five-point linear system. The lab uses the course solvers from L6c and includes
-short student exercises for a Jacobi correction and a change in edge supply.
-The model helper [Compute.jl](L6d/src/Compute.jl) is complete;
-[Compute-solution.jl](L6d/src/Compute-solution.jl) includes the exercise answers
-in its header and the matching helper implementation.
+five-point linear system. Students implement the Jacobi method as
+`my_jacobi(...)` in [Compute.jl](L6d/src/Compute.jl) and check its iterate
+archive against the course solver from L6c; Gauss-Seidel and SOR come from the
+course package. The stub's three TODOs follow the L6c Jacobi pseudocode, and
+[Compute-solution.jl](L6d/src/Compute-solution.jl) is the completed reference.
+The lab also includes a short notebook exercise on a change in edge supply.
 
 Validate from the repository root:
 
