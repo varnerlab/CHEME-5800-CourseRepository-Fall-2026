@@ -1,6 +1,6 @@
 schema_version = 2
 week = 6
-version = "1.2"
+version = "1.3"
 status = "ready"
 cadence = "meeting"
 title = "Flux balance analysis and iterative linear solvers"
@@ -29,8 +29,9 @@ datasets = [
   "L6a/figs/KEGG-map01100.png",
   "L6b/data/README.md",
   "L6b/data/e_coli_core.json",
+  "L6d/figs/Fig-Tissue-Stencil.svg",
 ]
-student_paths = ["README.md", "L6a", "L6b", "L6c", "src"]
+student_paths = ["README.md", "L6a", "L6b", "L6c", "L6d", "src"]
 instructor_only_paths = ["../../instructor/validation/week-06"]
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-06/runtests.jl"
