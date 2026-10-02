@@ -1,7 +1,7 @@
 schema_version = 2
 week = 7
-version = "1.0-prototype"
-status = "prototype"
+version = "1.0"
+status = "ready"
 cadence = "meeting"
 title = "SVD, data reduction, and ordinary least squares"
 languages = ["Julia"]
@@ -13,7 +13,11 @@ entry_notebooks = [
   "L7d/CHEME-5800-L7d-Lab-HousingPriceOLS-Fall-2026.ipynb",
 ]
 supporting_notebooks = []
-datasets = ["L7b/data/README.md", "L7b/data/saved-model-iAT_PLT_636.jld2"]
+datasets = [
+  "L7a/figs/Fig-Covariance-Schematic.svg",
+  "L7b/data/README.md",
+  "L7b/data/saved-model-iAT_PLT_636.jld2",
+]
 student_paths = ["README.md", "L7a"]
 instructor_only_paths = ["../../instructor/validation/week-07"]
 [validation]
