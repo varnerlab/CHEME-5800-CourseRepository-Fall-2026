@@ -31,14 +31,14 @@
   {\large\textbf{\ink{Today's concepts}}}
   \vspace{0.2em}
   \begin{itemize}\setlength{\itemsep}{0.55em}
-    \item \hilite{Analyze the covariance matrix}: compute it and interpret its
-      eigenvectors as principal directions and its eigenvalues as the variance
-      along them.
-    \item \hilite{Apply the singular value decomposition}: factor a matrix in
-      full and compact form, and truncate it for the best low-rank approximation.
-    \item \hilite{Connect PCA and the SVD}: explain how principal component
-      analysis follows from the covariance eigendecomposition and matches the
-      SVD of the centered data.
+    \item \hilite{Compute and interpret the empirical covariance matrix}: its
+      eigenvectors are the directions of greatest variation, and its eigenvalues
+      are the variance along them.
+    \item \hilite{Factor a matrix with the singular value decomposition}: compare
+      its full, compact, and thin forms, and truncate it for the closest
+      lower-rank matrix.
+    \item \hilite{Connect principal component analysis to the SVD}: get the same
+      directions and variances from the SVD of the centered data.
   \end{itemize}
   \slidenote{Lecture:}{\href{\lecturelink}{Dimensionality Reduction}}
   \lecturesource{Introduction and three Learning Objectives.}
@@ -87,15 +87,15 @@
 \end{frame}
 
 \begin{frame}{Why Does Dimensionality Reduction Matter?}
-  \renewcommand{\arraystretch}{1.3}
+  \renewcommand{\arraystretch}{1.2}
   \setlength{\tabcolsep}{5pt}
   \begin{tabularx}{\textwidth}{@{}lY@{}}
     \toprule
     Application & What the reduced representation captures\\
     \midrule
-    Genomics & Expression data can have more than 20,000 genes but only hundreds of samples; a few key patterns reveal biological processes.\\
-    Image compression & A megapixel image has millions of dimensions, but most of its information sits in far fewer components.\\
-    Recommendation systems & Low-dimensional representations of large, sparse user–item matrices capture latent preferences. The winning Netflix Prize solution used matrix factorization.\\
+    Genomics & Expression data can have over 20,000 genes but only hundreds of samples; a few key patterns reveal biological processes.\\
+    Image compression & A one-megapixel grayscale image has about a million dimensions, but most of its information sits in far fewer components.\\
+    Recommendations & Low-dimensional representations of large, sparse user–item matrices capture latent preferences. The Netflix Prize winners used matrix factorization, a close relative of the truncated SVD (\href{https://doi.org/10.1109/MC.2009.263}{Koren et al., 2009}).\\
     Visualization & We cannot plot 1000-dimensional data, but we can plot the top two or three components to spot patterns and clusters.\\
     \bottomrule
   \end{tabularx}
@@ -104,7 +104,8 @@
 
 \begin{frame}{Composite Features}
   Each entry of the lower-dimensional vector $\mathbf y_i$ is a
-  \hilite{composite feature}: a linear combination of the original features.
+  \hilite{composite feature}: a linear combination of the original features
+  after subtracting their means.
 
   \vspace{0.6em}
   Reducing the dimension lets us:
@@ -126,13 +127,13 @@
   \[
     \mathbf y=\mathbf P\,(\mathbf x-\bar{\mathbf x}),
     \qquad
-    y_i=\phi_i^\top(\mathbf x-\bar{\mathbf x}),\quad i=1,2,\ldots,k,
+    y_j=\symbf{\phi}_j^\top(\mathbf x-\bar{\mathbf x}),\quad j=1,2,\ldots,k,
   \]
-  where $\bar{\mathbf x}$ is the mean of the original features and
-  $\phi_i^\top$ is row $i$ of $\mathbf P$. Each row extracts one component.
+  where $\bar{\mathbf x}$ is the mean of the feature vectors in the dataset and
+  $\symbf{\phi}_j^\top$ is row $j$ of $\mathbf P$. Each row extracts one component.
 
   \vspace{0.6em}
-  What are these transformation vectors $\phi_i$?
+  What are these transformation vectors $\symbf{\phi}_j$?
   \begin{itemize}\setlength{\itemsep}{0.6em}
     \item They are the top-$k$ eigenvectors of the data's covariance matrix.
       This procedure is \hilite{principal component analysis (PCA)}.
@@ -218,8 +219,7 @@
   \[
     \Sigmahat=\frac{1}{n-1}\,\tilde{\mathbf X}^\top\tilde{\mathbf X}.
   \]
-  This form computes every covariance at once, without computing the
-  correlations first.
+  This form computes every covariance at once.
   \lecturesource{Empirical Covariance Matrix: data matrix, centering, outer-product callout, and matrix form.}
 \end{frame}
 
@@ -234,8 +234,10 @@
       there is no linear relationship between them.
     \item \hilite{Symmetry}: $\hat\Sigma_{ij}=\hat\Sigma_{ji}$ for all $i$ and
       $j$, which follows from the definition of covariance.
-    \item \hilite{Positive semidefinite}: $\mathbf v^\top\Sigmahat\,\mathbf v\ge0$
-      for every vector $\mathbf v\in\mathbb R^m$.
+    \item \hilite{Positive semidefinite}: $\mathbf v^\top\Sigmahat\,\mathbf v
+      =\frac{1}{n-1}\|\tilde{\mathbf X}\mathbf v\|_2^2\ge0$ for every vector
+      $\mathbf v\in\mathbb R^m$, since it is the variance of the centered data
+      projected onto $\mathbf v$.
   \end{itemize}
   \lecturesource{Empirical Covariance Matrix: Covariance Matrix Properties callout.}
 \end{frame}
@@ -296,7 +298,7 @@
   \vspace{0.7em}
   The \hilite{singular value decomposition} factors any rectangular matrix.
   Applied to the centered data matrix $\tilde{\mathbf X}$, it gives the same
-  principal components as the eigendecomposition of $\Sigmahat$, so the two
+  principal directions as the eigendecomposition of $\Sigmahat$, so the two
   approaches are mathematically equivalent.
 
   \vspace{0.7em}
@@ -311,18 +313,20 @@
   \[
     \mathbf A=\mathbf U\,\mathbf S\,\mathbf V^\top.
   \]
-  \begin{itemize}\setlength{\itemsep}{0.5em}
-    \item $\mathbf U\in\mathbb R^{m\times m}$ is orthogonal:
-      $\mathbf U^\top\mathbf U=\mathbf I_m$, the $m\times m$ identity matrix.
+  \begin{itemize}\setlength{\itemsep}{0.35em}
+    \item $\mathbf U\in\mathbb R^{m\times m}$ is orthogonal,
+      $\mathbf U^\top\mathbf U=\mathbf I_m$ (the identity), and its columns
+      $\mathbf u_i$ are the \hilite{left singular vectors}.
     \item $\mathbf S\in\mathbb R^{m\times n}$ is rectangular diagonal, with the
       \hilite{singular values} $\sigma_1\ge\cdots\ge\sigma_r>0$ on its first
       $r$ diagonal entries and zeros elsewhere. From here on, $\sigma_i$
       denotes a singular value.
-    \item $\mathbf V\in\mathbb R^{n\times n}$ is orthogonal:
-      $\mathbf V^\top\mathbf V=\mathbf I_n$, the $n\times n$ identity matrix.
+    \item $\mathbf V\in\mathbb R^{n\times n}$ is orthogonal,
+      $\mathbf V^\top\mathbf V=\mathbf I_n$ (the identity), and its columns
+      $\mathbf v_i$ are the \hilite{right singular vectors}.
   \end{itemize}
 
-  \vspace{0.5em}
+  \vspace{0.3em}
   The singular values are the square roots of the eigenvalues of
   $\mathbf A^\top\mathbf A$, so $\sigma_i=\sqrt{\lambda_i(\mathbf A^\top\mathbf A)}$.
   The number of nonzero singular values is the rank of $\mathbf A$, and
@@ -338,7 +342,8 @@
   \vspace{0.3em}
   \begin{itemize}\setlength{\itemsep}{0.4em}
     \item \hilite{Pro}: the full factors give complete orthonormal bases for
-      $\mathbb R^m$ and $\mathbb R^n$.
+      $\mathbb R^m$ and $\mathbb R^n$; the first $r(\mathbf A)$ columns of
+      $\mathbf U$ and $\mathbf V$ span the column and row spaces of $\mathbf A$.
     \item \hilite{Con}: the memory requirement grows as
       $\mathcal O(m^2+n^2)$, which is wasteful when $r(\mathbf A)\ll\min(m,n)$.
   \end{itemize}
@@ -385,20 +390,21 @@
 \end{frame}
 
 \begin{frame}{Dimensionality Reduction with the SVD}
-  The SVD writes any rectangular matrix as a weighted sum of rank-one blocks:
+  The SVD writes any rectangular matrix as a weighted sum of rank-one matrices:
   \[
     \mathbf A=\sum_{i=1}^{r(\mathbf A)}\sigma_i\,
       \underbrace{\left(\mathbf u_i\otimes\mathbf v_i\right)}_{\mathbf u_i\mathbf v_i^\top}
   \]
   where $\mathbf u_i$ and $\mathbf v_i$ are the $i$-th left and right singular
   vectors and $\sigma_i$ are the ordered singular values. The outer product
-  $\mathbf u_i\mathbf v_i^\top$ is a separable \hilite{rank-one block} of $\mathbf A$.
+  $\mathbf u_i\mathbf v_i^\top$ is an $m\times n$ matrix of rank one, a
+  separable \hilite{rank-one component} of $\mathbf A$.
 
   \vspace{0.7em}
-  The blocks are weighted by their singular values, largest first.
-  Truncating the sum keeps the blocks with the largest weights, which makes
+  The components are weighted by their singular values, largest first.
+  Truncating the sum keeps the components with the largest weights, which makes
   the SVD well suited to dimensionality reduction and data compression.
-  \lecturesource{Singular value decomposition: Dimensionality Reduction? subsection, sum of rank-one blocks.}
+  \lecturesource{Singular value decomposition: Dimensionality Reduction? subsection, sum of rank-one matrices.}
 \end{frame}
 
 \begin{frame}{Eckart–Young Theorem}
@@ -406,7 +412,7 @@
   \[
     \mathbf A_k=\sum_{i=1}^{k}\sigma_i\,\mathbf u_i\mathbf v_i^\top.
   \]
-  For any other matrix $\mathbf B$ of rank at most $k$:
+  For any other matrix $\mathbf B\in\mathbb R^{m\times n}$ of rank at most $k$:
   \[
     \|\mathbf A-\mathbf A_k\|_F\le\|\mathbf A-\mathbf B\|_F,
     \qquad
@@ -473,10 +479,10 @@
   \begin{itemize}\setlength{\itemsep}{0.9em}
     \item \textbf{\ink{Covariance eigendecomposition.}} The eigenvectors are the
       principal directions; the eigenvalues are the variance along each one.
-    \item \textbf{\ink{Optimal low-rank approximation.}} Keeping the largest
-      singular values gives the closest matrix of a given rank.
-    \item \textbf{\ink{PCA and the SVD.}} The SVD of the centered data gives the
-      same principal directions as the covariance eigendecomposition.
+    \item \textbf{\ink{Truncated SVD.}} Keeping the largest singular values gives
+      the closest matrix of that rank in the Frobenius and spectral norms.
+    \item \textbf{\ink{PCA from the SVD.}} The SVD of the centered data gives the
+      principal directions and variances without forming the covariance matrix.
   \end{itemize}
 
   \vspace{0.8em}

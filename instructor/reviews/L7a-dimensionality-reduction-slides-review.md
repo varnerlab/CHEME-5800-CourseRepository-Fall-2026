@@ -1,7 +1,8 @@
 # L7a dimensionality reduction slide-deck review
 
-**Status:** Reviewed and approved by the instructor on September 27, 2026. Approval
-covers the 23-slide deck committed in `d0fac68`. The review is closed.
+**Status:** Reviewed and approved by the instructor on September 27, 2026, and the
+re-synced deck approved again on October 2, 2026 ("Slides look great. let's use
+these"). Approval covers the 23-slide deck with the hashes below. The review is closed.
 
 **Deck:** [L7a: Dimensionality Reduction](../../weeks/week-07/L7a/slides/CHEME-5800-L7a-Slides-Fall-2026.pdf)
 
@@ -37,6 +38,23 @@ Three wording changes tighten the lecture's statements and were confirmed correc
 codex: Eckart–Young is stated for k < r(A), the full SVD's bases are bases for ℝᵐ and
 ℝⁿ, and truncation is described as provably optimal.
 
+## October 2 sync with the polished lecture
+
+The lecture had a polish pass on October 2 (new objectives and takeaways, accuracy
+fixes, and reorganized cells), and twelve slides were updated to match. Slide 2 takes
+the three new objective labels; slide 23 takes the new takeaway labels, still one
+line each. Slides 5, 6, 7, 11, 12, 15, 16, 17, 19, and 20 carry the lecture's fixes:
+about a million pixel dimensions and the cited Netflix claim, mean-subtracted
+composite features, the $y_j$ and $\boldsymbol\phi_j$ notation, the dropped
+correlation denial, the variance reason for positive semidefiniteness, "principal
+directions", named singular-vector columns, the column and row spaces of the full
+SVD, "rank-one matrices", and $\mathbf B\in\mathbb R^{m\times n}$. To keep the
+first three edits from overflowing, slides 2, 5, and 16 were reworded and slides 5
+and 16 got tighter spacing; no font sizes changed. The build has no overfull or
+underfull boxes. A read-only codex pass rated all 13 edits fixed and found no
+contradiction with the lecture or departure from its order; it noted the undefined
+vector norm (slide 12) and big-O (slide 17, pre-existing), left as standard notation.
+
 ## Validation
 
 - Built with XeLaTeX and latexmk; the final build has no overfull or underfull boxes
@@ -49,6 +67,6 @@ codex: Eckart–Young is stated for k < r(A), the full SVD's bases are bases for
   [slide README](../../weeks/week-07/L7a/slides/README.md). Classroom pacing has not
   been tested. This approval does not change the week 7 release status.
 
-Approved PDF SHA-256: `73c51d54bd7229ec52a0fc48ce0d6cc338d538999a6205911f0bb221aa54b2db`
+Approved PDF SHA-256: `12afc112c6a31344123804eea3c04402646cbff8583c612d2fe44142c471d29c`
 
-Approved LaTeX source SHA-256: `b7db506848ca5e5c2bc8363ffe56d360d29764f3463bdbe352deacd71b917d56`
+Approved LaTeX source SHA-256: `6aec3fbb7edc1189d77849f1d26ab757b8a51aba47b8e76cd0ddc208b0e4d436`

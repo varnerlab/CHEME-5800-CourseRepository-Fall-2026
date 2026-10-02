@@ -14,7 +14,8 @@ onto a model's column space.
 The L7b lab uses a cached human platelet metabolic model to examine numerical
 rank, low-rank approximation, conservation relations, and balanced-flux
 directions. Its supplied model supports offline execution. The L7a example loads
-a CC0 grayscale test image from `L7a/data/`, so it also runs offline.
+the `lake_gray` sailboat image with TestImages.jl, which downloads it on first
+use, so the first run needs an internet connection.
 
 ```bash
 julia --startup-file=no --project=. instructor/validation/week-07/runtests.jl

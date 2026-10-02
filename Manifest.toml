@@ -2,7 +2,7 @@
 
 julia_version = "1.12.7"
 manifest_format = "2.0"
-project_hash = "16a5e485f5fa6885ef9b378f50efed9511e905d2"
+project_hash = "efb76513e3b49651b909d15717f1aa5812795a44"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "5970c86505ae9c07bf5bc521ef2bbbb3849e8b7b"
@@ -2870,6 +2870,12 @@ git-tree-sha1 = "88cf3587711d9ad0a55722d339a013c4c56c5bbc"
 uuid = "f3b207a7-027a-5e70-b257-86293d7955fd"
 version = "0.15.8"
 
+[[deps.StringDistances]]
+deps = ["Distances", "StatsAPI"]
+git-tree-sha1 = "5b2ca70b099f91e54d98064d5caf5cc9b541ad06"
+uuid = "88034a9c-02f8-509d-84a9-84ec65e18404"
+version = "0.11.3"
+
 [[deps.StringManipulation]]
 deps = ["PrecompileTools"]
 git-tree-sha1 = "773065c6e0e903924a9d838259be74338422aef2"
@@ -2953,6 +2959,12 @@ version = "0.1.1"
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 version = "1.11.0"
+
+[[deps.TestImages]]
+deps = ["AxisArrays", "ColorTypes", "FileIO", "ImageIO", "ImageMagick", "OffsetArrays", "Pkg", "StringDistances"]
+git-tree-sha1 = "fc32a2c7972e2829f34cf7ef10bbcb11c9b0a54c"
+uuid = "5e47fb64-e119-507b-a336-dd2b206d9990"
+version = "1.9.0"
 
 [[deps.ThreadingUtilities]]
 deps = ["ManualMemory"]

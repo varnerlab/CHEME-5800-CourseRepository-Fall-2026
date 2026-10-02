@@ -29,10 +29,6 @@ if !isdefined(@__MODULE__, :CHEME5800_L7A_ROOT)
     const CHEME5800_L7A_ROOT = @__DIR__
 end
 
-if !isdefined(@__MODULE__, :CHEME5800_L7A_DATA)
-    const CHEME5800_L7A_DATA = joinpath(CHEME5800_L7A_ROOT, "data")
-end
-
 
 # --- 2. CODE -----------------------------------------------------------------
 # The repository root `Include.jl` activates the course environment and imports
@@ -60,6 +56,7 @@ using Test           # @test / @testset for the checks in the notebook
 # Packages:
 using CSV            # reading delimited data files
 using DataFrames     # tabular records held as columns
-using Images         # load(...) for the image file, Gray pixels, and the ⊗ outer product
+using Images         # Gray pixels and the ⊗ outer product
 using Plots          # figures
+using TestImages     # testimage(...) for the lake_gray sailboat image (downloads on first use)
 using PrettyTables   # formatted table output in the notebook
