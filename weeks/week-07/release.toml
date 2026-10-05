@@ -17,6 +17,8 @@ datasets = [
   "L7a/figs/Fig-Covariance-Schematic.svg",
   "L7b/data/README.md",
   "L7b/data/saved-model-iAT_PLT_636.jld2",
+  "L7c/figs/Fig-LinearRegressionModel-Schematic/Fig-LinearRegressionModel-Schematic.svg",
+  "L7c/figs/Fig-InnerProduct-NeedToRedrawThis.png",
 ]
 student_paths = ["README.md", "L7a", "L7b"]
 instructor_only_paths = ["../../instructor/validation/week-07"]
