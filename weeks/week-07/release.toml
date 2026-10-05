@@ -1,6 +1,6 @@
 schema_version = 2
 week = 7
-version = "1.1"
+version = "1.2"
 status = "ready"
 cadence = "meeting"
 title = "SVD, data reduction, and ordinary least squares"
@@ -20,7 +20,7 @@ datasets = [
   "L7c/figs/Fig-LinearRegressionModel-Schematic/Fig-LinearRegressionModel-Schematic.svg",
   "L7c/figs/Fig-InnerProduct-NeedToRedrawThis.png",
 ]
-student_paths = ["README.md", "L7a", "L7b"]
+student_paths = ["README.md", "L7a", "L7b", "L7c"]
 instructor_only_paths = ["../../instructor/validation/week-07"]
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-07/runtests.jl"
