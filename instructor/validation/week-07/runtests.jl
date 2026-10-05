@@ -63,26 +63,30 @@ end
         # Values the prose quotes: modes needed for 50, 90, and 99 percent -
         F = workspace.retained_fraction
         @test [findfirst(>=(p), F) for p ∈ (0.5, 0.9, 0.99)] == [4, 223, 534]
+        # Roundoff-level values differ between machines, so pin only the gap the prose quotes -
         @test workspace.σ_next < workspace.τ < workspace.Σ[workspace.r]
         @test isapprox(workspace.τ, 9.45e-12; rtol = 0.01) && isapprox(workspace.Σ[workspace.r], 0.0323; rtol = 0.01)
-        @test workspace.σ_next < 1e-14
+        @test workspace.Σ[workspace.r] / workspace.σ_next > 1e10
 
-        # The trial flux in Task 3: 270 irreversible reactions run backward, one upper bound -
-        @test length(workspace.below_lower) == 270 && length(workspace.above_upper) == 1
-        @test length(workspace.violations) == 271
+        # Nullspace basis columns change with BLAS rounding; Task 3 uses projections, which do not -
+        # The trial flux (HEX1 projected onto the right nullspace): 416 irreversible reactions run backward -
+        @test length(workspace.below_lower) == 416 && isempty(workspace.above_upper)
+        @test length(workspace.violations) == 416
         @test all(workspace.lower_bounds[workspace.below_lower] .== 0.0)
         @test count(==(0.0), workspace.lower_bounds) == 559
+        @test workspace.v_trial[workspace.hexokinase_index] ≈ 0.4964 atol = 1e-4
+        # The nine-row flux table must not end inside a tie, or its last row varies by machine -
+        flux_order = sortperm(abs.(workspace.v_trial); rev = true)
+        @test abs(workspace.v_trial[flux_order[9]]) - abs(workspace.v_trial[flux_order[10]]) > 1e-6
 
-        # The five metabolite families named for relation 3 are each conserved -
+        # The NAD+ relation (e_nad_c projected onto the left nullspace) is exactly one conserved pool -
         ids = [metabolite["id"] for metabolite in workspace.model["metabolites"]]
-        families = (["nad_c", "nadh_c", "nmn_c", "rnam_c", "ncam_c"], ["nadp_m", "nadph_m"],
-            ["nad_m", "nadh_m"], ["estrone_c", "estrones_c"], ["nadp_c", "nadph_c", "nadp_r", "nadph_r"])
-        for family ∈ families
-            w = [id ∈ family ? 1.0 : 0.0 for id ∈ ids]
-            @test maximum(abs, transpose(workspace.S) * w) == 0.0
-        end
-        top15 = sortperm(abs.(workspace.U0[:, 3]); rev = true)[1:15]
-        @test Set(ids[top15]) == Set(reduce(vcat, families))
+        nad_pool = ["nad_c", "nadh_c", "nmn_c", "rnam_c", "ncam_c"]
+        w = workspace.U0 * workspace.U0[findfirst(==("nad_c"), ids), :]
+        nonzero = findall(x -> abs(x) > 1e-10, w)
+        @test Set(ids[nonzero]) == Set(nad_pool)
+        @test all(x -> isapprox(x, 0.2; atol = 1e-10), w[nonzero])
+        @test maximum(abs, transpose(workspace.S) * [id ∈ nad_pool ? 1.0 : 0.0 for id ∈ ids]) == 0.0
 
         # Single-entry columns are the exchange, sink, and demand reactions in Task 1's question -
         single = [j for j ∈ axes(workspace.S, 2) if count(!iszero, workspace.S[:, j]) == 1]
