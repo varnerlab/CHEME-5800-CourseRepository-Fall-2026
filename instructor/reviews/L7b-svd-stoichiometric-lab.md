@@ -45,7 +45,7 @@ L6b. The validation suite fills only an in-memory copy.
 | Task 2 Your turn | `k = 10` | 62.0% retained, relative error 0.617 |
 | Task 2 Your turn | `k = 360` | 95.3% retained, relative error 0.216 |
 | Task 2 Your turn | `k = r` (719) | 100%, relative error $7.5\times10^{-15}$; image identical to $\mathbf{S}$ |
-| Task 3 | Does column 10 of $\mathbf{V}_0$ satisfy the bounds? | No: 270 irreversible reactions run backward, 1 reverse-only reaction runs forward (271 total). |
+| Task 3 | Does $\hat{\mathbf{v}}$ (HEX1 projected onto the right nullspace) satisfy the bounds? | No: 416 irreversible reactions run backward, none exceeds an upper bound. Three already show in the 9-row table (`HEX7`, `SBTD_D2`, `SBTR`). |
 
 1. **Task 1.** Each reaction converts a few reactants into a few products, so a
    column has only a few nonzero entries (4006 nonzeros over 1008 columns, about
@@ -61,10 +61,9 @@ L6b. The validation suite fills only an in-memory copy.
    `k = 738` differs from `k = r` by $1.3\times10^{-14}$ in Frobenius norm. `k`
    cannot exceed 738, the number of singular values.
 3. **Task 3.** The SVD uses only the stoichiometric coefficients; it ignores
-   reaction direction, capacity, and any objective. A column of $\mathbf{V}_0$ is
-   an orthonormal direction with mixed signs (506 of its 1008 entries are
-   negative), so it runs many irreversible reactions backward. None of the 289
-   columns satisfies every bound. Flux balance analysis adds the bounds as
+   reaction direction, capacity, and any objective. The trial flux
+   $\hat{\mathbf{v}}$ spreads over 1005 of the 1008 reactions with mixed signs,
+   so it runs many irreversible reactions backward. Flux balance analysis adds the bounds as
    constraints and an objective, and solves a linear program to select a
    feasible, optimal flux from the right nullspace.
 
@@ -74,13 +73,25 @@ L6b. The validation suite fills only an in-memory copy.
 - 4, 223, and 534 modes for 50, 90, and 99 percent of the squared norm;
   96.47% and relative error 0.1879 at `k = 400`.
 - 559 reactions with lower bound 0 (bounds are only 0 or ±1000).
-- Relation 3 (column 3 of $\mathbf{U}_0$, from `QRIteration()`): its 15 largest
-  weights are exactly five families, each an exactly conserved unit-weight pool:
-  {`nad_c`, `nadh_c`, `nmn_c`, `rnam_c`, `ncam_c`}, {`nadp_m`, `nadph_m`},
-  {`nad_m`, `nadh_m`}, {`estrone_c`, `estrones_c`},
-  {`nadp_c`, `nadph_c`, `nadp_r`, `nadph_r`}. The relation has nonzero weights on
-  99 metabolites. `nad_c` + `nadh_c` alone is not conserved.
-- `QRIteration()` is kept because the displayed nullspace columns depend on the
-  algorithm; the default divide-and-conquer SVD gives the same singular values to
-  $4\times10^{-14}$ and the same rank, about four times faster.
+- The NAD⁺ relation $\mathbf{w}_i=\mathbf{U}_0\mathbf{U}_0^{\top}\mathbf{e}_i$ for
+  `nad_c` has exactly five nonzero weights, each 0.2: {`nad_c`, `nadh_c`, `nmn_c`,
+  `rnam_c`, `ncam_c`}, an exactly conserved unit-weight pool. `nad_c` + `nadh_c`
+  alone is not conserved.
+- The trial flux $\hat{\mathbf{v}}=\mathbf{V}_0\mathbf{V}_0^{\top}\mathbf{e}_j$ for
+  `HEX1`: $\hat{v}_j\approx0.4964$, 416 lower-bound violations (all on
+  irreversible reactions), none above an upper bound. Rows 9 and 10 of its
+  sorted entries differ (0.0676 vs 0.0663), so the 9-row table has no tie at its
+  edge; rows 10-13 are a four-way tie, which is why it is not 12 rows.
+- **Why projections (October 5, 2026).** The week-07.1 and week-07.2 Actions
+  failed because the suite pinned column 3 of $\mathbf{U}_0$ and column 10 of
+  $\mathbf{V}_0$. Any rotation of a nullspace basis is another valid basis, and
+  rounding-level changes (Linux BLAS, or just scaling $\mathbf{S}$ by
+  $1+10^{-15}$) changed both columns: column 10 went from 271 to 273
+  violations, and the relation table lost every named family. The projections
+  matched across row and column permutations and rescaling. Roundoff numbers in
+  the prose are worded loosely for the same reason ($\sigma_{720}$ ranged
+  2.9e-15 to 5.5e-15, the largest entry of $\mathbf{S}\mathbf{V}_0$ 3e-15 to 6e-14).
+- `QRIteration()` is kept (slower but more accurate); the default
+  divide-and-conquer SVD gives the same singular values to $4\times10^{-14}$ and
+  the same rank, about four times faster.
 - Densest rows: `h_c` (388 reactions), `h2o_c` (217), `atp_c` (133).
