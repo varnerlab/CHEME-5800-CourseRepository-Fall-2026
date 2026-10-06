@@ -18,6 +18,7 @@ import sys
 HR = re.compile(r"^\s*(?:-{3,}|\*{3,}|_{3,})\s*$")
 H1 = re.compile(r"^#\s+\S")
 H2 = re.compile(r"^##\s+\S")
+EXAMPLES_H2 = re.compile(r"^##\s+Examples\s*$")
 ITEM = re.compile(r"^>\s*(?:[*+-]|\d+[.)])\s+")
 BULLET = re.compile(
     r"^(?P<pre>>\s*[*+-]\s+)(?P<open>__|\*\*)(?P<title>.+?)(?P=open)(?P<after>.*)$"
@@ -693,6 +694,10 @@ class Audit:
             if c["cell_type"] != "markdown":
                 continue
             lines = src(c).splitlines()
+            if EXAMPLES_H2.match(first_line(c)):
+                # CHEME 5660 lectures list each example in its own blockquote with no
+                # prose between them (L6b, L7a; JV 2026-10-06). Exempt the cell.
+                continue
             blocks, k = [], 0
             while k < len(lines):
                 if lines[k].lstrip().startswith(">"):

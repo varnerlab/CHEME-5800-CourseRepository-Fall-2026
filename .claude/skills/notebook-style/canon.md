@@ -98,8 +98,8 @@ them with a suggested order.
 ___
 ```
 
-Bullets, not blockquotes (F5 forbids consecutive blockquotes, and connective prose
-between four links would be padding). Discoverability from the top comes from the
+Bullets, not blockquotes (F5 forbids consecutive blockquotes outside the `## Examples`
+cell, and connective prose between four links would be padding). Discoverability from the top comes from the
 one-line pointer at the end of `## Examples` shown in the skeleton above, not from
 listing the optional notebooks there. An in-context link to a single advanced
 notebook inside the section it extends (e.g. a derivation notebook next to the
@@ -162,7 +162,7 @@ objectives and takeaways blockquotes.
 | F2 | Every objective and takeaway carries a `Title:` prefix |
 | F3 | Summary = one direct summary sentence, the takeaways blockquote, one concluding sentence |
 | F4 | A short transition sentence precedes every code cell. Checked as: the preceding cell is markdown and its last non-blank line is ordinary prose — not a blockquote (`>`), heading, list item, or `___`. Consecutive code cells are exempt. |
-| F5 | No two consecutive blockquotes without connective prose — both within a cell and across adjacent cells |
+| F5 | No two consecutive blockquotes without connective prose — both within a cell and across adjacent cells. A cell headed `## Examples` is exempt: CHEME 5660 lectures list each example in its own blockquote with no prose between them (L6b, L7a; JV 2026-10-06). |
 | F6 | No equations and no code inside objectives or takeaways — plain words only (JV, 2026-08-31). No backticked spans, function names, or type names; describe the thing in words ("the functions a type provides", not a list of calls). Plain notation that is not code, such as U+ notation written without backticks, is fine. |
 | F7 | `$$`/`$` balanced; every `\begin{…}` has a matching `\end{…}` |
 | F8 | A code-bearing notebook has a `## Setup, Data, and Prerequisites` section |
