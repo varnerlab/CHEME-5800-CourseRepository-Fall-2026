@@ -9,11 +9,12 @@ cross-validation folds, and use residuals to justify a model revision.
 |---|---|---|
 | L8a | Fall Break — no class | [Session note](L8a/README.md) |
 | L8b | Fall Break — no class | [Session note](L8b/README.md) |
-| L8c | Regularization, generalization, and ridge coefficient shrinkage | [Lecture](L8c/CHEME-5800-L8c-Lecture-RegularizationAndGeneralization-Fall-2026.ipynb) · [Example](L8c/CHEME-5800-L8c-Example-RidgeCoefficientShrinkage-Fall-2026.ipynb) |
+| L8c | Regularization and cross-validation | [Lecture](L8c/CHEME-5800-L8c-Lecture-RegularizationAndGeneralization-Fall-2026.ipynb) · [Housing-price ridge example](L8c/CHEME-5800-L8c-Example-RLS-SVD-HousingPriceModel-Fall-2026.ipynb) |
 | L8d | Cross-validation and residual model checking | [Lab](L8d/CHEME-5800-L8d-Lab-CrossValidationAndResidualModelChecking-Fall-2026.ipynb) |
 
-The lecture and coefficient-path example retain the useful regularization
-material. The integrated lab makes intercept handling, fold membership,
+The L8c example estimates a linear model of housing prices with ordinary least
+squares, with ridge regression, and with the SVD form of the ridge estimate. The
+integrated lab makes intercept handling, fold membership,
 training-only standardization, residual diagnosis, and fold-level validation
 errors explicit and testable.
 

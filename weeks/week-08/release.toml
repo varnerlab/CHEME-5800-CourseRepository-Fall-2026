@@ -10,9 +10,12 @@ entry_notebooks = [
   "L8d/CHEME-5800-L8d-Lab-CrossValidationAndResidualModelChecking-Fall-2026.ipynb",
 ]
 supporting_notebooks = [
-  "L8c/CHEME-5800-L8c-Example-RidgeCoefficientShrinkage-Fall-2026.ipynb",
+  "L8c/CHEME-5800-L8c-Example-RLS-SVD-HousingPriceModel-Fall-2026.ipynb",
 ]
-datasets = []
+datasets = [
+  "L8c/data/README.md",
+  "L8c/data/Housing-Training-Dataset-Kaggle.csv",
+]
 student_paths = ["README.md", "L8a", "src"]
 instructor_only_paths = ["../../instructor/validation/week-08"]
 [validation]

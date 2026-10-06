@@ -6,11 +6,11 @@ import Statistics: mean, std
 
 export cross_validate_ridge, kfold_indices, model_metrics, ridge_fit, standardize_train_test
 
-function ridge_fit(X::AbstractMatrix{<:Real}, y::AbstractVector{<:Real}, lambda::Real; intercept::Bool = true)
+function ridge_fit(X::AbstractMatrix{<:Real}, y::AbstractVector{<:Real}, δ::Real; intercept::Bool = true)
     size(X, 1) == length(y) || throw(DimensionMismatch("X rows must match y"))
-    isfinite(lambda) && lambda >= 0 || throw(ArgumentError("lambda must be finite and nonnegative"))
+    isfinite(δ) && δ >= 0 || throw(ArgumentError("δ must be finite and nonnegative"))
     design = intercept ? hcat(ones(size(X, 1)), Float64.(X)) : Float64.(X)
-    penalty = Diagonal(fill(Float64(lambda), size(design, 2)))
+    penalty = Diagonal(fill(Float64(δ), size(design, 2)))
     intercept && (penalty[1, 1] = 0.0)
     coefficients = (transpose(design) * design + penalty) \ (transpose(design) * Float64.(y))
     predictions = design * coefficients
@@ -46,20 +46,20 @@ function standardize_train_test(train::AbstractMatrix{<:Real}, test::AbstractMat
         test = (Float64.(test) .- transpose(center)) ./ transpose(scale), center = center, scale = scale)
 end
 
-function cross_validate_ridge(X::AbstractMatrix{<:Real}, y::AbstractVector{<:Real}, lambdas;
+function cross_validate_ridge(X::AbstractMatrix{<:Real}, y::AbstractVector{<:Real}, δ_values;
     k::Integer = 5, seed::Integer = 5800)
     size(X, 1) == length(y) || throw(DimensionMismatch("X rows must match y"))
-    candidates = Float64.(collect(lambdas))
-    isempty(candidates) && throw(ArgumentError("at least one lambda is required"))
-    all(x -> isfinite(x) && x >= 0, candidates) || throw(ArgumentError("lambdas must be finite and nonnegative"))
+    candidates = Float64.(collect(δ_values))
+    isempty(candidates) && throw(ArgumentError("at least one value of δ is required"))
+    all(x -> isfinite(x) && x >= 0, candidates) || throw(ArgumentError("every value of δ must be finite and nonnegative"))
     folds = kfold_indices(length(y), k; seed = seed)
     scores = zeros(length(candidates), k)
     all_indices = collect(eachindex(y))
     for (fold_index, validation) in enumerate(folds)
         training = setdiff(all_indices, validation)
         scaled = standardize_train_test(X[training, :], X[validation, :])
-        for (candidate_index, lambda) in enumerate(candidates)
-            fit = ridge_fit(scaled.train, y[training], lambda)
+        for (candidate_index, δ) in enumerate(candidates)
+            fit = ridge_fit(scaled.train, y[training], δ)
             validation_design = hcat(ones(length(validation)), scaled.test)
             predictions = validation_design * fit.coefficients
             scores[candidate_index, fold_index] = model_metrics(y[validation], predictions).rmse
@@ -67,8 +67,8 @@ function cross_validate_ridge(X::AbstractMatrix{<:Real}, y::AbstractVector{<:Rea
     end
     means = vec(mean(scores; dims = 2))
     best = argmin(means)
-    return (lambdas = candidates, fold_rmse = scores, mean_rmse = means,
-        best_lambda = candidates[best], best_index = best, folds = folds)
+    return (δ_values = candidates, fold_rmse = scores, mean_rmse = means,
+        best_δ = candidates[best], best_index = best, folds = folds)
 end
 
 end

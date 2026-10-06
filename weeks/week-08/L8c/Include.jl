@@ -29,6 +29,11 @@ if !isdefined(@__MODULE__, :CHEME5800_L8C_ROOT)
     const CHEME5800_L8C_ROOT = @__DIR__
 end
 
+# The housing-price example reads its dataset from this meeting's data folder -
+if !isdefined(@__MODULE__, :_PATH_TO_DATA)
+    const _PATH_TO_DATA = joinpath(CHEME5800_L8C_ROOT, "data")
+end
+
 
 # --- 2. CODE -----------------------------------------------------------------
 # The repository root `Include.jl` activates the course environment and imports
@@ -63,6 +68,7 @@ using Statistics     # mean, std, and friends
 using Test           # @test / @testset for the checks in the notebook
 #
 # Packages:
+using CSV            # reading delimited data files
 using DataFrames     # tabular records held as columns
 using Plots          # figures
 using PrettyTables   # formatted table output in the notebook
