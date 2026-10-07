@@ -102,16 +102,97 @@ end
 
 @meeting "L7d" begin
     @testset "L7d OLS contracts" begin
+        # exact line: the L7c augmented matrix puts the ones column last -
         x = collect(1.0:20.0)
-        X = reshape(x, :, 1)
-        y = 2.0 .+ 3.0 .* x
-        fit = ols_fit(X, y)
-        report = regression_report(y, fit.predictions)
-        @test fit.coefficients ≈ [2.0, 3.0]
+        X̂ = hcat(x, ones(20))
+        y = 3.0 .* x .+ 2.0
+        model = ols_fit(X̂, y)
+        report = regression_report(y, X̂ * model.θ̂)
+        @test model.θ̂ ≈ [3.0, 2.0]
         @test report.rmse < 1e-12
         @test report.r2 ≈ 1.0
-        @test norm(transpose(fit.design) * fit.residuals) < 1e-10
-        @test_throws DimensionMismatch ols_fit(X, y[1:end-1])
+        @test norm(transpose(X̂) * model.residuals) < 1e-10
+
+        # noisy line: θ̂ matches a QR solve, and σ̂² and SE follow the L7c formulas -
+        noisy = y .+ [isodd(i) ? 0.5 : -0.5 for i ∈ 1:20]
+        noisy_model = ols_fit(X̂, noisy)
+        @test noisy_model.θ̂ ≈ X̂ \ noisy
+        @test noisy_model.σ̂² ≈ sum(abs2, noisy - X̂ * noisy_model.θ̂) / (20 - 2)
+        @test noisy_model.SE ≈ sqrt.(noisy_model.σ̂² .* diag(inv(transpose(X̂) * X̂)))
+
+        @test_throws DimensionMismatch ols_fit(X̂, y[1:end-1])
+        @test_throws ArgumentError ols_fit(ones(2, 2), ones(2))
         @test_throws DimensionMismatch regression_report(y, y[1:end-1])
+    end
+
+    @testset "L7d housing-price notebook" begin
+        # Run the actual notebook cells so the data path, the check, and the what-if are tested too -
+        path = joinpath(WEEK_ROOT, "L7d", "CHEME-5800-L7d-Lab-HousingPriceOLS-Fall-2026.ipynb")
+        notebook = JSON.parsefile(path)
+        workspace = Module(:L7dNotebookValidation)
+        Core.eval(workspace, :(include(path::AbstractString) = Base.include(@__MODULE__, path)))
+        for (index, cell) in enumerate(notebook["cells"])
+            cell["cell_type"] == "code" || continue
+            Base.include_string(REPL.softscope, workspace, join(cell["source"]),
+                joinpath(dirname(path), "validation-cell-$(index).jl"))
+        end
+
+        # facts the prose relies on: sizes, fit, and conditioning -
+        @test size(workspace.X) == (545, 12)
+        @test size(workspace.X̂_train) == (436, 13)
+        @test round(workspace.training_report.r2; digits = 3) == 0.678
+        @test round(workspace.testing_report.r2; digits = 3) == 0.677
+        @test round(cond(workspace.X̂_train)) == 44
+        @test norm(workspace.θ̂ - workspace.θ̂_svd) < 1e-12
+
+        # Task 3: only the bedrooms and guestroom intervals contain zero (seed 1234) -
+        model = workspace.model
+        contains_zero = (model.θ̂ .- 1.96 .* model.SE .≤ 0) .& (model.θ̂ .+ 1.96 .* model.SE .≥ 0)
+        @test workspace.feature_names[findall(contains_zero)] == ["bedrooms", "guestroom"]
+        hot_water = findfirst(==("hotwaterheating"), workspace.feature_names)
+        @test count(workspace.X̂_train[:, hot_water] .== 1) == 24
+
+        # residual plot: the spread grows with the predicted price, and the large residuals are positive -
+        ŷ = workspace.X̂_train * workspace.θ̂
+        r = model.residuals[sortperm(ŷ)] # residuals ordered by predicted price
+        third = length(r) ÷ 3
+        @test std(r[(2 * third + 1):end]) > 1.5 * std(r[1:third])
+        @test 4.5 < maximum(r) < 5.5
+        @test -3.0 < minimum(r) < -2.5
+
+        # feature selection: testing rmse for the cell's three choices of `dropped` -
+        function testing_rmse(dropped)
+            keep = [findall(name -> name ∉ dropped, workspace.feature_names); size(workspace.X̂_train, 2)]
+            smaller = ols_fit(workspace.X̂_train[:, keep], workspace.y_train)
+            return regression_report(workspace.y_test, workspace.X̂_test[:, keep] * smaller.θ̂).rmse
+        end
+        @test round(workspace.testing_report.rmse; digits = 3) == 1.092
+        @test round(testing_rmse(["bedrooms", "guestroom"]); digits = 3) == 1.101
+        @test round(testing_rmse(["bedrooms"]); digits = 3) == 1.088
+        @test round(testing_rmse(["airconditioning"]); digits = 3) == 1.207
+
+        # across ten splits, removing bedrooms and guestroom changes testing rmse by -0.03 to +0.02, both signs -
+        changes = Float64[]
+        for seed ∈ [1234, 1, 2, 3, 7, 11, 42, 99, 2024, 31415]
+            Random.seed!(seed)
+            rows = randperm(545)
+            train, test = rows[1:436], rows[437:end]
+            A, B = hcat(workspace.X[train, :], ones(436)), hcat(workspace.X[test, :], ones(109))
+            keep = [findall(name -> name ∉ ["bedrooms", "guestroom"], workspace.feature_names); 13]
+            full = regression_report(workspace.y[test], B * ols_fit(A, workspace.y[train]).θ̂).rmse
+            smaller = regression_report(workspace.y[test], B[:, keep] * ols_fit(A[:, keep], workspace.y[train]).θ̂).rmse
+            push!(changes, smaller - full)
+        end
+        @test -0.035 < minimum(changes) < -0.025
+        @test 0.015 < maximum(changes) < 0.025
+
+        # what-if: the duplicated area column leaves rank 13 and the predictions unchanged -
+        X̂_train = workspace.X̂_train
+        X̂_what_if = hcat(X̂_train, 92.90304 * X̂_train[:, 1])
+        S = svdvals(X̂_what_if)
+        @test S[end] / S[1] < 1e-14
+        @test S[end-1] / S[1] > 1e-6
+        @test rank(transpose(X̂_what_if) * X̂_what_if) == 13
+        @test maximum(abs.(X̂_what_if * workspace.θ̂_what_if - X̂_train * workspace.θ̂)) < 1e-10
     end
 end

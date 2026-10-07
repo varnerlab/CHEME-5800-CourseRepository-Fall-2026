@@ -57,6 +57,7 @@ end
 # Standard library:
 using LinearAlgebra  # factorizations, norms, and matrix operations
 using Statistics     # mean, std, and friends
+using Random         # seeded, reproducible train/test split
 using Test           # @test / @testset for the checks in the notebook
 #
 # Packages:

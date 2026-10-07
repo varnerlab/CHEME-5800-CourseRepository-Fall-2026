@@ -79,7 +79,7 @@ end
 
 
 """
-    MyHousingPricesDataset() -> DataFrame
+    MyKaggleHousingPricesDataset() -> DataFrame
 
 Load the house prices dataset from Kaggle as a DataFrame.
 The original dataset can be found at: [Housing Prices Dataset on Kaggle](https://www.kaggle.com/datasets/yasserh/housing-prices-dataset?select=Housing.csv)
