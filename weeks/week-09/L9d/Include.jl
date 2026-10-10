@@ -29,10 +29,6 @@ if !isdefined(@__MODULE__, :CHEME5800_L9D_ROOT)
     const CHEME5800_L9D_ROOT = @__DIR__
 end
 
-if !isdefined(@__MODULE__, :CHEME5800_L9D_DATA)
-    const CHEME5800_L9D_DATA = joinpath(CHEME5800_L9D_ROOT, "data")
-end
-
 
 # --- 2. CODE -----------------------------------------------------------------
 # The repository root `Include.jl` activates the course environment and imports
@@ -43,12 +39,15 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `Week09Core` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week09Core)
-    include(joinpath(@__DIR__, "..", "src", "Week09Core.jl"))
+# `L9dLogistic` holds the student's `my_logistic_regression(...)`. It is included
+# on every run, with no guard, so re-running the setup cell picks up the
+# student's edits; the notebook calls it by qualified name
+# (`L9dLogistic.my_logistic_regression(...)`) for the same reason.
+include(joinpath(CHEME5800_L9D_ROOT, "src", "Compute.jl"))
+
+# The supplied figure, loaded once.
+if !isdefined(@__MODULE__, :L9dVisualize)
+    include(joinpath(CHEME5800_L9D_ROOT, "src", "Visualize.jl"))
 end
 
 
@@ -58,20 +57,26 @@ end
 #
 # Already imported by the root bootstrap above, listed so this block is the
 # whole picture rather than most of it:
-#   VLDataScienceMachineLearningPackage   the course package
+#   VLDataScienceMachineLearningPackage   the course package: the banknote data,
+#                                         and build, learn, classify, and
+#                                         confusion for the Perceptron
 #
 # Standard library:
-using LinearAlgebra  # factorizations, norms, and matrix operations
-using Random         # seeded random number generation
-using Statistics     # mean, std, and friends
+using LinearAlgebra  # dot, norm, and opnorm
+using Random         # the seeded training/testing split
+using Statistics     # mean and std, for scaling the features
 using Test           # @test / @testset for the checks in the notebook
 #
 # Packages:
-using CSV            # reading delimited data files
 using DataFrames     # tabular records held as columns
 using Plots          # figures
 using PrettyTables   # formatted table output in the notebook
 #
-# This meeting's own source, included above. The leading dot means "a module
+# The supplied figure is included above. The leading dot means "a module
 # defined here", as opposed to an installed package of the same name:
-using .Week09Core    # from the include in section 2
+using .L9dVisualize  # plot_probabilities, the probability figure
+#
+# There is deliberately no `using .L9dLogistic`. Re-running this file replaces
+# that module, and on Julia 1.12 a second `using` of the replacement makes every
+# exported name ambiguous. The notebook calls
+# L9dLogistic.my_logistic_regression(...) instead.

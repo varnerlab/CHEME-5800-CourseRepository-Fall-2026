@@ -39,13 +39,13 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `Week08Core` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week08Core)
-    include(joinpath(@__DIR__, "..", "src", "Week08Core.jl"))
-end
+# `L8dRidgeCV` holds the ridge regression helpers and the student
+# cross-validation implementation, `my_cross_validation(...)`. The include is
+# deliberately unguarded: students edit `src/Compute.jl` during the lab, and
+# re-running this setup file must reload those edits. Julia 1.12 replaces the
+# module silently. Notebook calls stay qualified (`L8dRidgeCV.ridge_fit(...)`)
+# so they resolve against the replacement module.
+include(joinpath(@__DIR__, "src", "Compute.jl"))
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
@@ -58,7 +58,7 @@ end
 #
 # Standard library:
 using LinearAlgebra  # factorizations, norms, and matrix operations
-using Random         # seeded random number generation
+using Random         # seeded, reproducible train/test split
 using Statistics     # mean, std, and friends
 using Test           # @test / @testset for the checks in the notebook
 #
@@ -67,6 +67,5 @@ using DataFrames     # tabular records held as columns
 using Plots          # figures
 using PrettyTables   # formatted table output in the notebook
 #
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .Week08Core    # from the include in section 2
+# This meeting's own source, `L8dRidgeCV`, is included in section 2 and called
+# by qualified names, so it has no `using` line here.

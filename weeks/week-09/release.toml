@@ -7,12 +7,14 @@ title = "Binary classification and numerical optimization"
 languages = ["Julia"]
 entry_notebooks = [
   "L9a/CHEME-5800-L9a-Lecture-LinearClassificationAndPerceptron-Fall-2026.ipynb",
+  "L9a/CHEME-5800-L9a-Example-LinearModels-Classification-Perceptron-Fall-2026.ipynb",
+  "L9b/CHEME-5800-L9b-Lab-XOR-Fall-2026.ipynb",
   "L9c/CHEME-5800-L9c-Lecture-LogisticRegressionAndOptimization-Fall-2026.ipynb",
-  "L9d/CHEME-5800-L9d-Lab-PredictiveMaintenance-Fall-2026.ipynb",
+  "L9d/CHEME-5800-L9d-Lab-LogisticRegression-Banknotes-Fall-2026.ipynb",
 ]
-supporting_notebooks = ["L9b/CHEME-5800-L9b-Example-XORLinearSeparability-Fall-2026.ipynb"]
-datasets = ["L9d/data/README.md", "L9d/data/ai4i2020.csv"]
-student_paths = ["README.md", "L9a", "src"]
+supporting_notebooks = []
+datasets = []
+student_paths = ["README.md", "L9a"]
 instructor_only_paths = ["../../instructor/validation/week-09"]
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-09/runtests.jl"

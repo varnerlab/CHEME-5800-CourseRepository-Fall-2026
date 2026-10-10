@@ -39,12 +39,18 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `Week09Core` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week09Core)
-    include(joinpath(@__DIR__, "..", "src", "Week09Core.jl"))
+# `L9bXOR` holds the student's `my_perceptron(...)`. It is included on every run,
+# with no guard, so re-running the setup cell picks up the student's edits; the
+# notebook calls it by qualified name (`L9bXOR.my_perceptron(...)`) for the same
+# reason.
+include(joinpath(CHEME5800_L9B_ROOT, "src", "Compute.jl"))
+
+# Supplied helpers, loaded once: the data generator and the figures.
+if !isdefined(@__MODULE__, :L9bUtility)
+    include(joinpath(CHEME5800_L9B_ROOT, "src", "Utility.jl"))
+end
+if !isdefined(@__MODULE__, :L9bVisualize)
+    include(joinpath(CHEME5800_L9B_ROOT, "src", "Visualize.jl"))
 end
 
 
@@ -54,20 +60,25 @@ end
 #
 # Already imported by the root bootstrap above, listed so this block is the
 # whole picture rather than most of it:
-#   VLDataScienceMachineLearningPackage   the course package
+#   VLDataScienceMachineLearningPackage   the course package: build, learn,
+#                                         classify, and confusion for the Perceptron
 #
 # Standard library:
 using LinearAlgebra  # factorizations, norms, and matrix operations
-using Random         # seeded random number generation
+using Random         # seeded random points and the training/test split
 using Statistics     # mean, std, and friends
 using Test           # @test / @testset for the checks in the notebook
 #
 # Packages:
-using CSV            # reading delimited data files
 using DataFrames     # tabular records held as columns
 using Plots          # figures
 using PrettyTables   # formatted table output in the notebook
 #
-# This meeting's own source, included above. The leading dot means "a module
+# The supplied helpers are included above. The leading dot means "a module
 # defined here", as opposed to an installed package of the same name:
-using .Week09Core    # from the include in section 2
+using .L9bUtility    # generatedatacloud, the random cloud of points
+using .L9bVisualize  # plot_dataset and plot_misses, the figures
+#
+# There is deliberately no `using .L9bXOR`. Re-running this file replaces that
+# module, and on Julia 1.12 a second `using` of the replacement makes every
+# exported name ambiguous. The notebook calls L9bXOR.my_perceptron(...) instead.
