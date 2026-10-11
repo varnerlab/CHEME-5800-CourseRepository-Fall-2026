@@ -29,6 +29,10 @@ if !isdefined(@__MODULE__, :CHEME5800_L10B_ROOT)
     const CHEME5800_L10B_ROOT = @__DIR__
 end
 
+if !isdefined(@__MODULE__, :CHEME5800_L10B_DATA)
+    const CHEME5800_L10B_DATA = joinpath(CHEME5800_L10B_ROOT, "data") # the market data cache
+end
+
 
 # --- 2. CODE -----------------------------------------------------------------
 # The repository root `Include.jl` activates the course environment and imports
@@ -39,13 +43,11 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `Week10Core` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week10Core)
-    include(joinpath(@__DIR__, "..", "src", "Week10Core.jl"))
-end
+# `L10bWMA` holds the student's `my_weighted_majority(...)`. It is included on
+# every run, with no guard, so re-running the setup cell picks up the student's
+# edits; the notebook calls it by qualified name
+# (`L10bWMA.my_weighted_majority(...)`) for the same reason.
+include(joinpath(CHEME5800_L10B_ROOT, "src", "Compute.jl"))
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
@@ -54,19 +56,21 @@ end
 #
 # Already imported by the root bootstrap above, listed so this block is the
 # whole picture rather than most of it:
-#   VLDataScienceMachineLearningPackage   the course package
+#   VLDataScienceMachineLearningPackage   the course package: log_growth_matrix,
+#                                         and build and play for the weighted
+#                                         majority algorithm
 #
 # Standard library:
-using Random         # seeded random number generation
-using Statistics     # mean, std, and friends
+using Statistics     # mean, for the fraction of correct calls
 using Test           # @test / @testset for the checks in the notebook
 #
 # Packages:
+using CSV            # reads the market data cache in the data folder
 using DataFrames     # tabular records held as columns
-using Distributions  # probability distributions and sampling
 using Plots          # figures
 using PrettyTables   # formatted table output in the notebook
 #
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .Week10Core    # from the include in section 2
+# There is deliberately no `using .L10bWMA`. Re-running this file replaces that
+# module, and on Julia 1.12 a second `using` of the replacement makes every
+# exported name ambiguous. The notebook calls L10bWMA.my_weighted_majority(...)
+# instead.

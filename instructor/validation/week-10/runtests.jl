@@ -1,37 +1,292 @@
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-10"))
 include(joinpath(@__DIR__, "..", "release_scope.jl"))
-released("L10a") && include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-10", "L10a", "Include.jl"))
-released("L10b") && include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-10", "L10b", "Include.jl"))
-released("L10c") && include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-10", "L10c", "Include.jl"))
-released("L10d") && include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-10", "L10d", "Include.jl"))
+import JSON  # reads the notebooks whose cells the suite runs or whose links it checks
+import REPL  # REPL.softscope applies Jupyter's scoping rules to those cells
+import SHA   # checks the L10b market data cache against its README
+using Test   # @testset must be defined when the file is parsed, even if no meeting that loads it is released
+released("L10a") && include(joinpath(WEEK_ROOT, "L10a", "Include.jl"))
+released("L10b") && include(joinpath(WEEK_ROOT, "L10b", "Include.jl"))
+# L10b's reference implementation; the notebook setup loads the student file.
+released("L10b") && include(joinpath(WEEK_ROOT, "L10b", "src", "Compute-solution.jl"))
+released("L10c") && include(joinpath(WEEK_ROOT, "L10c", "Include.jl"))
+released("L10d") && include(joinpath(WEEK_ROOT, "L10d", "Include.jl"))
+# L10d's reference implementation; the notebook setup loads the student file.
+released("L10d") && include(joinpath(WEEK_ROOT, "L10d", "src", "Compute-solution.jl"))
 
-@meeting "L10a" "L10b" "L10c" "L10d" begin
-    @testset "L10 multiplicative weights" begin
-        losses = [0.1 0.8; 0.2 0.7; 0.9 0.1; 0.8 0.2]
-        result = weighted_majority(losses; eta = 0.5)
-        @test size(result.probabilities) == size(losses)
-        @test all(abs.(sum(result.probabilities; dims = 2) .- 1.0) .< 1e-12)
-        @test result.expert_totals ≈ vec(sum(losses; dims = 1))
-        @test result.regret == result.learner_total - minimum(result.expert_totals)
-        @test_throws ArgumentError weighted_majority(losses; eta = 0.0)
-        @test_throws ArgumentError weighted_majority([1.2 0.0])
+# The L10a and L10c lectures carry no code. Check that every local file they link or
+# show (figures, and the lab in the same meeting) exists, and that nothing links out of the week.
+function check_lecture_links(meeting::AbstractString, notebook::AbstractString)
+    path = joinpath(WEEK_ROOT, meeting, notebook)
+    cells = JSON.parsefile(path)["cells"]
+    @test all(cell["cell_type"] == "markdown" for cell in cells)
+    text = join((join(cell["source"]) for cell in cells), "\n")
+    targets = vcat([m.captures[1] for m in eachmatch(r"\]\(([^)\s]+)\)", text)],
+        [m.captures[1] for m in eachmatch(r"src=\"([^\"]+)\"", text)])
+    local_targets = filter(t -> !startswith(t, "http") && !startswith(t, "#"), targets)
+    for target in local_targets
+        @test isfile(normpath(joinpath(dirname(path), target)))
+        @test startswith(normpath(joinpath(dirname(path), target)), WEEK_ROOT) # no links into other weeks
+    end
+    return length(local_targets)
+end
+
+@meeting "L10a" begin
+    @testset "L10a lecture links" begin
+        @test check_lecture_links("L10a", "CHEME-5800-L10a-Lecture-OnlineLearningAndRegret-Fall-2026.ipynb") ≥ 1
     end
 end
 
-@meeting "L10a" "L10b" "L10c" "L10d" begin
-    @testset "L10 ordinary bandits" begin
-        probabilities = [0.30, 0.45, 0.55, 0.70]
-        ucb = run_bandit(probabilities, 2000; algorithm = :ucb1, seed = 5800)
-        thompson = run_bandit(probabilities, 2000; algorithm = :thompson, seed = 5800)
-        @test sum(ucb.counts) == 2000
-        @test sum(thompson.counts) == 2000
-        @test argmax(ucb.counts) == 4
-        @test argmax(thompson.counts) == 4
-        @test ucb == run_bandit(probabilities, 2000; algorithm = :ucb1, seed = 5800)
-        @test thompson == run_bandit(probabilities, 2000; algorithm = :thompson, seed = 5800)
-        @test ucb.expected_regret >= 0
-        @test thompson.expected_regret >= 0
-        @test_throws ArgumentError run_bandit([0.2, 1.2], 100)
-        @test_throws ArgumentError run_bandit(probabilities, 100; algorithm = :unknown)
+@meeting "L10b" begin
+    @testset "L10b weighted majority on the SPY experts" begin
+        @testset "Reference weighted majority" begin
+            # A game small enough to check by hand: three experts, four rounds, ϵ = 1/2 -
+            P = [1 1 -1; -1 1 1; 1 -1 0; 1 1 1] # expert predictions, one row per round
+            Y = [1, 1, -1, -1] # the actual outcomes
+            data = zeros(4, 1) # the experts and adversary below ignore it
+            hand_expert(i::Int, t::Int, d::Array{Float64,2})::Int = P[t, i]
+            hand_adversary(t::Int, d::Array{Float64,2})::Int = Y[t]
+            model = build(MyBinaryWeightedMajorityAlgorithmModel,
+                (ϵ = 0.5, n = 3, T = 4, expert = hand_expert, adversary = hand_adversary))
+            (sims, weights) = L10bWMA.my_weighted_majority(model, data)
+            # round 3: expert 3 predicts 0 (no change), counts toward neither side, and is wrong -
+            @test sims == [1 1 -1 1 1 0; -1 1 1 1 1 0; 1 -1 0 -1 -1 0; 1 1 1 1 -1 1]
+            @test weights == [1 1 1; 1 1 0.5; 0.5 1 0.5; 0.25 1 0.25; 0.125 0.5 0.125]
+            @test (sims, weights) == play(model, data)
+
+            # A tie goes to -1, as in the course package -
+            tie = build(MyBinaryWeightedMajorityAlgorithmModel, (ϵ = 0.5, n = 2, T = 1,
+                expert = (i, t, d) -> (i == 1 ? 1 : -1), adversary = (t, d) -> 1))
+            (tie_sims, _) = L10bWMA.my_weighted_majority(tie, zeros(1, 1))
+            @test tie_sims[1, 3] == -1 && tie_sims[1, end] == 1
+            @test tie_sims == play(tie, zeros(1, 1))[1]
+        end
+
+        @testset "Student stub" begin
+            # The student file is the reference apart from its header and the three TODO lines.
+            student_text = read(joinpath(WEEK_ROOT, "L10b", "src", "Compute.jl"), String)
+            reference_text = read(joinpath(WEEK_ROOT, "L10b", "src", "Compute-solution.jl"), String)
+            @test all(occursin("# TODO $i:", student_text) for i in 1:3)
+            @test occursin("ŷ = 0;", student_text) # the blank for TODO 1
+            @test occursin("mistake = 0;", student_text) # the blank for TODO 2
+            @test occursin("weights[t+1, i] = weights[t, i];", student_text) # the blank for TODO 3
+            for answer in ("(weight_up > weight_down) ? 1 : -1", "(predictions[i] == y) ? 0 : 1", "*(1 - ϵ*mistake)")
+                @test !occursin(answer, student_text) # the solution's three lines
+            end
+            body(text) = split(text, "module L10bWMA"; limit = 2)[2]
+            before(text) = split(body(text), "# TODO 1:"; limit = 2)[1]
+            middle(text) = split(split(body(text), "# Our prediction must be 1 or -1"; limit = 2)[2], "# TODO 2:"; limit = 2)[1]
+            after(text) = split(body(text), "# Record this round"; limit = 2)[2]
+            @test before(student_text) == before(reference_text)
+            @test middle(student_text) == middle(reference_text)
+            @test after(student_text) == after(reference_text)
+            student_module = Module(:L10bStudent)
+            Base.include(student_module, joinpath(WEEK_ROOT, "L10b", "src", "Compute.jl"))
+            # Compute.jl holds only the student work -
+            @test Set(names(student_module.L10bWMA)) == Set([:L10bWMA, :my_weighted_majority])
+            stub_model = build(MyBinaryWeightedMajorityAlgorithmModel,
+                (ϵ = 0.5, n = 1, T = 1, expert = (i, t, d) -> 1, adversary = (t, d) -> 1))
+            error = try
+                student_module.L10bWMA.my_weighted_majority(stub_model, zeros(1, 1))
+                nothing
+            catch caught
+                caught
+            end
+            @test error isa ErrorException && occursin("Oooops!", error.msg)
+        end
+
+        @testset "Market data cache" begin
+            # The SHA-256 quoted in data/README.md -
+            path = joinpath(WEEK_ROOT, "L10b", "data", "SP500-Daily-VWAP-1-3-2014-to-12-31-2024.csv")
+            @test bytes2hex(open(SHA.sha256, path)) == "6fc16374b3fc06dc1b9318a9fcb1056944fbe939f7a4674f1ed70e05a10c25ae"
+            readme = read(joinpath(WEEK_ROOT, "L10b", "data", "README.md"), String)
+            @test occursin("6fc16374b3fc06dc1b9318a9fcb1056944fbe939f7a4674f1ed70e05a10c25ae", readme)
+        end
+
+        @testset "L10b lab notebook" begin
+            # Run the actual notebook cells with the reference solution in place of the stub -
+            path = joinpath(WEEK_ROOT, "L10b", "CHEME-5800-L10b-Lab-WeightedMajorityAlgorithm-Fall-2026.ipynb")
+            notebook = JSON.parsefile(path)
+            workspace = Module(:L10bNotebookValidation)
+            Core.eval(workspace, :(include(path::AbstractString) = Base.include(@__MODULE__, path)))
+            sources = [join(cell["source"]) for cell in notebook["cells"] if cell["cell_type"] == "code"]
+            @test occursin("Include.jl", sources[1])
+            @test all(isempty(cell["outputs"]) for cell in notebook["cells"] if cell["cell_type"] == "code")
+            for (index, source) in enumerate(sources)
+                Base.include_string(REPL.softscope, workspace, source,
+                    joinpath(dirname(path), "validation-cell-$(index).jl"))
+                if index == 1 # the setup cell loaded the stub; replace it with the reference
+                    Base.include(workspace, joinpath(WEEK_ROOT, "L10b", "src", "Compute-solution.jl"))
+                end
+            end
+            w = workspace
+
+            # The data: 424 complete tickers, 2,767 days, so 2,766 growth rates -
+            @test length(w.list_of_tickers) == 424
+            @test size(w.growth_rate_array) == (2766, 424)
+            @test all(nrow(w.dataset[ticker]) == 2767 for ticker in w.list_of_tickers)
+
+            # Task 1: "in round 4 all five predicted down while SPY went up" -
+            @test all(w.expert(i, 4, w.growth_rate_array) == -1 for i in 1:5)
+            @test w.adversary(4, w.growth_rate_array) == 1
+
+            # Task 2: the notebook's game matches the course package, and the quoted numbers -
+            @test (w.sims, w.weights) == play(w.model, w.growth_rate_array)
+            actual = w.sims[:, 7]
+            @test [count(w.sims[:, i] .!= actual) for i in 1:5] == [40, 76, 83, 79, 91]
+            @test sum(w.sims[:, end]) == 44 && round(1 - 44 / 252, digits = 3) == 0.825
+            @test all(argmax(w.weights[t, :]) == 1 for t in 22:253) # "From about round 22 on"
+            @test w.weights[end, 1] > 4 * maximum(w.weights[end, 2:5]) # "more than four times"
+            fast = build(MyBinaryWeightedMajorityAlgorithmModel, (ϵ = 0.5, n = 5, T = 252,
+                expert = w.expert, adversary = w.adversary))
+            @test sum(L10bWMA.my_weighted_majority(fast, w.growth_rate_array)[1][:, end]) == 42 # answer sheet
+
+            # Task 3: the best expert, the bound, and the forecast game -
+            @test w.î == 1
+            @test all(w.L .≤ w.R) && w.L[end] == 44
+            @test round(Int, 2 * log(5) / w.model.ϵ) == 81 && round(Int, w.R[end]) == 164
+            fa = w.forecast_sims[:, 7]
+            @test sum(w.forecast_sims[:, end]) == 104
+            @test argmax(w.forecast_weights[end, :]) == 4
+            @test [count(w.forecast_sims[:, i] .!= fa) for i in 1:5] == [108, 110, 121, 101, 115]
+            @test count(fa .!= 1) == 106 # always predicting up
+            î = argmax(w.forecast_weights[end, :])
+            bound = (2 * log(5) / w.model.ϵ) .+ 2 * (1 + w.model.ϵ) .* cumsum(w.forecast_sims[:, î] .!= fa)
+            @test all(cumsum(w.forecast_sims[:, end]) .≤ bound)
+        end
+    end
+end
+
+@meeting "L10c" begin
+    @testset "L10c lecture links" begin
+        check_lecture_links("L10c", "CHEME-5800-L10c-Lecture-StochasticMultiarmBandits-Fall-2026.ipynb")
+    end
+end
+
+@meeting "L10d" begin
+    @testset "L10d bandit algorithms lab" begin
+        @testset "Reference Thompson sampling" begin
+            # Arm 2 always succeeds and arm 1 always fails: every pull lands in the right count -
+            rng = MersenneTwister(1)
+            r = L10dThompson.my_thompson_sampling(a -> a == 2 ? 1 : 0, 2, 200; rng = rng)
+            @test sum(r.S) + sum(r.F) == 200 && length(r.actions) == 200
+            @test r.S == [0, count(r.actions .== 2)] && r.F == [count(r.actions .== 1), 0]
+            @test r.rewards == [a == 2 ? 1 : 0 for a in r.actions]
+            @test count(r.actions .== 2) > 190
+            # The same seed gives the same game -
+            rng = MersenneTwister(1)
+            @test L10dThompson.my_thompson_sampling(a -> a == 2 ? 1 : 0, 2, 200; rng = rng).actions == r.actions
+            # The prior is used: a strong prior for arm 1 keeps every pull on arm 1 while it succeeds -
+            rng = MersenneTwister(2)
+            r = L10dThompson.my_thompson_sampling(a -> 1, 2, 50; rng = rng, α = [50.0, 1.0], β = [1.0, 50.0])
+            @test all(r.actions .== 1) && r.S == [50, 0]
+            # One arm: every pull is arm 1 -
+            r = L10dThompson.my_thompson_sampling(a -> 0, 1, 10; rng = MersenneTwister(3))
+            @test r.actions == fill(1, 10) && r.F == [10]
+            @test_throws ArgumentError L10dThompson.my_thompson_sampling(a -> 1, 0, 10; rng = MersenneTwister(1))
+            @test_throws ArgumentError L10dThompson.my_thompson_sampling(a -> 1, 2, 0; rng = MersenneTwister(1))
+            @test_throws ArgumentError L10dThompson.my_thompson_sampling(a -> 1, 2, 10; rng = MersenneTwister(1), α = [1.0])
+            @test_throws ArgumentError L10dThompson.my_thompson_sampling(a -> 1, 2, 10; rng = MersenneTwister(1), β = [1.0, 0.0])
+            @test_throws ArgumentError L10dThompson.my_thompson_sampling(a -> 2, 2, 10; rng = MersenneTwister(1))
+        end
+
+        @testset "Student stub" begin
+            # The student file is the reference apart from its header and the three TODO steps.
+            student_text = read(joinpath(WEEK_ROOT, "L10d", "src", "Compute.jl"), String)
+            reference_text = read(joinpath(WEEK_ROOT, "L10d", "src", "Compute-solution.jl"), String)
+            @test all(occursin("# TODO $i:", student_text) for i in 1:3)
+            @test occursin("p[a] = 0.0;", student_text) # the blank for TODO 1
+            @test occursin("aₜ = 1;", student_text) # the blank for TODO 2
+            @test occursin("S[aₜ] = S[aₜ];", student_text) && occursin("F[aₜ] = F[aₜ];", student_text) # the blanks for TODO 3
+            for answer in ("rand(rng, Beta(α[a] + S[a], β[a] + F[a]))", "aₜ = argmax(p)", "S[aₜ] + rₜ", "F[aₜ] + (1 - rₜ)")
+                @test !occursin(answer, student_text) # the solution's lines
+            end
+            body(text) = split(text, "module L10dThompson"; limit = 2)[2]
+            before(text) = split(body(text), "# TODO 1:"; limit = 2)[1]
+            between(text) = split(split(body(text), "# Step 3:"; limit = 2)[2], "# TODO 3:"; limit = 2)[1]
+            after(text) = split(body(text), "# We get here after T rounds."; limit = 2)[2]
+            @test before(student_text) == before(reference_text)
+            @test between(student_text) == between(reference_text)
+            @test after(student_text) == after(reference_text)
+            student_module = Module(:L10dStudent)
+            Base.include(student_module, joinpath(WEEK_ROOT, "L10d", "src", "Compute.jl"))
+            # Compute.jl holds only the student work -
+            @test Set(names(student_module.L10dThompson)) == Set([:L10dThompson, :my_thompson_sampling])
+            stub_error = try
+                student_module.L10dThompson.my_thompson_sampling(a -> 1, 3, 10; rng = MersenneTwister(1))
+                nothing
+            catch caught
+                caught
+            end
+            @test stub_error isa ErrorException && occursin("Oooops!", stub_error.msg)
+        end
+
+        @testset "L10d lab notebook" begin
+            # Run the actual notebook cells with the reference solution in place of the stub -
+            path = joinpath(WEEK_ROOT, "L10d", "CHEME-5800-L10d-Lab-BanditAlgorithms-Fall-2026.ipynb")
+            notebook = JSON.parsefile(path)
+            workspace = Module(:L10dNotebookValidation)
+            Core.eval(workspace, :(include(path::AbstractString) = Base.include(@__MODULE__, path)))
+            sources = [join(cell["source"]) for cell in notebook["cells"] if cell["cell_type"] == "code"]
+            @test occursin("Include.jl", sources[1])
+            @test all(isempty(cell["outputs"]) for cell in notebook["cells"] if cell["cell_type"] == "code")
+            for (index, source) in enumerate(sources)
+                Base.include_string(REPL.softscope, workspace, source,
+                    joinpath(dirname(path), "validation-cell-$(index).jl"))
+                if index == 1 # the setup cell loaded the stub; replace it with the reference
+                    Base.include(workspace, joinpath(WEEK_ROOT, "L10d", "src", "Compute-solution.jl"))
+                end
+            end
+            w = workspace
+
+            # The arms: arm 2 is best (10/12), arm 5 is the closest competitor (20/26) -
+            μ = mean.(w.arms)
+            @test argmax(μ) == 2 && μ[2] ≈ 10 / 12
+            @test sortperm(μ, rev = true)[2] == 5 && μ[5] ≈ 20 / 26
+            @test (w.K, w.T, w.seed) == (7, 5000, 5800)
+
+            # Task 1: the explore-first length, the package ε-greedy schedule, and the pull counts -
+            @test w.Nₐ == 163 && w.K * w.Nₐ == 1141
+            ϵ(t) = t^(-1 / 3) * (log(w.K * t))^(1 / 3) # the package schedule quoted in the prose
+            @test all(ϵ(t) > 1 for t in 1:3) && ϵ(4) < 1 # "In the first three rounds, ϵₜ > 1"
+            pulls(U) = [count(U[:, a] .> 0) for a in 1:w.K]
+            for U in (w.results_explore_first, w.results_eps_greedy, w.results_UCB1)
+                @test all(count(U[t, :] .> 0) == 1 for t in 1:w.T) # one nonzero entry per row
+                @test argmax(pulls(U)) == 2 # every algorithm pulled arm 2 most often
+            end
+            @test pulls(w.results_explore_first) == [163, 4022, 163, 163, 163, 163, 163]
+            @test pulls(w.results_eps_greedy)[2] == 4223
+            @test pulls(w.results_UCB1) == [111, 3518, 32, 37, 946, 302, 54]
+            @test [argmax(w.results_UCB1[t, :]) for t in 1:7] == collect(1:7) # each arm once, in order
+
+            # Task 2: regret with the true μ⋆, the curves, the bounds, and the longer game -
+            rc = w.regret_curves
+            @test rc["UCB1"][end] ≈ w.T * 10 / 12 - sum(w.results_UCB1)
+            @test round.([rc["Explore-first"][end], rc["ε-greedy"][end], rc["UCB1"][end]], digits = 1) == [400.5, 307.7, 232.0]
+            @test abs(rc["Explore-first"][end] - rc["Explore-first"][1141]) < 20 # levels off after exploring
+            @test maximum(abs.(rc["ε-greedy"][1:1500] .- rc["UCB1"][1:1500])) < 15 # close for about 1,500 rounds
+            @test all(rc["ε-greedy"][1700:end] .> rc["UCB1"][1700:end])
+            @test round((w.T^(2 / 3)) * (w.K * log(w.T))^(1 / 3), digits = 1) == 1142.3
+            @test round(sqrt(w.K * w.T * log(w.T)), digits = 1) == 546.0
+            labels = ["Explore-first", "ε-greedy", "UCB1"]
+            models = [MyExploreFirstAlgorithmModel, MyEpsilonGreedyAlgorithmModel, MyUCB1AlgorithmModel]
+            ratios = Float64[]
+            for (label, M) in zip(labels, models)
+                Random.seed!(w.seed) # the what-if cell's seed
+                U = solve(build(M, (K = w.K,)), T = 10_000, world = w.world)
+                push!(ratios, (10_000 * 10 / 12 - sum(U)) / rc[label][end]) # R(10,000)/R(5000)
+            end
+            @test round.(ratios, digits = 2) == [1.58, 1.59, 1.24] # "about 60 percent" and "about a quarter"
+            bound_ratio(T) = (T^(2 / 3)) * (w.K * log(T))^(1 / 3)
+            @test round(bound_ratio(10_000) / bound_ratio(5000), digits = 2) == 1.63
+            @test round(sqrt(10_000 * log(10_000)) / sqrt(5000 * log(5000)), digits = 2) == 1.47
+
+            # Task 3: Thompson sampling on θ = (0.90, 0.60, 0.80), and the closer arm 3 -
+            r = w.result
+            @test r.S .+ r.F == [4908, 11, 81]
+            @test round.((1 .+ r.S) ./ (2 .+ r.S .+ r.F), digits = 3) == [0.905, 0.538, 0.819]
+            rng = MersenneTwister(w.seed)
+            closer = L10dThompson.my_thompson_sampling(a -> w.bernoulli_world(a, [0.90, 0.60, 0.88], rng), 3, w.T; rng = rng)
+            @test (closer.S .+ closer.F)[3] == 551
+        end
     end
 end
