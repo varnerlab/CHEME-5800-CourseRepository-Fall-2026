@@ -158,6 +158,10 @@ end
     end
 end
 
+@meeting "L9c" begin
+    include(joinpath(@__DIR__, "l9c_constrained.jl"))
+end
+
 @meeting "L9d" begin
     @testset "L9d logistic regression on the banknotes" begin
         @testset "Reference gradient descent" begin
