@@ -34,6 +34,17 @@ end
     @testset "L10a lecture links" begin
         @test check_lecture_links("L10a", "CHEME-5800-L10a-Lecture-OnlineLearningAndRegret-Fall-2026.ipynb") ≥ 1
     end
+    @testset "L10a four-round worked example" begin
+        P = [1 1 -1; -1 1 1; -1 1 1; 1 -1 1]
+        Y = [1, -1, 1, 1]
+        model = build(MyBinaryWeightedMajorityAlgorithmModel,
+            (ϵ = 0.5, n = 3, T = 4, expert = (i, t, d) -> P[t, i], adversary = (t, d) -> Y[t]))
+        sims, weights = play(model, zeros(4, 1))
+        @test weights == [1 1 1; 1 1 0.5; 1 0.5 0.25; 0.5 0.5 0.25; 0.5 0.25 0.25]
+        @test sims[:, 4] == [1, 1, -1, 1]
+        @test sum(sims[:, end]) == 2
+        @test [count(P[:, i] .!= Y) for i in 1:3] == [1, 2, 2]
+    end
 end
 
 @meeting "L10b" begin
@@ -164,6 +175,52 @@ end
 
 @meeting "L10d" begin
     @testset "L10d bandit algorithms lab" begin
+        @testset "Zero rewards and action histories" begin
+            models = [MyExploreFirstAlgorithmModel, MyEpsilonGreedyAlgorithmModel, MyUCB1AlgorithmModel]
+            for M in models
+                # The first arm always fails; the second always succeeds -
+                seen = Int[]
+                world(a) = (push!(seen, a); a == 1 ? 0.0 : 1.0)
+                Random.seed!(5800)
+                game = solve(build(M, (K = 2,)), T = 100, world = world, return_history = true)
+                @test game.actions == seen # every world call is recorded, including failures
+                @test length(game.actions) == 100 && size(game.rewards) == (100, 2)
+                @test count(==(2), game.actions) > 50 # regression: UCB1 previously pulled arm 1 99 times
+                @test sum(game.rewards) == count(==(2), game.actions)
+                @test all(iszero, game.rewards[game.actions .== 1, :])
+                @test all(game.rewards[t, game.actions[t]] == (game.actions[t] == 2 ? 1.0 : 0.0) for t in 1:100)
+
+                # The original matrix interface returns the same rewards -
+                Random.seed!(5800)
+                @test solve(build(M, (K = 2,)), T = 100, world = a -> a == 1 ? 0.0 : 1.0) == game.rewards
+
+                # All-zero rewards and short horizons still have valid action records -
+                zero_game = solve(build(M, (K = 2,)), T = 2, world = a -> 0.0, return_history = true)
+                @test zero_game.actions == [1, 2] && all(iszero, zero_game.rewards)
+                one = solve(build(M, (K = 1,)), T = 1, world = a -> 0.0, return_history = true)
+                @test one.actions == [1] && one.rewards == zeros(1, 1)
+                @test_throws ArgumentError solve(build(M, (K = 0,)), T = 10)
+                @test_throws ArgumentError solve(build(M, (K = 3,)), T = 2)
+            end
+        end
+
+        @testset "Repeated bandit experiments" begin
+            # Deterministic Bernoulli arms give an exact oracle check: R = G -
+            arms = [Bernoulli(0.0), Bernoulli(1.0)]
+            experiment = L10dUtility.compare_bandits(arms, [20, 100], [11, 12, 13])
+            @test size(experiment.gap_regrets) == (2, 3, 3)
+            @test experiment.gap_regrets == experiment.realized_regrets
+            @test all(0 .≤ experiment.gap_regrets .≤ 100)
+            @test experiment.mean_gap == experiment.mean_realized
+            @test experiment.se_gap ≈ experiment.sd_gap ./ sqrt(3)
+            again = L10dUtility.compare_bandits(arms, [20, 100], [11, 12, 13])
+            @test again.gap_regrets == experiment.gap_regrets
+            equal = L10dUtility.compare_bandits([Bernoulli(1.0), Bernoulli(1.0)], [10], [1, 2])
+            @test all(iszero, equal.gap_regrets) && all(iszero, equal.realized_regrets)
+            @test_throws ArgumentError L10dUtility.compare_bandits(arms, [1], [1, 2])
+            @test_throws ArgumentError L10dUtility.compare_bandits(arms, [10], [1, 1])
+        end
+
         @testset "Reference Thompson sampling" begin
             # Arm 2 always succeeds and arm 1 always fails: every pull lands in the right count -
             rng = MersenneTwister(1)
@@ -244,41 +301,49 @@ end
             @test sortperm(μ, rev = true)[2] == 5 && μ[5] ≈ 20 / 26
             @test (w.K, w.T, w.seed) == (7, 5000, 5800)
 
-            # Task 1: the explore-first length, the package ε-greedy schedule, and the pull counts -
-            @test w.Nₐ == 163 && w.K * w.Nₐ == 1141
-            ϵ(t) = t^(-1 / 3) * (log(w.K * t))^(1 / 3) # the package schedule quoted in the prose
-            @test all(ϵ(t) > 1 for t in 1:3) && ϵ(4) < 1 # "In the first three rounds, ϵₜ > 1"
-            pulls(U) = [count(U[:, a] .> 0) for a in 1:w.K]
-            for U in (w.results_explore_first, w.results_eps_greedy, w.results_UCB1)
-                @test all(count(U[t, :] .> 0) == 1 for t in 1:w.T) # one nonzero entry per row
-                @test argmax(pulls(U)) == 2 # every algorithm pulled arm 2 most often
+            # Task 1: the exploration budget and action histories -
+            @test w.N == 163 && w.K * w.N == 1141
+            pulls(game) = [count(==(a), game.actions) for a in 1:w.K]
+            for game in (w.game_explore_first, w.game_eps_greedy, w.game_UCB1)
+                @test all(game.rewards[t, game.actions[t]] > 0 for t in 1:w.T) # these Beta rewards are positive
+                @test sum(pulls(game)) == w.T
+                @test argmax(pulls(game)) == 2
             end
-            @test pulls(w.results_explore_first) == [163, 4022, 163, 163, 163, 163, 163]
-            @test pulls(w.results_eps_greedy)[2] == 4223
-            @test pulls(w.results_UCB1) == [111, 3518, 32, 37, 946, 302, 54]
-            @test [argmax(w.results_UCB1[t, :]) for t in 1:7] == collect(1:7) # each arm once, in order
+            @test pulls(w.game_explore_first) == [163, 4022, 163, 163, 163, 163, 163]
+            @test w.game_eps_greedy.actions[1:7] == collect(1:7)
+            @test w.game_UCB1.actions[1:7] == collect(1:7)
+            # the pull counts quoted in the Task 1 prose and question -
+            @test pulls(w.game_eps_greedy)[2] == 3655 && extrema(pulls(w.game_eps_greedy)[[1, 3, 4, 5, 6, 7]]) == (212, 236)
+            @test pulls(w.game_UCB1)[[2, 3, 5]] == [3518, 32, 946]
+            # epsilon-greedy's capped schedule: ε_t = 1 through round 21 for K = 7 -
+            @test all(t -> min(1.0, cbrt(w.K * log(t) / t)) == 1.0, (w.K + 1):21) && cbrt(w.K * log(22) / 22) < 1
 
-            # Task 2: regret with the true μ⋆, the curves, the bounds, and the longer game -
+            # Task 2: realized regret and the repeated experiment -
             rc = w.regret_curves
-            @test rc["UCB1"][end] ≈ w.T * 10 / 12 - sum(w.results_UCB1)
-            @test round.([rc["Explore-first"][end], rc["ε-greedy"][end], rc["UCB1"][end]], digits = 1) == [400.5, 307.7, 232.0]
+            for (label, game) in zip(["Explore-first", "ε-greedy", "UCB1"],
+                [w.game_explore_first, w.game_eps_greedy, w.game_UCB1])
+                @test rc[label] ≈ (1:w.T).*maximum(μ) .- cumsum(vec(sum(game.rewards, dims = 2)))
+            end
             @test abs(rc["Explore-first"][end] - rc["Explore-first"][1141]) < 20 # levels off after exploring
-            @test maximum(abs.(rc["ε-greedy"][1:1500] .- rc["UCB1"][1:1500])) < 15 # close for about 1,500 rounds
-            @test all(rc["ε-greedy"][1700:end] .> rc["UCB1"][1700:end])
             @test round((w.T^(2 / 3)) * (w.K * log(w.T))^(1 / 3), digits = 1) == 1142.3
             @test round(sqrt(w.K * w.T * log(w.T)), digits = 1) == 546.0
-            labels = ["Explore-first", "ε-greedy", "UCB1"]
-            models = [MyExploreFirstAlgorithmModel, MyEpsilonGreedyAlgorithmModel, MyUCB1AlgorithmModel]
-            ratios = Float64[]
-            for (label, M) in zip(labels, models)
-                Random.seed!(w.seed) # the what-if cell's seed
-                U = solve(build(M, (K = w.K,)), T = 10_000, world = w.world)
-                push!(ratios, (10_000 * 10 / 12 - sum(U)) / rc[label][end]) # R(10,000)/R(5000)
-            end
-            @test round.(ratios, digits = 2) == [1.58, 1.59, 1.24] # "about 60 percent" and "about a quarter"
-            bound_ratio(T) = (T^(2 / 3)) * (w.K * log(T))^(1 / 3)
-            @test round(bound_ratio(10_000) / bound_ratio(5000), digits = 2) == 1.63
-            @test round(sqrt(10_000 * log(10_000)) / sqrt(5000 * log(5000)), digits = 2) == 1.47
+            @test [round(rc[l][end], digits = 1) for l in ["Explore-first", "ε-greedy", "UCB1"]] == [400.5, 525.7, 232.0]
+            @test rc["ε-greedy"][1000] - rc["UCB1"][1000] > 25 # the two curves separate within the first thousand rounds
+            ensemble = w.ensemble
+            @test ensemble.horizons == [1000, 2500, 5000, 10_000]
+            @test length(ensemble.seeds) == 30 && length(unique(ensemble.seeds)) == 30
+            @test size(ensemble.gap_regrets) == (4, 3, 30)
+            @test all(isfinite, ensemble.mean_gap) && all(ensemble.mean_gap .≥ 0)
+            @test ensemble.mean_gap ≈ dropdims(mean(ensemble.gap_regrets, dims = 3), dims = 3)
+            @test ensemble.se_gap ≈ ensemble.sd_gap ./ sqrt(30)
+            # the averages, spreads, and growth ratios quoted in the prose -
+            @test round.(ensemble.mean_gap[4, :], digits = 1) == [620.7, 872.7, 285.8]
+            @test all(h -> length(unique(ensemble.gap_regrets[h, 1, :])) == 1, 1:4) # explore-first: the same gap loss in every game
+            @test all(<(1e-9), ensemble.sd_gap[:, 1]) # so its standard deviation shows as 0.0
+            @test all(abs.(ensemble.mean_gap .- ensemble.mean_realized) .< 5)
+            @test all(ensemble.gap_regrets[:, 3, :] .< ensemble.gap_regrets[:, 1, :]) # UCB1 beats both others in every game
+            @test all(ensemble.gap_regrets[:, 3, :] .< ensemble.gap_regrets[:, 2, :])
+            @test round.(ensemble.mean_gap[4, :] ./ ensemble.mean_gap[3, :], digits = 2) == [1.63, 1.64, 1.30]
 
             # Task 3: Thompson sampling on θ = (0.90, 0.60, 0.80), and the closer arm 3 -
             r = w.result

@@ -20,7 +20,7 @@ supporting code/data, tests, metadata, and clean execution checks all pass.
 | 6 | 6 | Duality/sensitivity/FBA; HL-60 urea-cycle model; Jacobi, Gauss–Seidel, and SOR | FBA derivation and iterative-method convergence | **Curated, corrected, and validated** |
 | 7 | 7 | SVD/data reduction and ordinary least squares | Use the reviewed platelet stoichiometric-matrix SVD example in L7b | **Curated, corrected, and validated** |
 | 8 | 8 | Regularized least squares, cross-validation, and model checking | One compact model-selection extension if warranted | **Curated, corrected, and validated** |
-| 9 | 9 | Perceptron, nonlinear optimization, and logistic regression on the shared predictive-maintenance case | XOR and linear separability | **Predictive-maintenance replacement built and validated** |
+| 9 | 9 | Perceptron and logistic regression on banknotes; XOR and numerical optimization | KKT conditions and constrained gradient descent | [**Reviewed and approved October 12, 2026**](../reviews/week-09-review.md) |
 | 10 | 10 | Multiplicative weights and ordinary multiarm bandits | Thompson sampling | **Rebundled and validated** |
 | 11 | 11 | Markov models, Markov decision processes, value iteration, and grid world | Hidden Markov models | **Curated, corrected, and validated** |
 | 12 | 12 | Tabular Q-learning and comparison with value iteration | CHEME 5800 learner implementation/analysis | **New integration built and validated** |

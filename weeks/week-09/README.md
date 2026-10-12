@@ -1,5 +1,7 @@
 # Week 9 — Binary classification and numerical optimization
 
+**Review status:** Reviewed and approved by the instructor on October 12, 2026.
+
 Week 9 covers linear classifiers and the numerical optimization used to train them. The
 L9a example and the L9d lab use the UCI banknote authentication dataset with the same
 training/testing split, so the L9d lab can compare the Perceptron and logistic regression on

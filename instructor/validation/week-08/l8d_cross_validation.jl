@@ -7,28 +7,28 @@ import REPL  # REPL.softscope applies Jupyter's scoping rules to those cells
         Random.seed!(8)
         X_train = randn(40, 3) .* [1.0 10.0 100.0] .+ [5.0 -2.0 0.5]
         X_other = randn(7, 3)
-        Z_train, Z_other = L8dRidgeCV.scale_features(X_train, X_other)
+        Z_train, Z_other = L8dUtility.scale_features(X_train, X_other)
         @test maximum(abs, mean(Z_train, dims = 1)) < 1e-12
         @test all(std(Z_train, dims = 1) .≈ 1)
         @test Z_other ≈ (X_other .- mean(X_train, dims = 1)) ./ std(X_train, dims = 1) # training statistics
-        @test_throws DimensionMismatch L8dRidgeCV.scale_features(X_train, randn(7, 2))
-        @test_throws ArgumentError L8dRidgeCV.scale_features(hcat(X_train, ones(40)), randn(7, 4))
+        @test_throws DimensionMismatch L8dUtility.scale_features(X_train, randn(7, 2))
+        @test_throws ArgumentError L8dUtility.scale_features(hcat(X_train, ones(40)), randn(7, 4))
 
         y = 3.0 .+ Z_train * [1.0, -2.0, 0.5] .+ 0.1 .* randn(40)
         X̂ = hcat(Z_train, ones(40))
-        @test L8dRidgeCV.ridge_fit(Z_train, y, 0.0) ≈ X̂ \ y # δ = 0 is ordinary least squares, intercept last
+        @test L8dUtility.ridge_fit(Z_train, y, 0.0) ≈ X̂ \ y # δ = 0 is ordinary least squares, intercept last
         for δ ∈ (0.0, 1.0, 100.0, 1e6)
             # centered features: the unpenalized intercept is the average response for every δ -
-            @test L8dRidgeCV.ridge_fit(Z_train, y, δ)[end] ≈ mean(y)
+            @test L8dUtility.ridge_fit(Z_train, y, δ)[end] ≈ mean(y)
         end
-        weights(δ) = norm(L8dRidgeCV.ridge_fit(Z_train, y, δ)[1:3])
+        weights(δ) = norm(L8dUtility.ridge_fit(Z_train, y, δ)[1:3])
         @test weights(0.0) > weights(10.0) > weights(1000.0)
-        @test L8dRidgeCV.ridge_fit(Z_train, y, 2) ≈ L8dRidgeCV.ridge_fit(Z_train, y, 2.0) # an integer δ works
-        @test L8dRidgeCV.ridge_predict(L8dRidgeCV.ridge_fit(Z_train, y, 0.0), Z_train) ≈ X̂ * (X̂ \ y)
-        @test_throws DimensionMismatch L8dRidgeCV.ridge_fit(Z_train, y[1:end-1], 1.0)
-        @test_throws ArgumentError L8dRidgeCV.ridge_fit(Z_train, y, -1.0)
-        @test_throws ArgumentError L8dRidgeCV.ridge_fit(Z_train, y, Inf)
-        @test_throws DimensionMismatch L8dRidgeCV.ridge_predict(ones(3), Z_train)
+        @test L8dUtility.ridge_fit(Z_train, y, 2) ≈ L8dUtility.ridge_fit(Z_train, y, 2.0) # an integer δ works
+        @test L8dUtility.ridge_predict(L8dUtility.ridge_fit(Z_train, y, 0.0), Z_train) ≈ X̂ * (X̂ \ y)
+        @test_throws DimensionMismatch L8dUtility.ridge_fit(Z_train, y[1:end-1], 1.0)
+        @test_throws ArgumentError L8dUtility.ridge_fit(Z_train, y, -1.0)
+        @test_throws ArgumentError L8dUtility.ridge_fit(Z_train, y, Inf)
+        @test_throws DimensionMismatch L8dUtility.ridge_predict(ones(3), Z_train)
     end
 
     @testset "Reference cross-validation" begin
@@ -76,7 +76,12 @@ import REPL  # REPL.softscope applies Jupyter's scoping rules to those cells
         @test before(student_text) == before(reference_text)
         @test after(student_text) == after(reference_text)
         student_module = Module(:L8dStudent)
+        Base.include(student_module, joinpath(WEEK_ROOT, "L8d", "src", "Utility.jl")) # the student module imports from it
         Base.include(student_module, joinpath(WEEK_ROOT, "L8d", "src", "Compute.jl"))
+        # Compute.jl holds only the student function; the helpers live in Utility.jl -
+        @test Set(names(student_module.L8dRidgeCV)) == Set([:L8dRidgeCV, :my_cross_validation])
+        @test Set(names(L8dRidgeCV)) == Set([:L8dRidgeCV, :my_cross_validation])
+        @test !occursin("function ridge_fit", student_text) && !occursin("function scale_features", student_text)
         error = try
             student_module.L8dRidgeCV.my_cross_validation(randn(20, 2), randn(20), [1.0])
             nothing
@@ -124,9 +129,9 @@ import REPL  # REPL.softscope applies Jupyter's scoping rules to those cells
         @test round(cv.mean_errors[end]; digits = 2) == 2.12
         @test length.(cv.folds) == [fill(43, 9); 49]
         @test w.θ̂_optimal[end] ≈ mean(w.y_train) # unpenalized intercept on centered features
-        ŷ_train = L8dRidgeCV.ridge_predict(w.θ̂_optimal, w.Z84_train)
+        ŷ_train = L8dUtility.ridge_predict(w.θ̂_optimal, w.Z84_train)
         @test round(rmse(w.y_train, ŷ_train); digits = 3) == 0.964
-        @test round(rmse(w.y_test, L8dRidgeCV.ridge_predict(w.θ̂_optimal, w.Z84_test)); digits = 3) == 1.062
+        @test round(rmse(w.y_test, L8dUtility.ridge_predict(w.θ̂_optimal, w.Z84_test)); digits = 3) == 1.062
 
         # residuals of the selected model: no clear trend, wider for the expensive houses -
         r = w.y_train - ŷ_train
@@ -143,12 +148,12 @@ import REPL  # REPL.softscope applies Jupyter's scoping rules to those cells
             Random.seed!(seed)
             rows = randperm(545)
             train, test = rows[1:436], rows[437:end]
-            A12, B12 = L8dRidgeCV.scale_features(w.X[train, :], w.X[test, :])
-            A84, B84 = L8dRidgeCV.scale_features(w.X84[train, :], w.X84[test, :])
+            A12, B12 = L8dUtility.scale_features(w.X[train, :], w.X[test, :])
+            A84, B84 = L8dUtility.scale_features(w.X84[train, :], w.X84[test, :])
             split_cv = L8dRidgeCV.my_cross_validation(w.X84[train, :], w.y[train], w.δ_values; k = 10, seed = 5800)
             δ = w.δ_values[argmin(split_cv.mean_errors)]
-            twelve = rmse(w.y[test], L8dRidgeCV.ridge_predict(L8dRidgeCV.ridge_fit(A12, w.y[train], 0.001), B12))
-            larger = rmse(w.y[test], L8dRidgeCV.ridge_predict(L8dRidgeCV.ridge_fit(A84, w.y[train], δ), B84))
+            twelve = rmse(w.y[test], L8dUtility.ridge_predict(L8dUtility.ridge_fit(A12, w.y[train], 0.001), B12))
+            larger = rmse(w.y[test], L8dUtility.ridge_predict(L8dUtility.ridge_fit(A84, w.y[train], δ), B84))
             twelve_wins += twelve < larger
         end
         @test twelve_wins == 3
@@ -176,8 +181,16 @@ import REPL  # REPL.softscope applies Jupyter's scoping rules to those cells
             other = L8dRidgeCV.my_cross_validation(w.X84_train, w.y_train, w.δ_values; k = 10, seed = seed)
             δ = w.δ_values[argmin(other.mean_errors)]
             @test round(δ; digits = 1) == expected
-            testing = rmse(w.y_test, L8dRidgeCV.ridge_predict(L8dRidgeCV.ridge_fit(w.Z84_train, w.y_train, δ), w.Z84_test))
+            testing = rmse(w.y_test, L8dUtility.ridge_predict(L8dUtility.ridge_fit(w.Z84_train, w.y_train, δ), w.Z84_test))
             @test 1.06 < testing < 1.07
         end
+
+        # the notebook's own check passes correct work after the fold-seed change the Task 3 question asks for -
+        cv_cell = only(i for (i, s) in enumerate(sources) if occursin("cv_results = L8dRidgeCV.my_cross_validation", s))
+        check_cell = only(i for (i, s) in enumerate(sources) if occursin("@testset \"My cross-validation\"", s))
+        Core.eval(w, :(fold_seed = 1))
+        Base.include_string(REPL.softscope, w, replace(sources[cv_cell], r"\nfold_seed = .*" => ""), "validation-cv-seed-1.jl")
+        @test w.fold_seed == 1 && w.cv_results.mean_errors != cv.mean_errors # new folds, new errors
+        Base.include_string(REPL.softscope, w, sources[check_cell], "validation-check-seed-1.jl") # its @testset records here
     end
 end

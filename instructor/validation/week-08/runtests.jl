@@ -6,6 +6,10 @@ released("L8d") && include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-0
 # L8d's reference implementation; the notebook setup loads the student file.
 released("L8d") && include(joinpath(WEEK_ROOT, "L8d", "src", "Compute-solution.jl"))
 
+@meeting "L8c" begin
+    include(joinpath(@__DIR__, "l8c_housing_example.jl"))
+end
+
 @meeting "L8d" begin
     include(joinpath(@__DIR__, "l8d_cross_validation.jl"))
 end

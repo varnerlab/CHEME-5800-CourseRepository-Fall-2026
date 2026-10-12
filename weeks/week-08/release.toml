@@ -14,6 +14,7 @@ supporting_notebooks = [
   "L8c/CHEME-5800-L8c-Theory-ConditionNumber-Fall-2026.ipynb",
 ]
 datasets = [
+  "L8c/figs/Fig-KFold-CrossValidation-Schematic.svg",
   "L8c/data/README.md",
   "L8c/data/Housing-Training-Dataset-Kaggle.csv",
 ]

@@ -17,8 +17,15 @@ Notebook: [L8d Lab: Let's Implement Cross-Validation for Ridge Regression](../..
 
 Student code: `my_cross_validation(...)` in `weeks/week-08/L8d/src/Compute.jl`, three
 TODOs (training rows, scale and fit, fold MSE). Reference:
-`src/Compute-solution.jl`. Supplied helpers: `scale_features`, `ridge_fit` (ones
-column last, intercept not penalized), `ridge_predict`.
+`src/Compute-solution.jl`. Supplied helpers, in the guarded `L8dUtility` module in
+`src/Utility.jl` since October 12: `scale_features`, `ridge_fit` (ones column last,
+intercept not penalized), `ridge_predict`. The student module imports them from there.
+
+The notebook's student check (October 12) no longer pins the default numbers. It
+recomputes the average error for the smallest and the largest δ from the student's own
+folds, so it passes correct work for any `fold_seed`. It fails code that scales with
+all rows or ignores δ. One `fold_seed` variable in the Task 2 cross-validation cell sets
+the folds for that cell, the check, and Task 3. The pinned numbers below live in the suite.
 
 ## Predictions and questions
 
@@ -48,7 +55,7 @@ training and 109 testing houses), k = 10 folds with fold seed 5800, and the grid
    trained with, so the fold is no longer unseen. Here the effect is small (the
    average validation errors change by at most 0.006, and δ* stays at 100), but
    the procedure should not depend on the effect being small.
-3. **Task 3.** δ* moves: 158.5 for `seed = 1`, 199.5 for `seed = 2`. The bottom of
+3. **Task 3.** δ* moves: 158.5 for `fold_seed = 1`, 199.5 for `fold_seed = 2`. The bottom of
    the 84-feature curve is flat (CV error 1.124 at δ = 31.6, 1.120 at 100, 1.129
    at 316), while the fold-to-fold standard deviation there is about 0.16, so a
    different shuffle easily moves the minimum. The testing error barely changes:

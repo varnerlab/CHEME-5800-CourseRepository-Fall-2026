@@ -39,13 +39,11 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `Week11Core` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week11Core)
-    include(joinpath(@__DIR__, "..", "src", "Week11Core.jl"))
-end
+# `L11dValueIteration` holds the student's `mysolve(...)`. It is included on
+# every run, with no guard, so re-running the setup cell picks up the student's
+# edits; the notebook calls it by qualified name (`L11dValueIteration.mysolve(...)`)
+# for the same reason.
+include(joinpath(CHEME5800_L11D_ROOT, "src", "Compute.jl"))
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
@@ -54,19 +52,17 @@ end
 #
 # Already imported by the root bootstrap above, listed so this block is the
 # whole picture rather than most of it:
-#   VLDataScienceMachineLearningPackage   the course package
+#   VLDataScienceMachineLearningPackage   the course package: the grid world
+#                                         and MDP models, solve, backup, Q, and
+#                                         policy for value iteration
 #
 # Standard library:
-using LinearAlgebra  # factorizations, norms, and matrix operations
-using Random         # seeded random number generation
-using Statistics     # mean, std, and friends
 using Test           # @test / @testset for the checks in the notebook
 #
 # Packages:
-using DataFrames     # tabular records held as columns
 using Plots          # figures
-using PrettyTables   # formatted table output in the notebook
 #
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .Week11Core    # from the include in section 2
+# There is deliberately no `using .L11dValueIteration`. Re-running this file
+# replaces that module, and on Julia 1.12 a second `using` of the replacement
+# makes every exported name ambiguous. The notebook calls
+# L11dValueIteration.mysolve(...) instead.

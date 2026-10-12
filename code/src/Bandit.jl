@@ -2,79 +2,109 @@
 # placeholder - always return 0
 _null(action::Int64)::Int64 = return 0;
 
-function _solve(model::MyExploreFirstAlgorithmModel; T::Int = 0, world::Function = _null)::Array{Float64,2}
+function _check_bandit_horizon(K::Int, T::Int)
+    K ≥ 1 || throw(ArgumentError("K must be at least 1"))
+    T ≥ K || throw(ArgumentError("T must be at least K, so every arm can be pulled once"))
+end
+
+_bandit_output(rewards, actions, return_history::Bool) =
+    return_history ? (actions = actions, rewards = rewards) : rewards
+
+function _solve(model::MyExploreFirstAlgorithmModel; T::Int = 0, world::Function = _null,
+    return_history::Bool = false)
 
     # initialize -
-    K = model.K # get the number of arms
+    K = model.K; # number of arms
+    _check_bandit_horizon(K, T);
     rewards = zeros(Float64, T, K); # rewards for each arm
+    actions = zeros(Int, T); # selected arm, including pulls that earn zero
+    totals = zeros(K); # reward sum for each arm
+    pulls = zeros(Int, K); # actual pulls of each arm
 
-    # how many expore steps should we take?
-    Nₐ = ((T/K)^(2/3))*(log(T))^(1/3) |> x -> round(Int,x); # number of explore steps
+    # Reserve at least one pull per arm and keep exploration within the horizon -
+    Nₐ = clamp(round(Int, (T/K)^(2/3)*cbrt(log(T))), 1, fld(T, K));
     
     # exploration phase -
     counter = 1;
     for a ∈ 1:K
         for _ ∈ 1:Nₐ
             rewards[counter, a] = world(a); # store from action a
+            actions[counter] = a;
+            totals[a] += rewards[counter, a];
+            pulls[a] += 1; # a zero reward still counts as a pull
             counter += 1;
         end
     end
 
-    μ = zeros(Float64, K); # average reward for each arm
-    for a ∈ 1:K
-        μ[a] = findall(x -> x != 0.0, rewards[:, a]) |> i-> mean(rewards[i, a]); # compute the average reward
-    end
+    μ = totals ./ pulls; # average over every observed reward, including zeros
 
     # exploitation phase -
     a = argmax(μ); # compute the arm with best average reward
     for _ ∈ 1:(T - Nₐ*K)
         rewards[counter, a] = world(a); # store the reward
+        actions[counter] = a;
         counter += 1;
     end
     
     # return -
-    return rewards;
+    return _bandit_output(rewards, actions, return_history);
 end
 
-function _solve(model::MyEpsilonGreedyAlgorithmModel; T::Int = 0, world::Function = _null)::Array{Float64,2}
+function _solve(model::MyEpsilonGreedyAlgorithmModel; T::Int = 0, world::Function = _null,
+    return_history::Bool = false)
 
     # initialize -
-    K = model.K # get the number of arms
+    K = model.K; # number of arms
+    _check_bandit_horizon(K, T);
     rewards = zeros(Float64, T, K); # rewards for each arm
+    actions = zeros(Int, T); # selected arm in each round
+    totals = zeros(K); # reward sum for each arm
+    pulls = zeros(Int, K); # actual pulls of each arm
 
-    for t ∈ 1:T
-        ϵₜ = (1.0/(t^(1/3)))*(log(K*t))^(1/3); # compute the epsilon value -
+    # Pull every arm once before comparing sample means -
+    for a ∈ 1:K
+        rewards[a, a] = world(a);
+        actions[a] = a;
+        totals[a] = rewards[a, a];
+        pulls[a] = 1;
+    end
 
-        p = rand(); # role a random number
-        aₜ = 1; # default action is to pull the first arm
+    for t ∈ (K+1):T
+        ϵₜ = min(1.0, cbrt(K*log(t)/t)); # the L10c schedule, capped at probability one
+        p = rand(); # decide whether to explore
+        aₜ = 1;
         if (p ≤ ϵₜ)
-            aₜ = rand(1:K);  # ramdomly select an arm
+            aₜ = rand(1:K); # uniformly random arm, possibly the current best
         else
-            
-            μ = zeros(Float64, K); # average reward for each arm
-            for a ∈ 1:K
-                μ[a] = findall(x -> x != 0.0, rewards[:, a]) |> i-> mean(rewards[i, a]); # compute the average reward
-            end
-            aₜ = argmax(μ); # compute the arm with best average reward
+            aₜ = argmax(totals ./ pulls); # highest sample mean; first arm breaks a tie
         end
         rewards[t, aₜ] = world(aₜ); # store the reward
+        actions[t] = aₜ;
+        totals[aₜ] += rewards[t, aₜ];
+        pulls[aₜ] += 1;
     end
 
     # return -
-    return rewards;
+    return _bandit_output(rewards, actions, return_history);
 end
 
-function _solve(model::MyUCB1AlgorithmModel; T::Int = 0, world::Function = _null)::Array{Float64,2}
+function _solve(model::MyUCB1AlgorithmModel; T::Int = 0, world::Function = _null,
+    return_history::Bool = false)
 
     # initialize -
-    K = model.K # get the number of arms
+    K = model.K; # number of arms
+    _check_bandit_horizon(K, T);
     rewards = zeros(Float64, T, K); # rewards for each arm
+    actions = zeros(Int, T); # selected arm in each round
+    totals = zeros(K); # reward sum for each arm
     Nₐ = zeros(Int64, K); # number of times we have pulled each arm
 
     # try each arm once
     counter = 1;
     for a = 1:K
         rewards[counter, a] = world(a); # pull each arm once
+        actions[counter] = a;
+        totals[a] = rewards[counter, a];
         Nₐ[a] += 1; # increment the counter
         counter += 1;
     end
@@ -82,12 +112,9 @@ function _solve(model::MyUCB1AlgorithmModel; T::Int = 0, world::Function = _null
     # main loop -
     for t ∈ counter:T
 
-        # conpute the UCB value 
+        # Compute the UCB value from all observed rewards -
         tmp = zeros(Float64, K);
-        μ = zeros(Float64, K); # average reward for each arm
-        for a ∈ 1:K
-            μ[a] = findall(x -> x != 0.0, rewards[:, a]) |> i-> mean(rewards[i, a]); # compute the average reward
-        end
+        μ = totals ./ Nₐ; # zero rewards contribute to the denominator
         
         for i ∈ 1:K
             tmp[i] = μ[i] + sqrt((2*log(t))/Nₐ[i]); # compute the UCB value
@@ -96,10 +123,12 @@ function _solve(model::MyUCB1AlgorithmModel; T::Int = 0, world::Function = _null
         aₜ = argmax(tmp); # select the arm with the highest UCB value
         Nₐ[aₜ] += 1; # increment the counter
         rewards[t, aₜ] = world(aₜ); # store the reward
+        actions[t] = aₜ;
+        totals[aₜ] += rewards[t, aₜ];
     end
 
     # return -
-    return rewards;
+    return _bandit_output(rewards, actions, return_history);
 end
 
 function _solve(model::MyBinaryVectorArmsEpsilonGreedyAlgorithmModel, context::MyConsumerChoiceBanditContextModel;
@@ -174,20 +203,37 @@ end
 
 # PUBLIC METHODS BELOW HERE ================================================================================== #`
 """
-    solve(model::AbstractBanditAlgorithmModel; T::Int = 0, world::Function = _null)
+    solve(model::AbstractBanditAlgorithmModel; T::Int = 0, world::Function = _null,
+        return_history::Bool = false)
 
-Solve the bandit problem using the given model. 
+Play a stationary stochastic bandit using explore-first, epsilon-greedy, or UCB1.
+Each call to `world(a)` independently draws a reward in `[0, 1]` from arm `a`'s
+fixed distribution. Rewards and round indices are dimensionless. All sample means
+include zero rewards, and ties select the first maximizing arm.
 
 ### Arguments
 - `model::AbstractBanditAlgorithmModel`: The model to use to solve the bandit problem.
-- `T::Int = 0`: The number of rounds to play. Default is 0.
+- `T::Int = 0`: Number of rounds, at least `model.K`. Supply it explicitly.
 - `world::Function = _null`: The function that returns the reward for a given action. Default is the private `_null` function.
+- `return_history::Bool = false`: Return the selected arms as well as the reward matrix.
+
+Explore-first pulls each arm `clamp(round(Int, (T/K)^(2/3)*cbrt(log(T))), 1, fld(T,K))`
+times before committing. Epsilon-greedy and UCB1 first pull every arm once.
+Epsilon-greedy then explores with probability `min(1, cbrt(K*log(t)/t))`.
+UCB1 maximizes the sample mean plus `sqrt(2*log(t)/pulls[a])`.
 
 ### Returns
-- `Array{Float64,2}`: The rewards for each arm at each round.
+- By default, a `T × K` reward matrix. Row `t` stores the observed reward in
+  column `a_t`, with zeros in all other columns. A selected arm can also earn zero.
+- With `return_history = true`, `(actions, rewards)` where `actions::Vector{Int}`
+  records the selected arm in every round and `rewards` is the same matrix.
+  Use `actions` to count pulls; the reward matrix alone cannot identify a zero-reward pull.
+
+Throws `ArgumentError` for `K < 1` or `T < K`.
 """
-function solve(model::AbstractBanditAlgorithmModel; T::Int = 0, world::Function = _null)::Array{Float64,2}
-    return _solve(model, T = T, world = world);
+function solve(model::AbstractBanditAlgorithmModel; T::Int = 0, world::Function = _null,
+    return_history::Bool = false)
+    return _solve(model, T = T, world = world, return_history = return_history);
 end
 
 

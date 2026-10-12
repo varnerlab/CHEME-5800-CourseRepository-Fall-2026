@@ -45,6 +45,12 @@ end
 # (`L10dThompson.my_thompson_sampling(...)`) for the same reason.
 include(joinpath(CHEME5800_L10D_ROOT, "src", "Compute.jl"))
 
+# Supplied helpers, loaded once: the repeated games for Task 2 and the Bernoulli
+# world for Task 3.
+if !isdefined(@__MODULE__, :L10dUtility)
+    include(joinpath(CHEME5800_L10D_ROOT, "src", "Utility.jl"))
+end
+
 
 # --- 3. IMPORTS --------------------------------------------------------------
 # Everything this meeting brings into scope. One `using` per line so each can
@@ -66,6 +72,9 @@ using DataFrames     # tabular records held as columns
 using Distributions  # the Beta and Bernoulli distributions, and pdf
 using Plots          # figures
 using PrettyTables   # formatted table output in the notebook
+#
+# This meeting's supplied helpers (section 2):
+using .L10dUtility   # compare_bandits and bernoulli_world
 #
 # There is deliberately no `using .L10dThompson`. Re-running this file replaces
 # that module, and on Julia 1.12 a second `using` of the replacement makes every

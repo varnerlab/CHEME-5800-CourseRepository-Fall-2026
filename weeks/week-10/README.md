@@ -8,6 +8,11 @@ bandits, where the agent sees only the reward of the arm it pulls. The L10d lab 
 explore-first, epsilon-greedy, and UCB1 on the same arms, and students implement Thompson
 sampling for a binary Bernoulli bandit.
 
+The lectures work small examples by hand: four rounds of weighted voting, one UCB1
+choice, and one Bernoulli posterior update. The bandit lab compares the algorithms in
+one seeded game and then averaged over 30 games at four horizons; its helper functions
+are described in [L10d/docs/compare_bandits.md](L10d/docs/compare_bandits.md).
+
 | Meeting | Topic | Notebook |
 |---|---|---|
 | L10a | Online learning: weighted majority and multiplicative weights | [Lecture](L10a/CHEME-5800-L10a-Lecture-OnlineLearningAndRegret-Fall-2026.ipynb) |

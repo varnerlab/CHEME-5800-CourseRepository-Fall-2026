@@ -39,13 +39,20 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `L8dRidgeCV` holds the ridge regression helpers and the student
-# cross-validation implementation, `my_cross_validation(...)`. The include is
-# deliberately unguarded: students edit `src/Compute.jl` during the lab, and
-# re-running this setup file must reload those edits. Julia 1.12 replaces the
-# module silently. Notebook calls stay qualified (`L8dRidgeCV.ridge_fit(...)`)
-# so they resolve against the replacement module.
-include(joinpath(@__DIR__, "src", "Compute.jl"))
+# `L8dUtility` holds the supplied helpers: feature scaling and ridge
+# regression. Students do not edit it, so it is loaded once. It must come
+# before `src/Compute.jl`, whose module imports the helpers from it.
+if !isdefined(@__MODULE__, :L8dUtility)
+    include(joinpath(CHEME5800_L8D_ROOT, "src", "Utility.jl"))
+end
+
+# `L8dRidgeCV` holds the student cross-validation implementation,
+# `my_cross_validation(...)`. The include is deliberately unguarded: students
+# edit `src/Compute.jl` during the lab, and re-running this setup file must
+# reload those edits. Julia 1.12 replaces the module silently. Notebook calls
+# stay qualified (`L8dRidgeCV.my_cross_validation(...)`) so they resolve
+# against the replacement module.
+include(joinpath(CHEME5800_L8D_ROOT, "src", "Compute.jl"))
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
@@ -67,5 +74,11 @@ using DataFrames     # tabular records held as columns
 using Plots          # figures
 using PrettyTables   # formatted table output in the notebook
 #
-# This meeting's own source, `L8dRidgeCV`, is included in section 2 and called
-# by qualified names, so it has no `using` line here.
+# The supplied helpers are included above. The leading dot means "a module
+# defined here", as opposed to an installed package of the same name:
+using .L8dUtility    # scale_features, ridge_fit, and ridge_predict
+#
+# There is deliberately no `using .L8dRidgeCV`. Re-running this file replaces
+# that module, and on Julia 1.12 a second `using` of the replacement makes every
+# exported name ambiguous. The notebook calls L8dRidgeCV.my_cross_validation(...)
+# instead.

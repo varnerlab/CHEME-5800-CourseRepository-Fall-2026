@@ -39,13 +39,9 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `Week11Core` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week11Core)
-    include(joinpath(@__DIR__, "..", "src", "Week11Core.jl"))
-end
+
+# Reload the example helper when the setup cell is rerun -
+include(joinpath(CHEME5800_L11A_ROOT, "src", "Markov.jl"))
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
@@ -57,16 +53,11 @@ end
 #   VLDataScienceMachineLearningPackage   the course package
 #
 # Standard library:
-using LinearAlgebra  # factorizations, norms, and matrix operations
-using Random         # seeded random number generation
+using LinearAlgebra  # rank and norm, used in the L11a example
 using Statistics     # mean, std, and friends
-using Test           # @test / @testset for the checks in the notebook
+using Random         # seeded random generators for the sequence comparison
 #
 # Packages:
 using DataFrames     # tabular records held as columns
-using Plots          # figures
+using Distributions  # the Categorical distribution, for sampling states
 using PrettyTables   # formatted table output in the notebook
-#
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .Week11Core    # from the include in section 2

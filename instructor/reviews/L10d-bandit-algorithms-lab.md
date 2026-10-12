@@ -2,8 +2,11 @@
 
 Notebook: `weeks/week-10/L10d/CHEME-5800-L10d-Lab-BanditAlgorithms-Fall-2026.ipynb`
 (replaces the scaffold `CHEME-5800-L10d-Lab-UCBAndThompsonSampling-Fall-2026.ipynb`).
-Built 2026-10-10. All numbers below are for `seed = 5800`, `T = 5000`, Julia 1.12.7 with
-the pinned Manifest. They are pinned in the week-10 suite (`@meeting "L10d"`, 62 tests).
+Built 2026-10-10; revised 2026-10-12 after the codex audit changed the package bandit solvers
+(zero rewards now count in sample means, `return_history = true` returns the selected arms,
+ε-greedy uses the lecture schedule) and added the repeated-game comparison in Task 2. All
+numbers below are for `seed = 5800`, `T = 5000`, Julia 1.12.7 with the pinned Manifest. They
+are pinned in the week-10 suite (`@meeting "L10d"`, 119 tests).
 
 ## Sources
 
@@ -31,10 +34,10 @@ the pinned Manifest. They are pinned in the week-10 suite (`@meeting "L10d"`, 62
 - **Explore-first length fixed.** The 2025 cell computed `Nₐ = 3*(T/K)^(2/3)*(log T)^(1/3)` =
   490, but the package uses no factor 3. The notebook now computes the package's value, 163
   pulls per arm (1,141 exploring rounds), and says the package takes the hidden O constant as 1.
-- **ε-greedy schedule stated as coded.** The package uses ε_t = t^(-1/3)(log(K t))^(1/3); the
-  2025 lecture text states ε_t = t^(-1/3)(K log t)^(1/3). The lab gives the package formula and
-  one sentence noting the lecture's choice (both shrink like t^(-1/3)). If the L10c lecture is
-  changed to the package formula, delete that sentence.
+- **ε-greedy schedule matches the lecture.** Since 2026-10-12 the package pulls each arm once,
+  then uses ε_t = min(1, (K log t / t)^(1/3)), the L10c schedule with a cap. For K = 7,
+  ε_t = 1 through round 21. This made ε-greedy explore more than the old package schedule
+  (t^(-1/3)(log(K t))^(1/3)), so it now has the largest regret of the three.
 - **Seeded games.** The package solvers and the world use Julia's global RNG unseeded in 2025.
   Each game cell now calls `Random.seed!(seed)` first, so every run and every quoted number is
   reproducible. Task 3 uses one `MersenneTwister(seed)` for the agent and the world.
@@ -56,44 +59,57 @@ the pinned Manifest. They are pinned in the week-10 suite (`@meeting "L10d"`, 62
 
 ## Predictions and questions
 
-**Task 1 prediction** (which algorithm pulls arm 2 most often): ε-greedy, 4,223 times.
-Explore-first 4,022; UCB1 only 3,518. Pull counts (arms 1–7):
+**Task 1 prediction** (which algorithm pulls arm 2 most often): explore-first, 4,022 times.
+ε-greedy 3,655; UCB1 only 3,518. Pull counts (arms 1–7):
 
 | arm | mean | explore-first | ε-greedy | UCB1 |
 |---|---|---|---|---|
-| 1 | 0.500 | 163 | 138 | 111 |
-| 2 | 0.833 | 4022 | 4223 | 3518 |
-| 3 | 0.167 | 163 | 128 | 32 |
-| 4 | 0.231 | 163 | 132 | 37 |
-| 5 | 0.769 | 163 | 130 | 946 |
-| 6 | 0.667 | 163 | 132 | 302 |
-| 7 | 0.333 | 163 | 117 | 54 |
+| 1 | 0.500 | 163 | 236 | 111 |
+| 2 | 0.833 | 4022 | 3655 | 3518 |
+| 3 | 0.167 | 163 | 234 | 32 |
+| 4 | 0.231 | 163 | 230 | 37 |
+| 5 | 0.769 | 163 | 212 | 946 |
+| 6 | 0.667 | 163 | 221 | 302 |
+| 7 | 0.333 | 163 | 212 | 54 |
 
 **Task 1 question** (why UCB1 explores arm 5): UCB1 pulls the arm with the largest
 μ̄(a) + √(2 log t / Nₐ). Arm 5's mean, 0.769, is close to arm 2's 0.833, so a modest bonus keeps
 its bound above arm 2's estimate, and it must be pulled many times before the two can be told
 apart. Arm 3's mean is 0.167, so after a few pulls its bound falls far below arm 2's and stays
-there. Explore-first and ε-greedy choose exploration pulls uniformly at random (or in turn),
-ignoring the rewards, so every arm gets about the same share.
+there. Explore-first and ε-greedy choose exploration pulls in turn or uniformly at random,
+ignoring the rewards, so every arm gets about the same share. No: a pull of arm a gives up
+μ⋆ − μ(a) in expectation, 0.064 for arm 5 but 0.667 for arm 3.
 
 **Task 2 prediction** (smallest regret at T = 5000): UCB1. R(5000): explore-first 400.5,
-ε-greedy 307.7, UCB1 232.0. Bounds (constants = 1): 1142.3, 1142.3, 546.0. Curves: explore-first
-rises in steps during its 1,141 exploring rounds (flat while it pulls arm 2, steep on arms 3, 4,
-7) and then stays between 385 and 403. ε-greedy and UCB1 stay within 15 of each other through
-round 1,500 (ε-greedy is slightly lower early); from round 1,581 on, ε-greedy is above UCB1.
+ε-greedy 525.7, UCB1 232.0. Bounds (constants = 1): 1142.3, 1142.3, 546.0. Curves: explore-first
+rises during its 1,141 exploring rounds (R(1141) = 386.4) and then stays between 385 and 403.
+ε-greedy and UCB1 separate early: ε-greedy is 25 above UCB1 by round 487 and 50 above by round
+880. ε-greedy crosses above explore-first at round 3,335 and stays above.
 
-**Doubling prediction** (T = 10,000): all grow by less than double. R(10,000): 632.1, 488.6,
-286.6; ratios 1.58, 1.59, 1.24. Bound ratios 1.63 (T^(2/3) bound) and 1.47 (√(T log T)).
-Explore-first's exploration length grows to 266 per arm, so its regret grows like its
-exploration phase, about T^(2/3).
+**Repeated-game prediction** (is UCB1 lowest at every horizon?): yes. Average gap loss over
+seeds 5800–5829:
 
-**Task 2 question** (UCB1 pulls arm 2 less but has less regret): in expectation, regret charges each
-pull by the gap μ⋆ − μ(a), not by whether it missed arm 2 (the notebook computes the realized
-shortfall, so sampling noise adds to this: UCB1's gap sum is 218.6 against its R(5000) = 232.0). Most of UCB1's non-arm-2 pulls go to arm 5
-(gap 0.064) and arm 6 (gap 0.167), which cost little. ε-greedy's random pulls land equally on
-arm 3 (gap 0.667), arm 4 (0.603), and arm 7 (0.5). Doubling T: UCB1 has already identified the
-poor arms, and its remaining exploration grows only logarithmically; ε-greedy keeps exploring at
-rate ε_t ~ t^(-1/3), so its regret keeps growing like t^(2/3).
+| T | explore-first | ε-greedy | UCB1 |
+|---|---:|---:|---:|
+| 1000 | 121.3 | 165.5 | 99.5 |
+| 2500 | 233.3 | 323.5 | 161.1 |
+| 5000 | 380.3 | 532.8 | 219.6 |
+| 10,000 | 620.7 | 872.7 | 285.8 |
+
+UCB1 beats both other algorithms in every one of the 30 games at every horizon, and
+explore-first beats ε-greedy in every game. Explore-first commits to arm 2 in every game at every
+horizon, so its gap loss is exactly N times the sum of the gaps (N = 52, 100, 163, 266) and its
+standard deviation is 0; its realized regret still varies (SD 9.2 at T = 10,000). Average gap
+loss and average realized regret differ by at most 3 at every entry. From T = 5000 to 10,000
+the average gap loss grows by 1.63, 1.64, and 1.30; the bounds grow by 1.63 and 1.47.
+
+**Task 2 question** (UCB1 pulls arm 2 less but has less regret): in expectation, regret charges
+each pull by the gap μ⋆ − μ(a), not by whether it missed arm 2. Most of UCB1's non-arm-2 pulls go
+to arm 5 (gap 0.064) and arm 6 (gap 0.167), which cost little; its gap loss in the seeded game is
+218.6 against R(5000) = 232.0. ε-greedy's random pulls land equally on arm 3 (gap 0.667), arm 4
+(0.603), and arm 7 (0.5). Doubling T: UCB1 has already identified the poor arms, and its remaining
+exploration grows only logarithmically; ε-greedy keeps exploring at rate ε_t ~ t^(-1/3), so its
+regret keeps growing like t^(2/3), and explore-first's exploration count grows like T^(2/3).
 
 **Task 3 prediction** (most accurate estimate): arm 1. Pulls [4908, 11, 81]; S [4444, 6, 67];
 F [464, 5, 14]; posterior means [0.905, 0.538, 0.819] against θ = [0.90, 0.60, 0.80].
@@ -129,13 +145,16 @@ more than 1000 rounds and its posterior mean is within 0.05 of 0.9.
 
 ## Build notes
 
-- `src/Compute.jl` (module `L10dThompson`, student stub), `src/Compute-solution.jl`. No
-  Visualize.jl or Utility.jl: all plots are short notebook cells, as in 2025.
+- `src/Compute.jl` (module `L10dThompson`, student stub), `src/Compute-solution.jl`, and
+  `src/Utility.jl` (module `L10dUtility`: `compare_bandits` for the Task 2 repeated games and
+  `bernoulli_world` for Task 3, documented in `docs/compare_bandits.md`). Codex first added the
+  helpers as `src/Experiments.jl`; they were renamed on 2026-10-12 to follow the Utility.jl
+  convention, loaded once behind an `isdefined` guard and brought in with `using .L10dUtility`.
+  No Visualize.jl: all plots are short notebook cells, as in 2025.
 - `Include.jl` loads `Compute.jl` unguarded and has no `using .L10dThompson`; the notebook calls
   `L10dThompson.my_thompson_sampling(...)`. The `Week10Core` include was removed.
 - The notebook ships without outputs. With the stub, Tasks 1–2 run; Task 3 stops at the result
   cell with the "Oooops!" error.
-- Style check (`notebook_style_check.py`, bare): 0 findings. Markdown about 2,670 words
-  (L9d 2,276; the two sources together 2,812).
+- Style check (`notebook_style_check.py`, bare): 0 findings.
 - Suite block: `@meeting "L10d"` with `import JSON`, `import REPL`, `using Test` at the top of
   the file (`using Test` so `@testset` parses when L10d is not in a release).
