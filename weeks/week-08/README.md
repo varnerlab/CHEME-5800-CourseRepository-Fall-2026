@@ -1,5 +1,7 @@
 # Week 8 — Regularization, cross-validation, and model checking
 
+**Review status:** Reviewed and approved by the instructor on October 12, 2026.
+
 Fall Break occupies the first two meeting slots. When instruction resumes,
 Week 8 moves from fitting to generalization: students inspect coefficient
 stability, select a ridge penalty using training-only scaling inside reproducible

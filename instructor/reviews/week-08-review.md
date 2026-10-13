@@ -2,19 +2,30 @@
 
 Date: October 12, 2026.
 
-Status: Codex review complete; Claude confirmation and repairs complete (see below). These are
-reviewer assessments, not instructor approval. The scores table below is the morning
-Codex review of the original notebooks; the repairs that followed are listed under
-"Claude confirmation and repairs".
+**Status:** Reviewed and approved by the instructor on October 12, 2026
+("Ok - make week-8 as reviewed"). All four notebooks meet the 9/10 review threshold
+after the repairs committed in `ce18de0`. The review is closed.
 
 The review covers all four notebooks and their linked setup, data, and lab source
 files. L8a and L8b are Fall Break session notes, with no required notebooks.
 The shared course notebook style guide governs this review; the condition-number
 companion is a conceptual derivation and does not need computational tasks.
 
-## Scores
+## Final assessment
 
-Scale: 0 = really bad; 10 = really great. No notebook scores below 9.
+Codex scores after the repairs listed under "Claude confirmation and repairs":
+
+| Notebook | Score |
+|---|---:|
+| [L8c lecture: regularization and cross-validation](../../weeks/week-08/L8c/CHEME-5800-L8c-Lecture-RegularizationAndGeneralization-Fall-2026.ipynb) | 9.2/10 |
+| [L8c housing-price example](../../weeks/week-08/L8c/CHEME-5800-L8c-Example-RLS-SVD-HousingPriceModel-Fall-2026.ipynb) | 9.4/10 |
+| [L8c condition-number companion](../../weeks/week-08/L8c/CHEME-5800-L8c-Theory-ConditionNumber-Fall-2026.ipynb) | 9.2/10 |
+| [L8d cross-validation lab](../../weeks/week-08/L8d/CHEME-5800-L8d-Lab-CrossValidationAndResidualModelChecking-Fall-2026.ipynb) | 9.4/10 |
+
+## Morning Codex scores, before the repairs
+
+Scale: 0 = really bad; 10 = really great. Codex's morning review scored no notebook
+below 9; Claude's confirmation pass then found the problems listed below.
 
 | Material | Score | Assessment |
 |---|---:|---|
@@ -25,8 +36,9 @@ Scale: 0 = really bad; 10 = really great. No notebook scores below 9.
 
 ## Possible refinements
 
-None is required to reach 9/10. These proposals have not been implemented or
-confirmed by Claude.
+None is required to reach 9/10. These morning proposals remain optional. The
+example's new intercept paragraph (cell 42) now covers item 3; items 1 and 2 were
+not implemented.
 
 1. **Use a linear solve in the lab helper.** In `L8d/src/Compute.jl` and its
    reference solution, `ridge_fit` could solve the regularized normal equations
@@ -74,7 +86,7 @@ confirmed by Claude.
 
 Claude scored the unchanged notebooks lecture 8.0, example 8.5, companion 9.0, and lab
 8.5. Codex checked those findings and re-scored 8.8, 8.9, 9.2, and 8.5. The instructor
-approved the repair plan, and Claude applied it the same day (uncommitted):
+approved the repair plan, and Claude applied it the same day (committed in `ce18de0`):
 
 - **Lecture:** cross-validation section gained a hyperparameter definition, the
   CV_k(δ), MSE_j(δ), and δ* displays, and a theme-aware five-fold diagram
@@ -103,7 +115,17 @@ Codex verified the repairs (12 of 13 fixed on the first pass; the missing δ* li
 dropped section separator were then fixed) and re-scored the lecture 9.2, the example
 9.4, the companion 9.2, and the lab 9.4.
 
-## Notebook snapshots
+## Reviewed notebook snapshots
+
+SHA-256 values of the approved notebooks (`ce18de0`), with paths relative to
+`weeks/week-08/`:
+
+```text
+f9a414fc229e66ed215ed47a5d5c8adebc21eae22a521f74a2806ae15e632aa9  L8c/CHEME-5800-L8c-Lecture-RegularizationAndGeneralization-Fall-2026.ipynb
+2697ca4d5b52b96f02e99d99ff83d659d3784641bf090e9eee1eebe854cb4d57  L8c/CHEME-5800-L8c-Example-RLS-SVD-HousingPriceModel-Fall-2026.ipynb
+926f59b51d17279d48d8adfea101d657a40ea7ff76dd180d9accac1046de0e81  L8c/CHEME-5800-L8c-Theory-ConditionNumber-Fall-2026.ipynb
+b93402f4b2370f3a634195cd632c5a4c4414e0733d019a25de34a8f2cec9354c  L8d/CHEME-5800-L8d-Lab-CrossValidationAndResidualModelChecking-Fall-2026.ipynb
+```
 
 SHA-256 values at the morning review, before the repairs:
 
