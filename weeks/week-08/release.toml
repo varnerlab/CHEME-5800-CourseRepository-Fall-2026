@@ -1,7 +1,7 @@
 schema_version = 2
 week = 8
-version = "1.0-prototype"
-status = "prototype"
+version = "1.2"
+status = "ready"
 cadence = "meeting"
 title = "Regularization, cross-validation, and model checking"
 languages = ["Julia"]
@@ -18,7 +18,7 @@ datasets = [
   "L8c/data/README.md",
   "L8c/data/Housing-Training-Dataset-Kaggle.csv",
 ]
-student_paths = ["README.md", "L8a"]
+student_paths = ["README.md", "L8a", "L8b", "L8c"]
 instructor_only_paths = ["../../instructor/validation/week-08"]
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-08/runtests.jl"
