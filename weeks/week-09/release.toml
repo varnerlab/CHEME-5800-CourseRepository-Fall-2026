@@ -1,8 +1,8 @@
 schema_version = 2
 week = 9
-version = "1.0-prototype"
-status = "prototype"
-cadence = "meeting"
+version = "1.0"
+status = "ready"
+cadence = "week"
 title = "Binary classification and numerical optimization"
 languages = ["Julia"]
 entry_notebooks = [
@@ -12,9 +12,16 @@ entry_notebooks = [
   "L9c/CHEME-5800-L9c-Lecture-LogisticRegressionAndOptimization-Fall-2026.ipynb",
   "L9d/CHEME-5800-L9d-Lab-LogisticRegression-Banknotes-Fall-2026.ipynb",
 ]
-supporting_notebooks = []
-datasets = []
-student_paths = ["README.md", "L9a"]
+supporting_notebooks = [
+  "L9c/CHEME-5800-L9c-Example-LogisticRegression-GD-SA-Fall-2026.ipynb",
+  "L9c/CHEME-5800-L9c-Advanced-NonlinearOptimization-Fall-2026.ipynb",
+]
+datasets = [
+  "L9a/figs/Fig-LinearlySeparable-Schematic.svg",
+  "L9c/figs/Fig-GD-Schematic/Fig-GD-Schematic.svg",
+  "L9c/figs/Fig-Logistic-Function/Fig-Logistic-Function.svg",
+]
+student_paths = ["README.md", "L9a", "L9b", "L9c", "L9d"]
 instructor_only_paths = ["../../instructor/validation/week-09"]
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-09/runtests.jl"
