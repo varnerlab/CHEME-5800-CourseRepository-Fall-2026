@@ -35,3 +35,15 @@ probability 1/2 and at the decision boundary. It was drawn in TikZ on October 9,
 with the same palette, Makefile, and theme script as the gradient descent schematic.
 pgfmath overflows above exp(9.7), so each curve is drawn in two halves that only
 exponentiate a non-positive number; the `.tex` comments explain this.
+
+## Simulated annealing schematic
+
+`Fig-SA-Schematic/` holds the figure in the lecture's Simulated Annealing section.
+It redraws the gradient descent schematic's loss curve, with the same palette and
+notation, so the two figures can be compared directly. Started at θ<sub>3</sub>,
+simulated annealing moves downhill to the local minimum θ<sub>2</sub>, where
+gradient descent stops. At a high temperature it accepts an uphill move of size
+ΔP toward the hump (orange) and moves downhill to θ<sub>1</sub>; at a low
+temperature it rejects a large uphill move away from θ<sub>1</sub> (dashed gray).
+It was drawn in TikZ on October 19, 2026, with the same Makefile and theme script as
+the gradient descent schematic; the script maps the new orange to a dark color.

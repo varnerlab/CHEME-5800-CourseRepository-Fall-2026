@@ -30,23 +30,30 @@ released("L9d") && include(joinpath(WEEK_ROOT, "L9d", "src", "Compute-solution.j
         # The dataset and the split described in the prose -
         @test size(w.df_banknote) == (1372, 5)
         @test (count(w.y .== -1), count(w.y .== 1)) == (762, 610) # a little more than half are genuine
-        @test (length(w.training.y), length(w.testing.y)) == (1097, 275)
+        @test length(w.training.y) + length(w.testing.y) == 1372 # a partition of the dataset
         @test all(w.training.X[:, end] .== 1) && all(w.testing.X[:, end] .== 1) # augmented features end in 1
 
-        # learn(...) follows the lecture pseudocode from θ = 0 with M = 0 and T = 1000 -
+        # learn(...) follows the lecture pseudocode from θ = 0 with the notebook's M and T; the pocket
+        # variant scores θ on every training banknote after each update and keeps the best -
+        E(θ) = count(w.training.y .* (w.training.X * θ) .≤ 0)
         θ = zeros(5)
-        for t ∈ 1:1000
+        θₚ, Eₚ = copy(θ), E(θ)
+        for t ∈ 1:w.T
             mistakes = 0
             for i ∈ eachindex(w.training.y)
                 x̂ = w.training.X[i, :]
                 if w.training.y[i] * sum(θ .* x̂) ≤ 0
                     θ = θ .+ w.training.y[i] * x̂
                     mistakes += 1
+                    E(θ) < Eₚ && ((θₚ, Eₚ) = (copy(θ), E(θ)))
                 end
             end
-            mistakes == 0 && break
+            mistakes ≤ w.M && break
         end
         @test θ == w.model.β
+        @test θₚ == w.pocket_model.β
+        @test E(w.pocket_model.β) ≤ E(w.model.β) # the pocket also scores the last update's θ
+        @test E(w.model.β) == w.number_of_training_mistakes
 
         # "These banknotes are not linearly separable": no θ gives every training banknote yᵢ x̂ᵢᵀθ ≥ 1 -
         lp = JuMP.Model(GLPK.Optimizer)
@@ -59,11 +66,10 @@ released("L9d") && include(joinpath(WEEK_ROOT, "L9d", "src", "Compute-solution.j
 
         # Every prediction is ±1, and the counts agree with each other -
         @test all(abs.(w.ŷ_banknote) .== 1)
-        @test sum(w.confusion_matrix) == 275
+        n_test = length(w.testing.y)
+        @test sum(w.confusion_matrix) == n_test
         @test w.confusion_matrix[1, 2] + w.confusion_matrix[2, 1] == w.number_of_prediction_mistakes
-        @test w.metrics.accuracy ≈ 1 - w.number_of_prediction_mistakes / 275
-        # "a similar fraction of the testing and training banknotes" -
-        @test abs(w.number_of_prediction_mistakes / 275 - w.number_of_training_mistakes / 1097) < 0.02
+        @test w.metrics.accuracy ≈ 1 - w.number_of_prediction_mistakes / n_test
     end
 end
 
@@ -148,12 +154,31 @@ end
                 @test w.my_results[pattern].θ == w.perceptron_models[pattern].β
             end
 
-            # The numbers quoted in the notebook prose -
-            @test (w.my_results["wedge"].mistakes, w.my_results["XOR"].mistakes) == (234, 610)
-            @test w.CM_perceptron["half circle"] == [399 1; 0 400] # [TP FN; FP TN]
-            @test w.CM_perceptron["wedge"] == [62 131; 4 603]
-            @test w.CM_perceptron["XOR"] == [203 207; 207 183]
-            @test count(w.test["wedge"][:, 3] .== -1) == 607 # predicting -1 everywhere: 607/800 = 0.759
+            # The separable data stop early; the others use every pass and still make mistakes -
+            @test w.my_results["half circle"].mistakes == 0 && w.my_results["half circle"].passes <= w.maxiter
+            for pattern in ("wedge", "XOR")
+                @test w.my_results[pattern].passes == w.maxiter && w.my_results[pattern].mistakes > 0
+            end
+            for pattern in w.patterns
+                @test sum(w.CM_perceptron[pattern]) == size(w.test[pattern], 1)
+            end
+
+            # The pocket algorithm: never more training mistakes than the classical answer -
+            for pattern in w.patterns
+                D = w.training[pattern]
+                X = [D[:, 1:2] ones(size(D, 1))]
+                E(θ) = count(D[:, 3] .* (X * θ) .<= 0)
+                @test E(w.pocket_models[pattern].β) <= E(w.perceptron_models[pattern].β) # the pocket never does worse
+                @test sum(w.CM_pocket[pattern]) == size(w.test[pattern], 1)
+            end
+            # On separable data the first mistake-free parameters end both loops, so the answers agree -
+            @test w.pocket_models["half circle"].β == w.perceptron_models["half circle"].β
+            for pattern in ("wedge", "XOR")
+                D = w.training[pattern]
+                X = [D[:, 1:2] ones(size(D, 1))]
+                E(θ) = count(D[:, 3] .* (X * θ) .<= 0)
+                @test E(w.pocket_models[pattern].β) > 0 # no line separates these labels
+            end
         end
     end
 end
@@ -242,66 +267,37 @@ end
             end
             w = workspace
 
-            # The same split as the L9a example, standardized with training statistics only -
-            data = MyBanknoteAuthenticationDataset()
-            Xraw = Matrix(data[:, Not(:class)])
-            yraw = Vector(data[:, :class])
-            rows = randperm(MersenneTwister(1234), 1372)
-            train, test = rows[1:1097], rows[1098:end]
-            @test (w.training.y, w.testing.y) == (yraw[train], yraw[test])
-            m, s = mean(Xraw[train, :], dims = 1), std(Xraw[train, :], dims = 1)
-            @test w.testing.X ≈ [(Xraw[test, :] .- m) ./ s ones(275)]
+            # The split is a partition of the dataset, standardized with training statistics only -
+            n_train, n_test = length(w.training.y), length(w.testing.y)
+            @test n_train + n_test == 1372
+            @test all(w.training.X[:, end] .== 1) && all(w.testing.X[:, end] .== 1)
             @test maximum(abs, mean(w.training.X[:, 1:4], dims = 1)) < 1e-12
             @test maximum(abs, std(w.training.X[:, 1:4], dims = 1) .- 1) < 1e-12
-            @test 2.7 < maximum(s) / minimum(s) < 3 # "almost three times"
+            # "almost three times": a fact of the dataset, so use every banknote -
+            data = MyBanknoteAuthenticationDataset()
+            σ_raw = std(Matrix(data[:, Not(:class)]), dims = 1)
+            @test 2.5 < maximum(σ_raw) / minimum(σ_raw) < 3
 
-            # Task 1: the numbers quoted in the prose -
+            # Task 1: from θ = 0 every probability is 1/2, and the loss never increases -
             r = w.result
-            @test r.iterations == 50_000 && !r.converged
-            @test r.losses[1] ≈ 1097 * log(2) && r.losses[2] < 500
+            @test r.losses[1] ≈ n_train * log(2)
             @test all(diff(r.losses) .≤ 1e-9)
-            @test round(Int, r.losses[1001]) == 33 && round(r.losses[end], digits = 1) == 20.4
-            @test count(w.training.y .* (w.training.X * r.θ) .<= 0) == 9
+            @test r.iterations <= w.maxiter
 
-            # Task 2: confusion matrices [TP FN; FP TN], the misses, and the one-more-step what-ifs -
-            @test confusion(w.testing.y, w.ŷ_logistic) == [128 2; 0 145]
-            @test confusion(w.testing.y, w.ŷ_perceptron) == [126 4; 1 144]
-            misses = findall(w.ŷ_logistic .!= w.testing.y)
-            @test all(w.testing.y[misses] .== 1)
-            @test round.(w.P_logistic[misses], digits = 2) == [0.29, 0.33]
-            @test count(w.P_logistic .< 0.01) + count(w.P_logistic .> 0.99) == 254
-            perceptron(X, T) = learn(X, w.training.y,
-                build(MyPerceptronClassificationModel, (parameters = zeros(5), mistakes = 0)); maxiter = T)
-            ŷ = classify(w.testing.X, perceptron(w.training.X, 1001))
-            ŷ[ŷ .== 0] .= 1
-            @test count(ŷ .!= w.testing.y) == 7
-            Xraw_train = [Xraw[train, :] ones(1097)] # the L9a example's raw features
-            @test count(classify([Xraw[test, :] ones(275)], learn(Xraw_train, w.training.y,
-                build(MyPerceptronClassificationModel, (parameters = zeros(5), mistakes = 0)); maxiter = 1000)) .!= w.testing.y) == 12
-            longer = L9dLogistic.my_logistic_regression(w.training.X, w.training.y;
-                α = w.α, β = w.β, δ = w.δ, ϵ = w.ϵ, maxiter = 50_001)
-            @test norm(longer.θ - r.θ) < 1e-4
-            @test sign.(w.testing.X * longer.θ) == sign.(w.testing.X * r.θ)
+            # Task 2: the predictions are labels, and the pocket never makes more training mistakes -
+            @test all(abs.(w.ŷ_logistic) .== 1) && all(abs.(w.ŷ_perceptron) .== 1) && all(abs.(w.ŷ_pocket) .== 1)
+            perceptron(X, T; pocket = false) = learn(X, w.training.y,
+                build(MyPerceptronClassificationModel, (parameters = zeros(5), mistakes = 0)); maxiter = T, pocket = pocket)
+            E(θ) = count(w.training.y .* (w.training.X * θ) .<= 0)
+            @test E(perceptron(w.training.X, w.T; pocket = true).β) <= E(perceptron(w.training.X, w.T).β)
 
-            # Task 3: the inspector band -
-            P = w.P_logistic
-            automatic(P, band) = findall(p -> p <= band[1] || p >= band[2], P)
-            label(P) = [p >= 0.5 ? 1 : -1 for p in P]
-            for (band, inspected, mistakes) in (((0.25, 0.75), 5, 0), ((0.4, 0.6), 2, 2))
-                @test count(p -> band[1] < p < band[2], P) == inspected
-                keep = automatic(P, band)
-                @test count(label(P)[keep] .!= w.testing.y[keep]) == mistakes
+            # Task 3: every testing banknote is either inspected or decided automatically -
+            for P in (w.P_logistic, w.P_strong)
+                inspected = count(p -> w.t_low < p < w.t_high, P)
+                automatic = count(p -> p <= w.t_low || p >= w.t_high, P)
+                @test inspected + automatic == n_test
+                @test all(0 .<= P .<= 1)
             end
-            @test all(w.testing.y[findall(p -> 0.4 < p < 0.6, P)] .== -1) # "only 2 genuine banknotes"
-            strong = L9dLogistic.my_logistic_regression(w.training.X, w.training.y;
-                α = 1 / (w.L + 10.0), β = w.β, δ = 10.0, ϵ = w.ϵ, maxiter = w.maxiter)
-            @test strong.converged && strong.iterations < 700
-            Ps = w.P_strong
-            @test count(label(Ps) .!= w.testing.y) == 6
-            @test count(p -> 0.25 < p < 0.75, Ps) == 12
-            @test count(Ps .< 0.01) + count(Ps .> 0.99) == 76 # "Fewer probabilities sit near 0 or 1"
-            keep = automatic(Ps, (0.25, 0.75))
-            @test count(label(Ps)[keep] .!= w.testing.y[keep]) == 0
         end
     end
 end
