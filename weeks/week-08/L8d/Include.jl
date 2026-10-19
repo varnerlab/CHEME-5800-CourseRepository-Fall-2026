@@ -52,7 +52,7 @@ end
 # reload those edits. Julia 1.12 replaces the module silently. Notebook calls
 # stay qualified (`L8dRidgeCV.my_cross_validation(...)`) so they resolve
 # against the replacement module.
-include(joinpath(CHEME5800_L8D_ROOT, "src", "Compute.jl"))
+include(joinpath(CHEME5800_L8D_ROOT, "src", "Compute-solution.jl"))
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
