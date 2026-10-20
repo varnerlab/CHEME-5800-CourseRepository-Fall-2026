@@ -47,5 +47,5 @@ Source notebook snapshots (SHA-256):
 
 | Notebook | SHA-256 |
 |---|---|
-| CHEME-5800-L10a-Lecture-OnlineLearningAndRegret-Fall-2026.ipynb | `01d998de9695e76cd1f4df3e570058906194fdb4d1aebda4850fe43a9aa4a2b2` |
+| CHEME-5800-L10a-Lecture-OnlineLearningAndRegret-Fall-2026.ipynb | `63decc8fe2f1b0a9631bb76fa219cfe892b133c3600c0b109e2c97a23a2996b9` |
 | CHEME-5800-L10b-Lab-WeightedMajorityAlgorithm-Fall-2026.ipynb | `aba703cff2fc3481f8739663d785b097219b8bc2607df7214242077d1b186e52` |
