@@ -43,7 +43,7 @@ end
 # with no guard, so re-running the setup cell picks up the student's edits; the
 # notebook calls it by qualified name (`L9bXOR.my_perceptron(...)`) for the same
 # reason.
-include(joinpath(CHEME5800_L9B_ROOT, "src", "Compute.jl"))
+include(joinpath(CHEME5800_L9B_ROOT, "src", "Compute-solution.jl"))
 
 # Supplied helpers, loaded once: the data generator and the figures.
 if !isdefined(@__MODULE__, :L9bUtility)
