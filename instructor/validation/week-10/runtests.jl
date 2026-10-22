@@ -80,10 +80,12 @@ end
             @test occursin("ŷ = 0;", student_text) # the blank for TODO 1
             @test occursin("mistake = 0;", student_text) # the blank for TODO 2
             @test occursin("weights[t+1, i] = weights[t, i];", student_text) # the blank for TODO 3
-            for answer in ("(weight_up > weight_down) ? 1 : -1", "(predictions[i] == y) ? 0 : 1", "*(1 - ϵ*mistake)")
-                @test !occursin(answer, student_text) # the solution's three lines
+            for answer in ("ŷ = 1;", "ŷ = -1;", "mistake = 1;", "*(1 - ϵ*mistake)")
+                @test occursin(answer, reference_text) # lines of the solution's three TODOs ...
+                @test !occursin(answer, student_text) # ... that the stub leaves out
             end
             body(text) = split(text, "module L10bWMA"; limit = 2)[2]
+            @test !occursin(" ? ", body(student_text)) && !occursin(" ? ", body(reference_text)) # if-else, no ternaries
             before(text) = split(body(text), "# TODO 1:"; limit = 2)[1]
             middle(text) = split(split(body(text), "# Our prediction must be 1 or -1"; limit = 2)[2], "# TODO 2:"; limit = 2)[1]
             after(text) = split(body(text), "# Record this round"; limit = 2)[2]
@@ -139,6 +141,11 @@ end
             # Task 1: "in round 4 all five predicted down while SPY went up" -
             @test all(w.expert(i, 4, w.growth_rate_array) == -1 for i in 1:5)
             @test w.adversary(4, w.growth_rate_array) == 1
+            # answer sheet: the five agree in rounds 2, 4, 7, and 8 of the first ten, and are wrong only in round 4 -
+            first_ten = [w.expert(i, t, w.growth_rate_array) for t in 1:10, i in 1:5]
+            unanimous = [t for t in 1:10 if all(first_ten[t, :] .== first_ten[t, 1])]
+            @test unanimous == [2, 4, 7, 8]
+            @test [first_ten[t, 1] == w.adversary(t, w.growth_rate_array) for t in unanimous] == [true, false, true, true]
 
             # Task 2: the notebook's game matches the course package, and the quoted numbers -
             @test (w.sims, w.weights) == play(w.model, w.growth_rate_array)
@@ -149,12 +156,18 @@ end
             @test w.weights[end, 1] > 4 * maximum(w.weights[end, 2:5]) # "more than four times"
             fast = build(MyBinaryWeightedMajorityAlgorithmModel, (ϵ = 0.5, n = 5, T = 252,
                 expert = w.expert, adversary = w.adversary))
-            @test sum(L10bWMA.my_weighted_majority(fast, w.growth_rate_array)[1][:, end]) == 42 # answer sheet
+            (fast_sims, fast_weights) = L10bWMA.my_weighted_majority(fast, w.growth_rate_array)
+            @test sum(fast_sims[:, end]) == 42 # "we make 42 mistakes instead of 44"
+            @test count(w.sims[:, 6] .!= w.sims[:, 1]) == 12 && count(fast_sims[:, 6] .!= fast_sims[:, 1]) == 4 # "4 rounds instead of 12"
+            @test [t for t in 1:252 if fast_sims[t, 6] != fast_sims[t, 1]] == [11, 12, 18, 21] # answer sheet
+            @test findlast(t -> w.weights[t, 1] ≤ sum(w.weights[t, 2:5]), 1:253) == 174 # answer sheet: QQQ outweighs the rest from round 175
+            @test findlast(t -> fast_weights[t, 1] ≤ sum(fast_weights[t, 2:5]), 1:253) == 21 # ... and from round 22 with ϵ = 1/2
 
             # Task 3: the best expert, the bound, and the forecast game -
             @test w.î == 1
             @test all(w.L .≤ w.R) && w.L[end] == 44
             @test round(Int, 2 * log(5) / w.model.ϵ) == 81 && round(Int, w.R[end]) == 164
+            @test all(w.R[t] ≥ t for t in 1:114) && all(w.R[t] < t for t in 115:252) # "from round 115 on"
             fa = w.forecast_sims[:, 7]
             @test sum(w.forecast_sims[:, end]) == 104
             @test argmax(w.forecast_weights[end, :]) == 4
@@ -163,6 +176,9 @@ end
             î = argmax(w.forecast_weights[end, :])
             bound = (2 * log(5) / w.model.ϵ) .+ 2 * (1 + w.model.ϵ) .* cumsum(w.forecast_sims[:, î] .!= fa)
             @test all(cumsum(w.forecast_sims[:, end]) .≤ bound)
+            @test all(bound[t] > t for t in 1:252) && round(bound[end], digits = 1) == 291.1 # "allows about 291 mistakes"
+            @test round(Int, 100 * count(w.forecast_sims[:, î] .!= fa) / 252) == 40 # "wrong on 40% of the days"
+            @test floor(Int, (252 - 2 * log(5) / w.model.ϵ) / (2 * (1 + w.model.ϵ))) == 82 # answer sheet threshold
         end
     end
 end
@@ -325,10 +341,10 @@ end
                 @test rc[label] ≈ (1:w.T).*maximum(μ) .- cumsum(vec(sum(game.rewards, dims = 2)))
             end
             @test abs(rc["Explore-first"][end] - rc["Explore-first"][1141]) < 20 # levels off after exploring
-            @test round((w.T^(2 / 3)) * (w.K * log(w.T))^(1 / 3), digits = 1) == 1142.3
-            @test round(sqrt(w.K * w.T * log(w.T)), digits = 1) == 546.0
             @test [round(rc[l][end], digits = 1) for l in ["Explore-first", "ε-greedy", "UCB1"]] == [400.5, 525.7, 232.0]
             @test rc["ε-greedy"][1000] - rc["UCB1"][1000] > 25 # the two curves separate within the first thousand rounds
+            crossing = findlast(t -> rc["ε-greedy"][t] < rc["Explore-first"][t], 1:w.T) # ε-greedy passes explore-first for good after this round
+            @test abs(crossing - 3300) < 50 # "at about round 3,300"
             ensemble = w.ensemble
             @test ensemble.horizons == [1000, 2500, 5000, 10_000]
             @test length(ensemble.seeds) == 30 && length(unique(ensemble.seeds)) == 30
@@ -344,6 +360,15 @@ end
             @test all(ensemble.gap_regrets[:, 3, :] .< ensemble.gap_regrets[:, 1, :]) # UCB1 beats both others in every game
             @test all(ensemble.gap_regrets[:, 3, :] .< ensemble.gap_regrets[:, 2, :])
             @test round.(ensemble.mean_gap[4, :] ./ ensemble.mean_gap[3, :], digits = 2) == [1.63, 1.64, 1.30]
+            @test maximum(ensemble.se_gap) < 3.15 # "at most about 3.1"
+            @test all(h -> minimum(abs(ensemble.mean_gap[h, i] - ensemble.mean_gap[h, j]) for i in 1:3 for j in (i + 1):3) > 6 * maximum(ensemble.se_gap), 1:4) # differences far larger than the ribbons
+            # the bound-growth comparison: explore-first's gap loss is its exploration cost, so it grows with N -
+            explore_N(T) = clamp(round(Int, (T / w.K)^(2 / 3) * cbrt(log(T))), 1, fld(T, w.K))
+            @test (explore_N(5000), explore_N(10_000)) == (163, 266)
+            @test ensemble.mean_gap[3:4, 1] ≈ [163, 266] .* sum(maximum(μ) .- μ) # N pulls of each arm, times the sum of the gaps
+            bound_explore(T) = (T^(2 / 3)) * (w.K * log(T))^(1 / 3)
+            bound_UCB1(T) = sqrt(w.K * T * log(T))
+            @test round.([bound_explore(10_000) / bound_explore(5000), bound_UCB1(10_000) / bound_UCB1(5000)], digits = 2) == [1.63, 1.47]
 
             # Task 3: Thompson sampling on θ = (0.90, 0.60, 0.80), and the closer arm 3 -
             r = w.result
