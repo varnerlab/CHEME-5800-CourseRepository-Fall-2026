@@ -77,7 +77,7 @@
 
   \vspace{0.2em}
   \centering
-  \includegraphics[width=\textwidth,height=0.48\paperheight,keepaspectratio]{assets/Fig-Bandit-Arms.pdf}
+  \includegraphics[width=\textwidth,height=0.52\paperheight,keepaspectratio]{assets/Fig-Bandit-Arms.pdf}
 
   \vspace{0.2em}
   \raggedright
@@ -281,7 +281,7 @@
 
   \vspace{0.2em}
   \centering
-  \includegraphics[width=\textwidth,height=0.45\paperheight,keepaspectratio]{assets/Fig-UCB-Example.pdf}
+  \includegraphics[width=\textwidth,height=0.5\paperheight,keepaspectratio]{assets/Fig-UCB-Example.pdf}
 
   \vspace{0.2em}
   \raggedright
@@ -388,8 +388,8 @@
 \end{frame}
 
 \begin{frame}{Worked Example: Updating a Bernoulli Arm}
-  Uniform $\BetaDist(1,1)$ priors; arm 1 has 3 successes and 1 failure, arm 2
-  has 1 failure.
+  Both arms start from uniform $\BetaDist(1,1)$ priors. Arm 1 has 3 successes
+  and 1 failure, and arm 2 has 1 failure.
 
   \vspace{0.2em}
   \centering
@@ -409,8 +409,8 @@
   \vspace{0.6em}
   \begin{itemize}\setlength{\itemsep}{0.6em}
     \item we run \hilite{explore-first}, \hilite{epsilon-greedy}, and
-      \hilite{UCB1} on a bandit with seven arms and compare their regret with
-      the bounds,
+      \hilite{UCB1} on a bandit with seven arms, average their regret over 30
+      games, and compare how fast it grows with the bounds,
     \item we implement \hilite{Thompson sampling} for a binary Bernoulli bandit
       and watch the posterior of the best arm concentrate around its true
       success probability, while the arms it rarely pulls stay uncertain.
@@ -429,10 +429,11 @@
   \begin{itemize}\setlength{\itemsep}{0.6em}
     \item \textbf{\ink{Exploration and exploitation.}} Too little exploration can
       lock an agent onto an arm that only looked good by chance.
-    \item \textbf{\ink{Bandit algorithms.}} Four ways to explore: up front, at
-      random, optimistically, or by sampling posteriors.
+    \item \textbf{\ink{Bandit algorithms.}} The four algorithms explore up front,
+      at random, optimistically, or by sampling from posteriors.
     \item \textbf{\ink{Regret bounds.}} The UCB1 bound grows with about
-      $\sqrt T$; the explore-first and epsilon-greedy bounds, with $T^{2/3}$.
+      $\sqrt T$, more slowly than the $T^{2/3}$ bounds of explore-first and
+      epsilon-greedy.
   \end{itemize}
 
   \vspace{0.5em}

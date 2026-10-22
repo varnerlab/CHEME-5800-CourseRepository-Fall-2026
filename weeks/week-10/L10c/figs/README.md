@@ -20,7 +20,8 @@ that extends by its confidence radius to its upper confidence bound (arm 1:
 blue, and a dashed line marks the largest possible reward, 1.
 
 Both were drawn in TikZ on October 20, 2026 with the palette, Makefile, and theme
-script of the L10a weighted majority figure.
+script of the L10a weighted majority figure. On October 22, 2026, their labels
+were enlarged so they stay readable on the slides, which scale the figures down.
 
 ## Thompson sampling worked example
 

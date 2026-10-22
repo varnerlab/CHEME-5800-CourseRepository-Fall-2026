@@ -1,8 +1,8 @@
 schema_version = 2
 week = 10
-version = "1.0-prototype"
-status = "prototype"
-cadence = "meeting"
+version = "1.0"
+status = "ready"
+cadence = "week"
 title = "Online learning and multi-armed bandits"
 languages = ["Julia"]
 entry_notebooks = [
@@ -13,10 +13,14 @@ entry_notebooks = [
 ]
 supporting_notebooks = []
 datasets = [
+  "L10a/figs/Fig-Schematic-RL.svg",
+  "L10a/figs/Fig-WMA-Weights/Fig-WMA-Weights.svg",
   "L10b/data/README.md",
   "L10b/data/SP500-Daily-VWAP-1-3-2014-to-12-31-2024.csv",
+  "L10c/figs/Fig-Bandit-Arms/Fig-Bandit-Arms.svg",
+  "L10c/figs/Fig-UCB-Example/Fig-UCB-Example.svg",
 ]
-student_paths = ["README.md", "L10a"]
+student_paths = ["README.md", "L10a", "L10b", "L10c", "L10d"]
 instructor_only_paths = ["../../instructor/validation/week-10"]
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-10/runtests.jl"

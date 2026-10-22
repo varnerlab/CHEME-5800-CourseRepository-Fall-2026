@@ -8,6 +8,8 @@ The 20-slide deck follows the [Stochastic Multi-Armed Bandit Problems lecture](.
 
 A second pass the same day added a posterior figure to the Thompson sampling worked example, which had been a table, moved the Russo et al. (2020) sentence back to the algorithm slide as in the lecture, and rewrote the Summary takeaways, which the first pass had cut to bare labels, as short claims in the shape of the L6a Summary. A second read-only codex review scored this version 9/10 ("strong and teachable") and confirmed the figure's densities, means, and samples. Its three findings were applied: the figure was redrawn wider with larger lettering so its labels read at projection size, the epsilon-greedy and UCB1 initialization steps now name the first reward $r_a$, the pull count, and the sample mean, and the bandit arms caption now introduces the round $t$. The deck was not re-scored after these fixes. The build has no overfull or underfull boxes.
 
+**Revised October 22, 2026** after a read-only codex review of both week 10 decks (8.7/10, no errors). The bandit arms and UCB1 example figures were redrawn with larger labels, as the Thompson figure had been, and given more of their slides' height, so their labels read at projection size; the lecture uses the same figures. The Thompson example's opening line and the second Summary takeaway are now full sentences, and the third takeaway states that the UCB1 bound grows more slowly than the other two. The lab slide now says the lab averages the regret over 30 games and compares how fast it grows with the bounds, after the lab's revision the same day.
+
 The style files and Cornell seal are copied unchanged from L10a (identical to L9c and L9a, which match the approved L6a deck). The deck keeps their 16:9 format, typography, palette, title page, and footer. Text, equations, and tables are editable in the LaTeX source.
 
 ## Build
@@ -52,4 +54,4 @@ Source notebook snapshots (SHA-256):
 | Notebook | SHA-256 |
 |---|---|
 | CHEME-5800-L10c-Lecture-StochasticMultiarmBandits-Fall-2026.ipynb | `ff5db7840fe1e85bc94052b8a4387fe282299c1622ee2fc9e4b64ca0af96ef59` |
-| CHEME-5800-L10d-Lab-BanditAlgorithms-Fall-2026.ipynb | `396656956a13a5273eebc02a216b2200ee992cae7849f580330d4aedefb5465f` |
+| CHEME-5800-L10d-Lab-BanditAlgorithms-Fall-2026.ipynb | `27ae78402068c1cc1abd34cae3eb72eaba426cf5ed11aa92d1bb87975d1a7a6d` |

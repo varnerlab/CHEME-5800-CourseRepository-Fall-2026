@@ -51,18 +51,18 @@
 \end{frame}
 
 \begin{frame}{The Reinforcement and Online Learning Problem}
-  An agent observes a state $s\in\mathcal S$, takes an action $a\in\mathcal A$,
-  and receives a reward $r$. How does it learn to choose actions that maximize
+  An agent observes a state $s$ from its set of states $\mathcal S$, takes an
+  action $a$ from its set of actions $\mathcal A$, and receives a reward $r$. How does it learn to choose actions that maximize
   its cumulative reward?
 
   \vspace{0.2em}
   \centering
-  \includegraphics[width=\textwidth,height=0.5\paperheight,keepaspectratio]{assets/Fig-Schematic-RL.pdf}
+  \includegraphics[width=\textwidth,height=0.47\paperheight,keepaspectratio]{assets/Fig-Schematic-RL.pdf}
 
   \vspace{0.2em}
   \raggedright
-  The agent observes its current state, selects an action, and receives a
-  reward that influences its future decisions.
+  The agent selects an action, receives a reward, and moves from state $s$ to
+  the next state $s'$. The reward shapes its future decisions.
   \lecturesource{General Reinforcement/Online Learning Problem: opening paragraph and figure.
     Figure: ../figs/Fig-Schematic-RL.svg, converted to a light PDF with rsvg-convert.}
 \end{frame}
@@ -101,19 +101,19 @@
   \hilite{best fixed strategy in hindsight}:
   \[
     R(T)=\underbrace{\sum_{t=1}^{T}l_t(\hat y_t,y_t)}_{\text{aggregator}}
-      -\underbrace{\min_{u}\sum_{t=1}^{T}l_t(u,y_t)}_{\text{best fixed strategy in hindsight}},
+      -\underbrace{\min_{u}\sum_{t=1}^{T}l_t(u,y_t)}_{\mathclap{\text{best fixed strategy in hindsight}}},
   \]
   where the minimum is over every fixed prediction $u$. We want algorithms
   that perform \emph{nearly} as well as the best fixed strategy.
   \lecturesource{Online Learning and Regret Minimization: the number-guessing game and the regret.}
 \end{frame}
 
-\begin{frame}{Online Versus Supervised Learning}
+\begin{frame}{Online Versus Batch Learning}
   \begin{itemize}\setlength{\itemsep}{0.8em}
     \item \hilite{Adaptation}: online algorithms update their predictions one
       round at a time, and their guarantees do not assume the data come from a
-      fixed distribution. Supervised algorithms are trained once on a fixed
-      dataset.
+      fixed distribution. Batch algorithms, such as ordinary least squares, are
+      trained once on a fixed dataset.
     \item \hilite{Regret minimization}: regret depends on the algorithm and on
       the sequence of outcomes. A \hilite{regret bound} holds for every
       sequence, so it is a property of the algorithm.
@@ -127,8 +127,8 @@
 \end{frame}
 
 \begin{frame}{Weighted Majority Algorithm}
-  \textbf{Littlestone and Warmuth (1994)}, in a prediction from expert
-  advice problem:
+  \textbf{Littlestone and Warmuth (1994)} developed the weighted majority
+  algorithm for a prediction from expert advice problem:
 
   \vspace{0.4em}
   \begin{itemize}\setlength{\itemsep}{0.6em}
@@ -261,7 +261,7 @@
     \item Sample an expert from our distribution over experts,
       $i\sim\texttt{Categorical}(\pv^{(t)})$, and follow its recommendation.
     \item Each expert's cost is $m_i^{(t)}\in[-1,1]$: $-1$ if correct and $+1$
-      if incorrect.
+      if incorrect. Together, they form the cost vector $\mv^{(t)}$.
   \end{itemize}
   The total expected cost and the \hilite{regret} against the
   \hilite{best expert in hindsight} are:
