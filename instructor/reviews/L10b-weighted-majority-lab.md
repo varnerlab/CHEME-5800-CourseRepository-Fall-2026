@@ -45,7 +45,9 @@ pick yours"), the model build with T = 252 and ϵ = 10/T, the description of `si
   `my_weighted_majority(model, data)` with the same inputs and outputs as the package
   `play(model, data)`. Students fill three blanks: the vote (TODO 1), each expert's mistake
   (TODO 2), and the weight update (TODO 3). Until TODO 1 is done, a pre-written guard throws
-  the "Oooops!" error. `Compute-solution.jl` is the reference.
+  the "Oooops!" error. `Compute-solution.jl` is the reference. Since 2026-10-22, TODO 1 and
+  TODO 2 are `if`-`else` blocks (the hint shows the form) and no line in either file uses
+  `? :`, following Jeff's 2026-10-21 rule for student-read code; the import line is commented.
 - **Vote rule.** The package compares the weight of the experts predicting up with the weight
   predicting down and predicts 1 only if up is strictly larger (a tie goes to −1; an expert
   that predicts 0 counts toward neither side and is wrong). The 2025 lecture and lab said
@@ -68,12 +70,15 @@ pick yours"), the model build with T = 252 and ϵ = 10/T, the description of `si
 ## Check cell (what it catches)
 
 Your function must reproduce the package `play(...)` in every round for the notebook's model
-and for ϵ = 1/2, so the check works for any choice of experts. Mutation tests (2026-10-10):
-the reference, `Int(predictions[i] != y)`, `(1 - ϵ)^mistake`, a tie-to-up vote, and the
-lecture's "at least half the total" vote all pass (the last two because no tie or deciding
-abstention occurs). These fail: only TODO 1 done, no weight update, an abstaining expert
-counted as correct, a weight that shrinks every round, an additive update, and a reversed
-vote. The stub throws at the student call and nowhere else.
+and for ϵ = 1/2, so the check works for any choice of experts. Neither SPY game has a tied
+vote, so since 2026-10-22 the check also plays one hand-checkable round: two experts with
+weight 1 predict 1 and −1, the outcome is 1, so we must predict −1, and the weights become
+(1, 0.5). Mutation tests (2026-10-22, run through the notebook's check cell): the reference,
+`Int(predictions[i] != y)`, and `(1 - ϵ)^mistake` pass. These fail: a tie-to-up vote (`>=`),
+the 2025 "up weight at least half the total" vote (both caught only by the tie round), only
+TODO 1 done, no weight update, an abstaining expert counted as correct, a weight that shrinks
+every round, an additive update, and a reversed vote. The stub throws at the student call and
+nowhere else.
 
 ## Numbers (default experts, ϵ = 10/252, T = 252)
 
@@ -91,19 +96,27 @@ Rounds 1 to 252 are trading days 2014-01-06 to 2015-01-05.
 QQQ has the largest weight in every round from 22 on (strictly largest in 232 of the 253
 weight rows) and ends at 0.198, more than four times any other expert (0.046 or less). The
 bound starts at 2 ln 5/ϵ = 81.1 and ends at 164.3; our 44 mistakes stay below it in every
-round. With ϵ = 1/2, our mistakes drop to 42.
+round. The bound is at least t in rounds 1 to 114 (it rules out nothing there, since we cannot
+make more than t mistakes in t rounds) and below t from round 115 on. With ϵ = 1/2 (the
+Task 2 what-if cell), our mistakes drop to 42, and the vote disagrees with QQQ in 4 rounds
+(11, 12, 18, 21) instead of 12.
 
 Forecasting game (`next_day_adversary`: experts report day t, the adversary reveals SPY on day
 t + 1): we make 104 mistakes (58.7%), the best expert in hindsight is AAPL with 101 (59.9%),
 the experts range from 52.0% to 59.9%, and always predicting up makes 106 mistakes (57.9%).
-The bound holds in every round (it ends at 291.1). With ϵ = 1/2, we make 107 mistakes.
+The bound holds in every round, but it is above t in every round (by at least 39) and ends at
+291.1 after 252 rounds, so here it guarantees nothing. With ϵ = 1/2, we make 107 mistakes.
 
 ## Things to think about: answers
 
-**Task 1.** No. Each expert's growth rate is computed from that day's volume-weighted average
-price, which is only known once the market closes, the same time SPY's direction is known. To
-help a decision that morning, an expert would have to use information available before the
-open, such as the previous day's move. Task 3 tries exactly that.
+**Task 1** (replaced 2026-10-22; the old "could we use this advice that morning?" question was
+answered by the paragraph above it). All five experts agree in 4 of the first 10 rounds
+(rounds 2, 4, 7, and 8) and are right in 3 of them; in round 4 all five predicted down while
+SPY went up. No: when every expert is wrong, every weight sits on the wrong answer, so no
+choice of weights can make the vote right. These five tickers are technology firms or a
+technology-heavy fund that tend to move together, so they tend to make the same mistakes on
+the same days, and the vote cannot correct them. Experts whose tickers move more
+independently give the vote something to choose between.
 
 **Task 2.** The vote is not the same as following the best expert. Until round 175, QQQ's
 weight is smaller than the combined weight of the other four, so the experts that disagree
@@ -111,23 +124,43 @@ with QQQ can outvote it. That happened in 12 rounds, all between rounds 11 and 1
 them we were wrong and QQQ was right (rounds 12, 31, 36, 51, 53, 69, 114, 139), and in 4 we
 were right and QQQ was wrong (rounds 11, 37, 70, 94), hence 44 mistakes versus 40. From round
 175 on, QQQ outweighs the other four together, so the vote follows QQQ. A larger learning rate shrinks the weights of experts
-that make mistakes faster, so the vote follows the best expert sooner; with ϵ = 1/2 we make
-42 mistakes. The theorem trades this off: a larger ϵ makes the constant 2 ln n/ϵ smaller but
+that make mistakes faster, so the vote follows the best expert sooner: with ϵ = 1/2 (the
+what-if cell), QQQ outweighs the other four together from round 22, the vote disagrees with
+QQQ only in rounds 11, 12, 18, and 21 (wrong in 12, 18, 21; right in 11), and we make 42
+mistakes. The theorem trades this off: a larger ϵ makes the constant 2 ln n/ϵ smaller but
 the factor 2(1 + ϵ) larger.
 
 **Task 3.** About the same as always predicting up (58.7% versus 57.9%), and SPY went up on
 more than half of these days, so neither the experts nor the vote shows much forecasting
-skill. The bound still holds because it only promises that we do not do much worse than the
-best expert; when every expert is close to a coin flip, the guarantee is met while our
-accuracy stays near what a constant guess gets. The bound is a guarantee relative to the
-experts, not a guarantee of good predictions.
+skill. The bound guarantees nothing here: it ends at about 291 mistakes after 252 rounds, and
+it is above the number of rounds in every round, so it would hold even if we were wrong every
+day. It only compares us with the best expert: because of the factor 2(1 + ϵ) ≈ 2.08, a best
+expert that is wrong on half the days already pushes it past the number of rounds. For the bound to end below 252, the best expert would need at most
+(252 − 81.1)/2.08 ≈ 82 mistakes, that is, to be right on about two thirds of the days (AAPL
+made 101). The bound is a guarantee relative to the experts, not a guarantee of good
+predictions.
+
+## Revision 2026-10-22
+
+After Jeff's "≥ 9?" scoring (mine 8.5, codex 8.2): the Task 2 algorithm block and the theorem
+box now match the lecture word for word (L9c pseudocode format); the Goal says "a multiple"
+(the factor is 3 at ϵ = 1/2); "the L10a lecture" became "the lecture" in the notebook and in
+`src/` (October 15 rule); the learning rate is defined after the algorithm; the Task 2
+opener is split at its H3 and the experts paragraph in two; Task 1 says "look at" the
+functions; the weight legend names the tickers. Task 2 gained a `### Use a larger learning
+rate` prediction and what-if cell. The same-day bound reading, the forecast prediction and
+reading, the Task 3 question, and the third takeaway now say that the bound is informative
+only below t (round 115 on in the same-day game, never in the forecast game). Notebook: 49
+cells.
 
 ## Validation
 
 - Executed from `weeks/week-10/L10b/` with `--project=@.`: with `Compute-solution.jl` swapped
-  in after the setup cell, every cell runs and the check passes (6/6); with the stub, the
-  first error is the "Oooops!" throw at the `my_weighted_majority` call (code cell 10).
+  in after the setup cell, every cell runs and the check passes (8/8 as of 2026-10-22); with
+  the stub, the first error is the "Oooops!" throw at the `my_weighted_majority` call (code
+  cell 10).
 - `python3 instructor/validation/notebook_style_check.py` on the notebook: 0 findings.
-- Suite block (`@meeting "L10b"`, 46 tests) run in a scratch copy of the week-10 harness:
-  46/46. It covers a hand-checked three-expert game and a tie, the stub's shape, the data
-  cache hash, and every number quoted in the notebook and in this sheet.
+- Suite block (`@meeting "L10b"`, 64 tests as of 2026-10-22, run with
+  `RELEASE_MEETINGS="L10b"`): 64/64. It covers a hand-checked three-expert game and a tie,
+  the stub's shape (including no `? :` in either file), the data cache hash, and every
+  number quoted in the notebook and in this sheet.

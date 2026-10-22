@@ -2,9 +2,11 @@
 
 [PDF deck](CHEME-5800-L10a-Slides-Fall-2026.pdf) · [Editable LaTeX source](CHEME-5800-L10a-Slides-Fall-2026.tex)
 
-The 17-slide deck follows the [Online Learning lecture](../CHEME-5800-L10a-Lecture-OnlineLearningAndRegret-Fall-2026.ipynb) in its order: the agent and environment schematic and the three families of methods, the online learning game and regret, online versus supervised learning and the best expert as the comparator, the weighted majority algorithm with its pseudocode, the four-round worked example and its weighted-vote figure, and the mistake guarantee, then the multiplicative weights problem setting, pseudocode, and regret bound, the comparison of the two guarantees, the lab, and the Summary. Three learning objectives align with three closing takeaways.
+The 18-slide deck follows the [Online Learning lecture](../CHEME-5800-L10a-Lecture-OnlineLearningAndRegret-Fall-2026.ipynb) in its order: the agent and environment schematic and the three families of methods, the online learning game and regret, online versus supervised learning and the best expert as the comparator, the weighted majority algorithm with its pseudocode, the four-round worked example and its weighted-vote figure, the mistake guarantee, and why we choose an expert at random, then the multiplicative weights problem setting, pseudocode, and regret bound, the comparison of the two guarantees, the lab, and the Summary. Three learning objectives align with three closing takeaways.
 
-**Review status:** Built October 19, 2026; not yet reviewed by the instructor. A read-only codex review found no mathematical or factual errors and no layout problems (8.8/10). Its top suggestion was adopted: the multiplicative weights guarantee now states an upper bound on the expected cost, $2\sqrt{T\ln n}$ above the best expert's, and the loss-convention line says the signed-cost regret is twice the expected regret counted in mistakes. The lab bullets were merged and the weights figure enlarged. Its suggestion to add an Initialize line to the weighted majority pseudocode was not adopted, because the slides follow the lecture's pseudocode. "About twice" became $2(1+\epsilon)$ when the lecture adopted it. The weights line chart was replaced by a weighted-vote figure that draws each round as a tug of war between the up and down experts, so each mistake shows as a block on the side opposite the outcome; its slide drops the lead-in to give the figure room. The build has no overfull or underfull boxes.
+**Review status:** Built October 19, 2026; not yet reviewed by the instructor. A read-only codex review found no mathematical or factual errors and no layout problems (8.8/10). Its top suggestion was adopted: the multiplicative weights guarantee now states an upper bound on the expected cost, $2\sqrt{T\ln n}$ above the best expert's, and the loss-convention line says the signed-cost regret is twice the expected regret counted in mistakes. The lab bullets were merged and the weights figure enlarged. "About twice" became $2(1+\epsilon)$ when the lecture adopted it. The weights line chart was replaced by a weighted-vote figure that draws each round as a tug of war between the up and down experts, so each mistake shows as a block on the side opposite the outcome; its slide drops the lead-in to give the figure room. The build has no overfull or underfull boxes.
+
+**Synced October 21, 2026** with the lecture's revised weighted majority section. Both pseudocode slides now follow the lecture's Initialize line ("Given ..., set ... $\gets$ ...") and its If/Otherwise branches. The Goal and the mistake guarantee name the additive term a constant, $2\ln n/\epsilon$, that does not depend on the number of rounds. A new slide, "Why Choose an Expert at Random?", carries the lecture's argument that an adversary can defeat any deterministic vote, which motivates the multiplicative weights algorithm. The comparison table states the learning rate behind the $2\sqrt{T\ln n}$ bound, and the Summary takeaways were shortened to the L6a shape, with no symbols. A read-only codex review of the synced deck scored it 9.4/10 and found no errors; its three minor suggestions were adopted: the problem-setting slide names $\mathbf p^{(t)}$ as our distribution over experts, the comparison table adds $T\ge4\ln n$ to the tuned bound, and the first two objectives were tightened.
 
 The style files and Cornell seal are copied unchanged from L9a (identical to L7c, L7a, and L6c, which match the approved L6a deck). The deck keeps their 16:9 format, typography, palette, title page, and footer. Text, equations, and tables are editable in the LaTeX source.
 
@@ -31,11 +33,11 @@ Requirements: XeLaTeX and `latexmk`. The style uses Helvetica Neue when availabl
 | 5–6 | The online learning game and the regret; online versus supervised learning, and the best single expert as the comparator |
 | 7–8 | The weighted majority game and goal; its pseudocode |
 | 9–10 | The four-round worked example table; the weighted-vote figure and the regret |
-| 11 | The mistake guarantee |
-| 12–13 | The multiplicative weights problem setting, expected cost, and regret; its pseudocode |
-| 14–15 | The regret bound and the choice of $\eta$; the comparison of the two guarantees and the loss conventions |
-| 16 | Lab: the weighted majority algorithm on the stock market |
-| 17 | Summary with three key takeaways |
+| 11–12 | The mistake guarantee; why a deterministic vote can be defeated and why we choose an expert at random |
+| 13–14 | The multiplicative weights problem setting, expected cost, and regret; its pseudocode |
+| 15–16 | The regret bound and the choice of $\eta$; the comparison of the two guarantees and the loss conventions |
+| 17 | Lab: the weighted majority algorithm on the stock market |
+| 18 | Summary with three key takeaways |
 
 ## Sources and scope
 
@@ -47,5 +49,5 @@ Source notebook snapshots (SHA-256):
 
 | Notebook | SHA-256 |
 |---|---|
-| CHEME-5800-L10a-Lecture-OnlineLearningAndRegret-Fall-2026.ipynb | `63decc8fe2f1b0a9631bb76fa219cfe892b133c3600c0b109e2c97a23a2996b9` |
+| CHEME-5800-L10a-Lecture-OnlineLearningAndRegret-Fall-2026.ipynb | `a9ce95ca7f2e2f8aec333f4f4c6f301c2edcbd5b012b5f71c08a523304b3f6bc` |
 | CHEME-5800-L10b-Lab-WeightedMajorityAlgorithm-Fall-2026.ipynb | `aba703cff2fc3481f8739663d785b097219b8bc2607df7214242077d1b186e52` |

@@ -80,10 +80,12 @@ end
             @test occursin("ŷ = 0;", student_text) # the blank for TODO 1
             @test occursin("mistake = 0;", student_text) # the blank for TODO 2
             @test occursin("weights[t+1, i] = weights[t, i];", student_text) # the blank for TODO 3
-            for answer in ("(weight_up > weight_down) ? 1 : -1", "(predictions[i] == y) ? 0 : 1", "*(1 - ϵ*mistake)")
-                @test !occursin(answer, student_text) # the solution's three lines
+            for answer in ("ŷ = 1;", "ŷ = -1;", "mistake = 1;", "*(1 - ϵ*mistake)")
+                @test occursin(answer, reference_text) # lines of the solution's three TODOs ...
+                @test !occursin(answer, student_text) # ... that the stub leaves out
             end
             body(text) = split(text, "module L10bWMA"; limit = 2)[2]
+            @test !occursin(" ? ", body(student_text)) && !occursin(" ? ", body(reference_text)) # if-else, no ternaries
             before(text) = split(body(text), "# TODO 1:"; limit = 2)[1]
             middle(text) = split(split(body(text), "# Our prediction must be 1 or -1"; limit = 2)[2], "# TODO 2:"; limit = 2)[1]
             after(text) = split(body(text), "# Record this round"; limit = 2)[2]
@@ -139,6 +141,11 @@ end
             # Task 1: "in round 4 all five predicted down while SPY went up" -
             @test all(w.expert(i, 4, w.growth_rate_array) == -1 for i in 1:5)
             @test w.adversary(4, w.growth_rate_array) == 1
+            # answer sheet: the five agree in rounds 2, 4, 7, and 8 of the first ten, and are wrong only in round 4 -
+            first_ten = [w.expert(i, t, w.growth_rate_array) for t in 1:10, i in 1:5]
+            unanimous = [t for t in 1:10 if all(first_ten[t, :] .== first_ten[t, 1])]
+            @test unanimous == [2, 4, 7, 8]
+            @test [first_ten[t, 1] == w.adversary(t, w.growth_rate_array) for t in unanimous] == [true, false, true, true]
 
             # Task 2: the notebook's game matches the course package, and the quoted numbers -
             @test (w.sims, w.weights) == play(w.model, w.growth_rate_array)
@@ -149,12 +156,18 @@ end
             @test w.weights[end, 1] > 4 * maximum(w.weights[end, 2:5]) # "more than four times"
             fast = build(MyBinaryWeightedMajorityAlgorithmModel, (ϵ = 0.5, n = 5, T = 252,
                 expert = w.expert, adversary = w.adversary))
-            @test sum(L10bWMA.my_weighted_majority(fast, w.growth_rate_array)[1][:, end]) == 42 # answer sheet
+            (fast_sims, fast_weights) = L10bWMA.my_weighted_majority(fast, w.growth_rate_array)
+            @test sum(fast_sims[:, end]) == 42 # "we make 42 mistakes instead of 44"
+            @test count(w.sims[:, 6] .!= w.sims[:, 1]) == 12 && count(fast_sims[:, 6] .!= fast_sims[:, 1]) == 4 # "4 rounds instead of 12"
+            @test [t for t in 1:252 if fast_sims[t, 6] != fast_sims[t, 1]] == [11, 12, 18, 21] # answer sheet
+            @test findlast(t -> w.weights[t, 1] ≤ sum(w.weights[t, 2:5]), 1:253) == 174 # answer sheet: QQQ outweighs the rest from round 175
+            @test findlast(t -> fast_weights[t, 1] ≤ sum(fast_weights[t, 2:5]), 1:253) == 21 # ... and from round 22 with ϵ = 1/2
 
             # Task 3: the best expert, the bound, and the forecast game -
             @test w.î == 1
             @test all(w.L .≤ w.R) && w.L[end] == 44
             @test round(Int, 2 * log(5) / w.model.ϵ) == 81 && round(Int, w.R[end]) == 164
+            @test all(w.R[t] ≥ t for t in 1:114) && all(w.R[t] < t for t in 115:252) # "from round 115 on"
             fa = w.forecast_sims[:, 7]
             @test sum(w.forecast_sims[:, end]) == 104
             @test argmax(w.forecast_weights[end, :]) == 4
@@ -163,6 +176,9 @@ end
             î = argmax(w.forecast_weights[end, :])
             bound = (2 * log(5) / w.model.ϵ) .+ 2 * (1 + w.model.ϵ) .* cumsum(w.forecast_sims[:, î] .!= fa)
             @test all(cumsum(w.forecast_sims[:, end]) .≤ bound)
+            @test all(bound[t] > t for t in 1:252) && round(bound[end], digits = 1) == 291.1 # "allows about 291 mistakes"
+            @test round(Int, 100 * count(w.forecast_sims[:, î] .!= fa) / 252) == 40 # "wrong on 40% of the days"
+            @test floor(Int, (252 - 2 * log(5) / w.model.ϵ) / (2 * (1 + w.model.ϵ))) == 82 # answer sheet threshold
         end
     end
 end

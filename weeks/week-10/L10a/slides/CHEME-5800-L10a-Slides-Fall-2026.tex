@@ -36,12 +36,12 @@
   {\large\textbf{\ink{Today's concepts}}}
   \vspace{0.2em}
   \begin{itemize}\setlength{\itemsep}{0.4em}
-    \item \hilite{Describe the online learning problem}: set it up as a game
-      played over many rounds, in which we predict, an adversary reveals the
-      outcome, and we learn from the result.
+    \item \hilite{Describe the online learning problem}: a game over many
+      rounds; we predict, an adversary reveals the outcome, and we learn from
+      the result.
     \item \hilite{Measure an online learning algorithm with regret}: compare
-      its loss with the best fixed strategy in hindsight, and see why we want a
-      regret bound that grows more slowly than the number of rounds.
+      its loss with the best fixed strategy in hindsight, and seek a regret
+      bound that grows more slowly than the number of rounds.
     \item \hilite{Learn from expert advice with multiplicative weights}: shrink
       the weight of each expert that does poorly, and bound how far we fall
       behind the best expert.
@@ -136,7 +136,7 @@
       down, encoded as $\{1,-1\}$. A wrong prediction costs a dollar. We watch
       the predictions of $n$ experts, who may be correlated and may be wrong.
     \item \hilite{Goal}: bound our mistakes by a multiple of the best expert's
-      mistakes plus an initial term, without knowing which expert is best.
+      mistakes plus a constant, without knowing which expert is best.
   \end{itemize}
 
   \vspace{0.5em}
@@ -147,22 +147,31 @@
 \end{frame}
 
 \begin{frame}{Weighted Majority Algorithm: Pseudocode}
+  \textbf{Initialize}: Given $n$ experts, the number of rounds $T\ge1$, and a
+  learning rate $0<\epsilon\le1/2$, set $w_i^{(1)}\gets1$ for each expert $i$.
+
+  \vspace{0.3em}
   For each round $t=1,2,\ldots,T$ \textbf{do}:
-  \begin{enumerate}\setlength{\itemsep}{0.4em}
-    \item The aggregator predicts with the weighted majority of the experts:
-      $\hat y_t=1$ if the total weight of the experts predicting $1$ is greater
-      than the total weight of those predicting $-1$; otherwise, $\hat y_t=-1$.
-    \item The adversary reveals the actual outcome $y_t\in\{-1,1\}$.
-    \item For each expert $i$ who predicted incorrectly, update the weight:
-      \[
-        w_i^{(t+1)}=w_i^{(t)}(1-\epsilon),
-      \]
-      where $0<\epsilon\le1/2$ is a learning rate parameter.
+  \begin{enumerate}\setlength{\itemsep}{0.2em}
+    \item The aggregator (us) predicts with the weighted majority of the experts:
+      \begin{itemize}\setlength{\itemsep}{0.1em}
+        \item If the experts predicting $1$ carry more total weight than the
+          rest, \textbf{then} $\hat y_t\gets1$.
+        \item Otherwise, $\hat y_t\gets-1$.
+      \end{itemize}
+    \item The adversary (market) reveals the actual outcome $y_t\in\{-1,1\}$.
+    \item Decrease the weights of the experts who predicted incorrectly. For
+      each expert $i$:
+      \begin{itemize}\setlength{\itemsep}{0.1em}
+        \item If expert $i$ predicted incorrectly, \textbf{then}
+          $w_i^{(t+1)}\gets w_i^{(t)}(1-\epsilon)$.
+        \item Otherwise, $w_i^{(t+1)}\gets w_i^{(t)}$.
+      \end{itemize}
   \end{enumerate}
 
-  \vspace{0.4em}
+  \vspace{0.3em}
   Experts that predict well keep their weight, so their share of the vote grows.
-  \lecturesource{Weighted Majority Algorithm (WMA): Algorithm. Preserve the For/numbered-step format.}
+  \lecturesource{Weighted Majority Algorithm (WMA): Algorithm. Preserve the Initialize/For/numbered-step format and the If/Otherwise branches.}
 \end{frame}
 
 \begin{frame}{Worked Example: Four Rounds}
@@ -214,15 +223,33 @@
   \vspace{0.3em}
   \begin{itemize}\setlength{\itemsep}{0.6em}
     \item The guarantee is \hilite{multiplicative}: our mistakes are at most
-      $2(1+\epsilon)$ times the best expert's, plus an initial term that grows
-      with the logarithm of the number of experts.
+      $2(1+\epsilon)$ times the best expert's, plus the constant
+      $2\ln n/\epsilon$, which does not depend on the number of rounds.
     \item The algorithm is \hilite{deterministic}: the same predictions and
       outcomes always produce the same votes.
   \end{itemize}
+  \lecturesource{Weighted Majority Algorithm (WMA): Mistake Guarantee theorem and the two features.}
+\end{frame}
 
-  \vspace{0.5em}
-  Choosing an expert at random instead gives an \hilite{additive} guarantee.
-  \lecturesource{Weighted Majority Algorithm (WMA): Mistake Guarantee theorem and the closing paragraph.}
+\begin{frame}{Why Choose an Expert at Random?}
+  Because the vote is deterministic, an omniscient adversary can compute it and
+  choose the opposite outcome. Suppose two experts always disagree:
+  \begin{itemize}\setlength{\itemsep}{0.4em}
+    \item The adversary makes us wrong in all $T$ rounds.
+    \item In every round exactly one of the two experts is right, so the better
+      expert makes at most $T/2$ mistakes.
+  \end{itemize}
+
+  \vspace{0.4em}
+  No deterministic rule can guarantee fewer than \hilite{twice} the best
+  expert's mistakes.
+
+  \vspace{0.6em}
+  Choosing an expert at random takes away this advantage. If the adversary
+  fixes the outcomes before we draw, our expected cost exceeds the best
+  expert's by at most a term that grows more slowly than the number of rounds,
+  an \hilite{additive} guarantee.
+  \lecturesource{Weighted Majority Algorithm (WMA): Mistake Guarantee, the "Why choose an expert at random?" paragraph and the additive-guarantee paragraph.}
 \end{frame}
 
 \begin{frame}{Multiplicative Weights: Problem Setting}
@@ -231,8 +258,8 @@
 
   \vspace{0.3em}
   \begin{itemize}\setlength{\itemsep}{0.3em}
-    \item Sample an expert $i\sim\texttt{Categorical}(\pv^{(t)})$ and follow its
-      recommendation.
+    \item Sample an expert from our distribution over experts,
+      $i\sim\texttt{Categorical}(\pv^{(t)})$, and follow its recommendation.
     \item Each expert's cost is $m_i^{(t)}\in[-1,1]$: $-1$ if correct and $+1$
       if incorrect.
   \end{itemize}
@@ -249,8 +276,8 @@
 \end{frame}
 
 \begin{frame}{Multiplicative Weights: Pseudocode}
-  \textbf{Initialize}: Fix a learning rate $0<\eta\le1/2$, and set
-  $w_i^{(1)}=1$ for each expert.
+  \textbf{Initialize}: Given $n$ experts, the number of rounds $T\ge1$, and a
+  learning rate $0<\eta\le1/2$, set $w_i^{(1)}\gets1$ for each expert $i$.
 
   \vspace{0.3em}
   For $t=1,2,\ldots,T$ \textbf{do}:
@@ -258,11 +285,11 @@
     \item Ask each expert $i$ for its answer $\hat y_i^{(t)}$. Choose expert $i$
       with probability $p_i^{(t)}=w_i^{(t)}/\sum_{j=1}^{n}w_j^{(t)}$ and follow
       its answer.
-    \item The adversary reveals $y_t$. Compute each expert's cost:
+    \item The adversary (nature) reveals $y_t$. Compute each expert's cost:
       $m_i^{(t)}=-1$ if $\hat y_i^{(t)}=y_t$, and $+1$ otherwise.
     \item Update the weight of each expert $i$:
       \[
-        w_i^{(t+1)}=w_i^{(t)}\cdot\bigl(1-\eta\cdot m_i^{(t)}\bigr).
+        w_i^{(t+1)}\gets w_i^{(t)}\cdot\bigl(1-\eta\cdot m_i^{(t)}\bigr).
       \]
   \end{enumerate}
 
@@ -305,7 +332,7 @@
     \midrule
     Weighted majority & Weighted binary vote & Mistakes at most $2(1+\epsilon)$ times the best expert's, plus $2\ln n/\epsilon$\\
     \addlinespace
-    Multiplicative weights & Sample an expert by weight & Expected cost at most $2\sqrt{T\ln n}$ above the best expert's\\
+    Multiplicative weights & Sample an expert by weight & Expected cost at most $2\sqrt{T\ln n}$ above the best expert's, with $\eta=\sqrt{\ln n/T}$ and $T\ge4\ln n$\\
     \bottomrule
   \end{tabular}}
 
@@ -341,15 +368,13 @@
   {\large\textbf{\ink{Key takeaways}}}
   \vspace{0.3em}
   \begin{itemize}\setlength{\itemsep}{0.6em}
-    \item \textbf{\ink{Online learning and regret.}} We set up online learning
-      as a repeated game and measured an algorithm by its regret against the
-      best fixed strategy in hindsight.
-    \item \textbf{\ink{The weighted majority algorithm.}} We took a weighted
-      vote and shrank the weight of each expert that erred, which bounds our
-      mistakes by two to three times the best expert's.
-    \item \textbf{\ink{The multiplicative weights algorithm.}} We followed an
-      expert drawn by weight and updated every weight by its cost, giving a
-      regret bound that grows like $\sqrt{T}$.
+    \item \textbf{\ink{Online learning and regret.}} We measured an algorithm in
+      a repeated game by its regret against the best fixed strategy in hindsight.
+    \item \textbf{\ink{The weighted majority algorithm.}} A weighted vote bounds
+      our mistakes by two to three times the best expert's, plus a constant.
+    \item \textbf{\ink{The multiplicative weights algorithm.}} Following an expert
+      drawn by weight gives a regret bound that grows with the square root of
+      the number of rounds.
   \end{itemize}
 
   \vspace{0.5em}
