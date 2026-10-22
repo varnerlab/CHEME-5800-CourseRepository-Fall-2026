@@ -4,9 +4,12 @@ Notebook: `weeks/week-10/L10d/CHEME-5800-L10d-Lab-BanditAlgorithms-Fall-2026.ipy
 (replaces the scaffold `CHEME-5800-L10d-Lab-UCBAndThompsonSampling-Fall-2026.ipynb`).
 Built 2026-10-10; revised 2026-10-12 after the codex audit changed the package bandit solvers
 (zero rewards now count in sample means, `return_history = true` returns the selected arms,
-ε-greedy uses the lecture schedule) and added the repeated-game comparison in Task 2. All
+ε-greedy uses the lecture schedule) and added the repeated-game comparison in Task 2. Revised again 2026-10-22: the Task 1 question
+no longer asks Task 2's gap-cost question, and the bounds subsection moved after the repeated
+games and compares only growth from T = 5000 to 10,000 (the constant-one bound-scale table
+was dropped). All
 numbers below are for `seed = 5800`, `T = 5000`, Julia 1.12.7 with the pinned Manifest. They
-are pinned in the week-10 suite (`@meeting "L10d"`, 119 tests).
+are pinned in the week-10 suite (`@meeting "L10d"`, 123 tests).
 
 ## Sources
 
@@ -33,7 +36,8 @@ are pinned in the week-10 suite (`@meeting "L10d"`, 119 tests).
   computes R(t) = tμ⋆ − (r₁ + … + rₜ) in an explicit loop. The package `regret` is not used.
 - **Explore-first length fixed.** The 2025 cell computed `Nₐ = 3*(T/K)^(2/3)*(log T)^(1/3)` =
   490, but the package uses no factor 3. The notebook now computes the package's value, 163
-  pulls per arm (1,141 exploring rounds), and says the package takes the hidden O constant as 1.
+  pulls per arm (1,141 exploring rounds), from the lecture's exploration-count formula, which has
+  no hidden constant.
 - **ε-greedy schedule matches the lecture.** Since 2026-10-12 the package pulls each arm once,
   then uses ε_t = min(1, (K log t / t)^(1/3)), the L10c schedule with a cap. For K = 7,
   ε_t = 1 through round 21. This made ε-greedy explore more than the old package schedule
@@ -72,16 +76,15 @@ are pinned in the week-10 suite (`@meeting "L10d"`, 119 tests).
 | 6 | 0.667 | 163 | 221 | 302 |
 | 7 | 0.333 | 163 | 212 | 54 |
 
-**Task 1 question** (why UCB1 explores arm 5): UCB1 pulls the arm with the largest
+**Task 1 question** (why UCB1 keeps pulling arm 5, and why it pulls arm 3 so rarely): UCB1 pulls the arm with the largest
 μ̄(a) + √(2 log t / Nₐ). Arm 5's mean, 0.769, is close to arm 2's 0.833, so a modest bonus keeps
 its bound above arm 2's estimate, and it must be pulled many times before the two can be told
 apart. Arm 3's mean is 0.167, so after a few pulls its bound falls far below arm 2's and stays
 there. Explore-first and ε-greedy choose exploration pulls in turn or uniformly at random,
-ignoring the rewards, so every arm gets about the same share. No: a pull of arm a gives up
-μ⋆ − μ(a) in expectation, 0.064 for arm 5 but 0.667 for arm 3.
+ignoring the rewards, so every arm gets about the same share.
 
 **Task 2 prediction** (smallest regret at T = 5000): UCB1. R(5000): explore-first 400.5,
-ε-greedy 525.7, UCB1 232.0. Bounds (constants = 1): 1142.3, 1142.3, 546.0. Curves: explore-first
+ε-greedy 525.7, UCB1 232.0. Curves: explore-first
 rises during its 1,141 exploring rounds (R(1141) = 386.4) and then stays between 385 and 403.
 ε-greedy and UCB1 separate early: ε-greedy is 25 above UCB1 by round 487 and 50 above by round
 880. ε-greedy crosses above explore-first at round 3,335 and stays above.
@@ -102,6 +105,12 @@ horizon, so its gap loss is exactly N times the sum of the gaps (N = 52, 100, 16
 standard deviation is 0; its realized regret still varies (SD 9.2 at T = 10,000). Average gap
 loss and average realized regret differ by at most 3 at every entry. From T = 5000 to 10,000
 the average gap loss grows by 1.63, 1.64, and 1.30; the bounds grow by 1.63 and 1.47.
+
+**Bound-growth prediction** (does each gap loss grow faster than, more slowly than, or about as
+fast as its bound when T doubles?): explore-first about as fast, 1.632 against 1.629, because its
+gap loss is N times the sum of the gaps and N grows from 163 to 266 with the same T-dependence as
+the bound; ε-greedy about as fast, 1.638 against 1.629; UCB1 more slowly, 1.301 against 1.471.
+The bound constants cancel in each ratio, which is why the lab compares growth, not size.
 
 **Task 2 question** (UCB1 pulls arm 2 less but has less regret): in expectation, regret charges
 each pull by the gap μ⋆ − μ(a), not by whether it missed arm 2. Most of UCB1's non-arm-2 pulls go

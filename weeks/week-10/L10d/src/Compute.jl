@@ -135,8 +135,8 @@ function my_thompson_sampling(world::Function, K::Int64, T::Int64; rng::Abstract
 
         # Step 4: update the success and failure counts of the arm we pulled -
         # TODO 3: replace the right-hand sides so that S(aₜ) ← S(aₜ) + rₜ and F(aₜ) ← F(aₜ) + (1 - rₜ).
-        # A success (rₜ = 1) adds 1 to S[aₜ] and nothing to F[aₜ]; a failure (rₜ = 0) adds 1 to
-        # F[aₜ] and nothing to S[aₜ].
+        # Hint: check both cases. A success (rₜ = 1) must add 1 to S[aₜ] and nothing to F[aₜ];
+        # a failure (rₜ = 0) must add 1 to F[aₜ] and nothing to S[aₜ].
         S[aₜ] = S[aₜ];
         F[aₜ] = F[aₜ];
     end

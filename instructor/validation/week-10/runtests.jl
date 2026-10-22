@@ -341,10 +341,10 @@ end
                 @test rc[label] ≈ (1:w.T).*maximum(μ) .- cumsum(vec(sum(game.rewards, dims = 2)))
             end
             @test abs(rc["Explore-first"][end] - rc["Explore-first"][1141]) < 20 # levels off after exploring
-            @test round((w.T^(2 / 3)) * (w.K * log(w.T))^(1 / 3), digits = 1) == 1142.3
-            @test round(sqrt(w.K * w.T * log(w.T)), digits = 1) == 546.0
             @test [round(rc[l][end], digits = 1) for l in ["Explore-first", "ε-greedy", "UCB1"]] == [400.5, 525.7, 232.0]
             @test rc["ε-greedy"][1000] - rc["UCB1"][1000] > 25 # the two curves separate within the first thousand rounds
+            crossing = findlast(t -> rc["ε-greedy"][t] < rc["Explore-first"][t], 1:w.T) # ε-greedy passes explore-first for good after this round
+            @test abs(crossing - 3300) < 50 # "at about round 3,300"
             ensemble = w.ensemble
             @test ensemble.horizons == [1000, 2500, 5000, 10_000]
             @test length(ensemble.seeds) == 30 && length(unique(ensemble.seeds)) == 30
@@ -360,6 +360,15 @@ end
             @test all(ensemble.gap_regrets[:, 3, :] .< ensemble.gap_regrets[:, 1, :]) # UCB1 beats both others in every game
             @test all(ensemble.gap_regrets[:, 3, :] .< ensemble.gap_regrets[:, 2, :])
             @test round.(ensemble.mean_gap[4, :] ./ ensemble.mean_gap[3, :], digits = 2) == [1.63, 1.64, 1.30]
+            @test maximum(ensemble.se_gap) < 3.15 # "at most about 3.1"
+            @test all(h -> minimum(abs(ensemble.mean_gap[h, i] - ensemble.mean_gap[h, j]) for i in 1:3 for j in (i + 1):3) > 6 * maximum(ensemble.se_gap), 1:4) # differences far larger than the ribbons
+            # the bound-growth comparison: explore-first's gap loss is its exploration cost, so it grows with N -
+            explore_N(T) = clamp(round(Int, (T / w.K)^(2 / 3) * cbrt(log(T))), 1, fld(T, w.K))
+            @test (explore_N(5000), explore_N(10_000)) == (163, 266)
+            @test ensemble.mean_gap[3:4, 1] ≈ [163, 266] .* sum(maximum(μ) .- μ) # N pulls of each arm, times the sum of the gaps
+            bound_explore(T) = (T^(2 / 3)) * (w.K * log(T))^(1 / 3)
+            bound_UCB1(T) = sqrt(w.K * T * log(T))
+            @test round.([bound_explore(10_000) / bound_explore(5000), bound_UCB1(10_000) / bound_UCB1(5000)], digits = 2) == [1.63, 1.47]
 
             # Task 3: Thompson sampling on θ = (0.90, 0.60, 0.80), and the closer arm 3 -
             r = w.result
