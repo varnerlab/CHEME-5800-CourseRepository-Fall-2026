@@ -47,3 +47,14 @@ gradient descent stops. At a high temperature it accepts an uphill move of size
 temperature it rejects a large uphill move away from θ<sub>1</sub> (dashed gray).
 It was drawn in TikZ on October 19, 2026, with the same Makefile and theme script as
 the gradient descent schematic; the script maps the new orange to a dark color.
+
+## Convexity figure
+
+`Fig-Convexity/` holds the two-panel figure in the lecture's How Good Is Gradient
+Descent? subsection. The left panel draws a convex loss, x<sup>2</sup> rotated by
+20°, with the chord from f(**a**) to f(**b**) above the graph and the gap at
+t**a** + (1 − t)**b** marked. The right panel redraws the gradient descent
+schematic's loss with the chord from θ<sub>2</sub> to θ<sub>1</sub>, which the
+hump rises above. It was drawn in TikZ on October 22, 2026, with the same palette,
+Makefile, and theme script as the gradient descent schematic; the `.tex` comments
+record how the rotated parabola's points were computed.
