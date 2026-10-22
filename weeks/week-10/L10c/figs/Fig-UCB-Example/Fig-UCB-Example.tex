@@ -12,8 +12,9 @@
 % Arm 2 has the larger bound, so UCB1 pulls it in round 6. The dashed line is
 % the largest possible reward, 1.
 %
-% Math uses the standard TeX fonts (no unicode-math), so symbols render as the
-% notebook's math shows them.
+% Labels are set large so they stay readable when the slide scales the figure
+% down (October 22, 2026). Math uses the standard TeX fonts (no unicode-math),
+% so symbols render as the notebook's math shows them.
 %
 % The notebook SVG carries a dark palette added by theme_svg.py; keep new
 % colors in that script's mapping when changing the palette here.
@@ -36,33 +37,36 @@
   \filldraw[fill=white, draw=#4, line width=1.6pt] (4.5*#2, #1) circle (4pt);}
 
 \begin{document}
-\begin{tikzpicture}[x=1cm, y=1cm, font=\sffamily\small, text=vnink,
+\begin{tikzpicture}[x=1cm, y=1cm, font=\sffamily\large, text=vnink,
     cell/.style={text height=1.6ex, text depth=0.45ex},
   ]
   % the largest possible reward
-  \draw[gdgray, line width=0.8pt, dash pattern=on 4pt off 3pt] (4.5, 0.75) -- (4.5, -2.4);
-  \node[anchor=south, text=gdgray] at (4.5, 0.75) {largest possible reward};
+  \draw[gdgray, line width=0.8pt, dash pattern=on 4pt off 3pt] (4.5, 0.85) -- (4.5, -2.75);
+  \node[anchor=south, text=gdgray] at (4.5, 0.85) {largest possible reward};
 
   % arm 1: four pulls, sample mean 0.75
   \ucbrow{0}{0.75}{1.697}{gdgray}
-  \node[cell, anchor=east] at (-0.45, 0) {arm 1, $N_1=4$};
-  \node[anchor=north] at (3.375, -0.2) {$\bar{\mu}(1)=0.750$};
-  \node[anchor=south] at (6.0, 0.15) {$U(1,6)=0.947$};
+  \node[cell, anchor=east] at (-0.4, 0.25) {arm 1};
+  \node[cell, anchor=east] at (-0.4, -0.25) {$N_1=4$};
+  \node[anchor=north east] at (3.8, -0.2) {$\bar{\mu}(1)=0.750$};
+  \node[anchor=south] at (6.25, 0.15) {$U(1,6)=0.947$};
   \node[cell, anchor=west] at (7.8, 0) {1.697};
 
   % arm 2: one pull, sample mean 0; the larger bound, so it is pulled next
-  \ucbrow{-1.6}{0}{1.893}{gdblue}
-  \node[cell, anchor=east] at (-0.45, -1.6) {arm 2, $N_2=1$};
-  \node[anchor=north] at (0, -1.8) {$\bar{\mu}(2)=0$};
-  \node[anchor=south] at (2.25, -1.45) {$U(2,6)=1.893$};
-  \node[cell, anchor=west, text=gdblue, font=\sffamily\small\bfseries] at (8.68, -1.6) {1.893: pull arm 2};
+  \ucbrow{-1.9}{0}{1.893}{gdblue}
+  \node[cell, anchor=east] at (-0.4, -1.65) {arm 2};
+  \node[cell, anchor=east] at (-0.4, -2.15) {$N_2=1$};
+  \node[anchor=north west] at (-0.2, -2.1) {$\bar{\mu}(2)=0$};
+  \node[anchor=south] at (6.6, -1.75) {$U(2,6)=1.893$};
+  \node[cell, anchor=west, text=gdblue, font=\sffamily\large\bfseries] at (8.68, -1.65) {1.893:};
+  \node[cell, anchor=west, text=gdblue, font=\sffamily\large\bfseries] at (8.68, -2.15) {pull arm 2};
 
   % reward scale
-  \draw[vnink, line width=0.9pt] (0, -2.65) -- (9, -2.65);
+  \draw[vnink, line width=0.9pt] (0, -3.0) -- (9, -3.0);
   \foreach \v in {0, 0.5, 1, 1.5, 2} {
-    \draw[vnink, line width=0.9pt] (4.5*\v, -2.65) -- (4.5*\v, -2.75);
-    \node[cell, anchor=north] at (4.5*\v, -2.8) {\v};
+    \draw[vnink, line width=0.9pt] (4.5*\v, -3.0) -- (4.5*\v, -3.1);
+    \node[cell, anchor=north] at (4.5*\v, -3.15) {\v};
   }
-  \node[anchor=north] at (4.5, -3.25) {sample mean $\bar{\mu}(a)$ plus confidence radius $U(a,6)$};
+  \node[anchor=north] at (4.5, -3.65) {sample mean $\bar{\mu}(a)$ plus confidence radius $U(a,6)$};
 \end{tikzpicture}
 \end{document}
