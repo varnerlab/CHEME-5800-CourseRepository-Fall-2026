@@ -1,6 +1,6 @@
 schema_version = 2
 week = 9
-version = "1.1"
+version = "1.2"
 status = "ready"
 cadence = "week"
 title = "Binary classification and numerical optimization"
@@ -21,6 +21,7 @@ datasets = [
   "L9c/figs/Fig-GD-Schematic/Fig-GD-Schematic.svg",
   "L9c/figs/Fig-Logistic-Function/Fig-Logistic-Function.svg",
   "L9c/figs/Fig-SA-Schematic/Fig-SA-Schematic.svg",
+  "L9c/figs/Fig-Convexity/Fig-Convexity.svg",
 ]
 student_paths = ["README.md", "L9a", "L9b", "L9c", "L9d"]
 instructor_only_paths = ["../../instructor/validation/week-09"]
