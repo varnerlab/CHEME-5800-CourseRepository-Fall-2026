@@ -231,6 +231,67 @@ end
         @test U₂[(3, 1)] ≈ 4.112
         @test U₀[(3, 3)] == U₁[(3, 3)] == U₂[(3, 3)] == 0.0
     end
+
+    @testset "L11c random rollout example" begin
+        example = "CHEME-5800-L11c-Example-RandomRollout-Fall-2026.ipynb"
+        @test check_local_links("L11c", example; markdown_only = false) ≥ 3
+
+        # The example ships with outputs, none of them errors -
+        path = joinpath(WEEK_ROOT, "L11c", example)
+        notebook = JSON.parsefile(path)
+        code_cells = [cell for cell in notebook["cells"] if cell["cell_type"] == "code"]
+        @test count(cell -> !isempty(cell["outputs"]), code_cells) ≥ 8
+        @test all(output["output_type"] != "error" for cell in code_cells for output in cell["outputs"])
+
+        # Run the example's cells -
+        workspace = Module(:L11cExampleValidation)
+        Core.eval(workspace, :(include(path::AbstractString) = Base.include(@__MODULE__, path)))
+        for (index, cell) in enumerate(code_cells)
+            Base.include_string(REPL.softscope, workspace, join(cell["source"]),
+                joinpath(dirname(path), "validation-cell-$(index).jl"))
+        end
+        w = workspace
+        G = w.L11cGridWorld
+
+        # The model is the lecture's grid world, and it reproduces the worked backup -
+        @test length(w.world.squares) == 8 && w.world.terminal == Set([w.world.index[(3, 3)]])
+        @test Set(w.world.actions[w.world.index[(3, 1)]]) == Set([1, 3]) # up and left
+        lecture = G.build_slippery_grid(γ = 0.9)
+        U₁ = [maximum(G.q_value(lecture, zeros(8), s, a) for a in lecture.actions[s]) for s in 1:8]
+        @test U₁[lecture.index[(3, 2)]] ≈ 7.4 && G.q_value(lecture, U₁, lecture.index[(3, 1)], 1) ≈ 4.112
+
+        # Value iteration converged to a fixed point, and the policy reaches the goal around the obstacle -
+        @test w.solution.converged
+        @test maximum(abs(w.solution.U[s] - maximum(G.q_value(w.world, w.solution.U, s, a) for a in w.world.actions[s]))
+            for s in 1:8) ≤ w.ϵ
+        @test [G.ACTION_NAMES[w.π_star[w.world.index[q]]] for q in [(1, 1), (1, 2), (1, 3), (2, 3), (2, 1), (3, 1), (3, 2)]] ==
+            ["up", "up", "right", "right", "right", "up", "up"]
+
+        # "The two squares next to the goal have the largest values" -
+        nonterminal = [s for s in 1:8 if s ∉ w.world.terminal]
+        top_two = sort(nonterminal; by = s -> -w.solution.U[s])[1:2]
+        @test Set(w.world.squares[top_two]) == Set([(3, 2), (2, 3)])
+
+        # The depth-d policy evaluation equals the mean rollout return, and the rollouts estimate it -
+        @test all(w.solution.U .≥ w.U_random .- 1e-8)
+        @test all(abs(w.rollout.U[s] - w.U_random_d[s]) < abs(w.rollout.U[s] - w.solution.U[s]) for s in nonterminal)
+        @test sum(w.rollout.n) == w.number_of_rollouts && w.rollout.U[w.world.index[(3, 3)]] == 0.0
+        @test abs(mean(w.corner_returns) - w.U_random_d[w.s₀]) ≤ 4 * std(w.corner_returns) / sqrt(length(w.corner_returns))
+        # The depth-d values equal an independent enumeration of the expected rollout return -
+        function enumerated_return(s, depth)
+            (depth == 0 || s in w.world.terminal) && return 0.0
+            return sum(sum(p * (r + w.world.γ * enumerated_return(s′, depth - 1)) for (p, s′, r) in w.world.outcomes[(s, a)])
+                for a in w.world.actions[s]) / length(w.world.actions[s])
+        end
+        for depth in 1:4
+            @test G.random_policy_values(w.world, d = depth) ≈ [enumerated_return(s, depth) for s in 1:8]
+        end
+
+        # "The rollouts never read T or R": the same seeded rollouts in a world whose T and R are unusable -
+        blind = G.SlipperyGridWorld(w.world.squares, w.world.index, w.world.actions, w.world.terminal,
+            w.world.outcomes, fill(NaN, size(w.world.T)), fill(NaN, size(w.world.R)), w.world.γ)
+        @test G.random_rollout(blind, w.MersenneTwister(w.seed), w.number_of_rollouts, w.d).U == w.rollout.U
+    end
 end
 
 @meeting "L11d" begin

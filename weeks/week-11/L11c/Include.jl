@@ -40,6 +40,10 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
 end
 
 
+# Reload the example's grid world when the setup cell is rerun -
+include(joinpath(CHEME5800_L11C_ROOT, "src", "GridWorld.jl"))
+
+
 # --- 3. IMPORTS --------------------------------------------------------------
 # Everything this meeting brings into scope. One `using` per line so each can
 # be annotated and each shows up on its own line in a diff.

@@ -2,13 +2,15 @@
 
 [PDF deck](CHEME-5800-L10c-Slides-Fall-2026.pdf) · [Editable LaTeX source](CHEME-5800-L10c-Slides-Fall-2026.tex)
 
-The 20-slide deck follows the [Stochastic Multi-Armed Bandit Problems lecture](../CHEME-5800-L10c-Lecture-StochasticMultiarmBandits-Fall-2026.ipynb) in its order: exploration versus exploitation, the bandit arms figure and the applications table, the stochastic bandit model and regret, then explore-first, epsilon-greedy, and UCB1 with their regret bounds, the UCB1 worked example and its figure, and the comparison of the bounds; then the binary Bernoulli bandit with the Beta prior and posterior, epsilon-greedy and Thompson sampling for Bernoulli rewards, the Thompson sampling worked example and its posterior figure, the lab, and the Summary. Three learning objectives align with three closing takeaways.
+The 23-slide deck follows the [Stochastic Multi-Armed Bandit Problems lecture](../CHEME-5800-L10c-Lecture-StochasticMultiarmBandits-Fall-2026.ipynb) in its order: exploration versus exploitation, the bandit arms figure and the applications table, the stochastic bandit model and regret, then explore-first, epsilon-greedy, and UCB1 with their regret bounds, the UCB1 worked example and its figure, and the comparison of the bounds; then the binary Bernoulli bandit with the Beta prior and posterior, epsilon-greedy and Thompson sampling for Bernoulli rewards, the Thompson sampling worked example and its posterior figure, the lab, and the Summary. Three learning objectives align with three closing takeaways.
 
 **Review status:** Built October 21, 2026; not yet reviewed by the instructor. A read-only codex review scored the first build 8.5/10 and found it mathematically faithful: the theorem numbers, the UCB1 values (0.947, 1.697, 1.893), and the Thompson sampling example match the lecture. Its definition and density findings were applied: the bandit arms slide now explains $a_t$, $r_t$, $\mu^\star$, and $\Delta(1)$; the model slide defines $\mathcal D_a$; the Beta slide defines the prior and posterior in plain words; the explore-first slide names the natural logarithm and defines the sample mean; the epsilon-greedy bound moved to the comparison slide so the algorithm has room; both arg-max steps state the tie rule; the UCB1 example notes that a bound can exceed the largest possible reward; and each Summary takeaway is one line. The deck was not re-scored after these fixes.
 
 A second pass the same day added a posterior figure to the Thompson sampling worked example, which had been a table, moved the Russo et al. (2020) sentence back to the algorithm slide as in the lecture, and rewrote the Summary takeaways, which the first pass had cut to bare labels, as short claims in the shape of the L6a Summary. A second read-only codex review scored this version 9/10 ("strong and teachable") and confirmed the figure's densities, means, and samples. Its three findings were applied: the figure was redrawn wider with larger lettering so its labels read at projection size, the epsilon-greedy and UCB1 initialization steps now name the first reward $r_a$, the pull count, and the sample mean, and the bandit arms caption now introduces the round $t$. The deck was not re-scored after these fixes. The build has no overfull or underfull boxes.
 
 **Revised October 22, 2026** after a read-only codex review of both week 10 decks (8.7/10, no errors). The bandit arms and UCB1 example figures were redrawn with larger labels, as the Thompson figure had been, and given more of their slides' height, so their labels read at projection size; the lecture uses the same figures. The Thompson example's opening line and the second Summary takeaway are now full sentences, and the third takeaway states that the UCB1 bound grows more slowly than the other two. The lab slide now says the lab averages the regret over 30 games and compares how fast it grows with the bounds, after the lab's revision the same day.
+
+**Revised October 26, 2026** after mid-semester feedback. Three Discuss slides carry the lecture's new discussion prompts, and the applications table gained a reaction-conditions row (Wang et al., 2024) to match the lecture; the table is set one size smaller so the five rows fit.
 
 The style files and Cornell seal are copied unchanged from L10a (identical to L9c and L9a, which match the approved L6a deck). The deck keeps their 16:9 format, typography, palette, title page, and footer. Text, equations, and tables are editable in the LaTeX source.
 
@@ -31,17 +33,17 @@ Requirements: XeLaTeX and `latexmk`. The style uses Helvetica Neue when availabl
 | Slides | Lecture material |
 |---|---|
 | 1–2 | Title and three learning objectives |
-| 3 | Exploration versus exploitation |
-| 4–5 | The bandit arms figure; the applications table with one source per row |
-| 6–7 | The stochastic bandit model and its assumptions; the regret $R(T)$, the cumulative gap loss $G(T)$, and $\mathbb E[R(T)]=\mathbb E[G(T)]$ |
-| 8–9 | The explore-first algorithm; its regret bound, with "of order" and big-O defined |
-| 10 | The epsilon-greedy algorithm with the capped $\epsilon_t$ |
-| 11–13 | Optimism under uncertainty and the confidence radius; the UCB1 algorithm and its regret bound; the two-arm worked example and figure |
-| 14 | Comparing the three regret bounds, with the epsilon-greedy theorem and the Slivkins theorem numbers |
-| 15–16 | The binary Bernoulli bandit and the Beta prior and posterior; epsilon-greedy for Bernoulli rewards |
-| 17–18 | The Thompson sampling algorithm, the Russo et al. (2020) comparison, and its 1933 origin; the worked example and its posterior figure |
-| 19 | Lab: bandit algorithms |
-| 20 | Summary with three key takeaways |
+| 3–4 | Exploration versus exploitation; Discuss: trying something new versus returning to a favorite |
+| 5–6 | The bandit arms figure; the applications table with one source per row, including reaction conditions |
+| 7–8 | The stochastic bandit model and its assumptions; the regret $R(T)$, the cumulative gap loss $G(T)$, and $\mathbb E[R(T)]=\mathbb E[G(T)]$ |
+| 9–10 | The explore-first algorithm; its regret bound, with "of order" and big-O defined |
+| 11 | The epsilon-greedy algorithm with the capped $\epsilon_t$ |
+| 12–14 | Optimism under uncertainty and the confidence radius; the UCB1 algorithm and its regret bound; the two-arm worked example and figure |
+| 15–16 | Comparing the three regret bounds, with the epsilon-greedy theorem and the Slivkins theorem numbers; Discuss: when explore-first is the better choice |
+| 17–18 | The binary Bernoulli bandit and the Beta prior and posterior; epsilon-greedy for Bernoulli rewards |
+| 19–21 | The Thompson sampling algorithm, the Russo et al. (2020) comparison, and its 1933 origin; the worked example and its posterior figure; Discuss: what the posteriors tell us about reaction conditions |
+| 22 | Lab: bandit algorithms |
+| 23 | Summary with three key takeaways |
 
 ## Sources and scope
 
@@ -53,5 +55,5 @@ Source notebook snapshots (SHA-256):
 
 | Notebook | SHA-256 |
 |---|---|
-| CHEME-5800-L10c-Lecture-StochasticMultiarmBandits-Fall-2026.ipynb | `ff5db7840fe1e85bc94052b8a4387fe282299c1622ee2fc9e4b64ca0af96ef59` |
-| CHEME-5800-L10d-Lab-BanditAlgorithms-Fall-2026.ipynb | `27ae78402068c1cc1abd34cae3eb72eaba426cf5ed11aa92d1bb87975d1a7a6d` |
+| CHEME-5800-L10c-Lecture-StochasticMultiarmBandits-Fall-2026.ipynb | `26b1b7b34c5f628344c62b0e2e90ef0555971cc720f0937cdc55a72e7881091e` |
+| CHEME-5800-L10d-Lab-BanditAlgorithms-Fall-2026.ipynb | `66960d07c1caf5d2fd15c33839322799850e8898284910fb01b57d1589d68c46` |

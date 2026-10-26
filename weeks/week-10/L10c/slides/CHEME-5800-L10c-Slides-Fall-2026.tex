@@ -71,6 +71,13 @@
   \lecturesource{Exploration vs. Exploitation: opening paragraph, the two numbered items, and the closing paragraph.}
 \end{frame}
 
+\begin{frame}{Discuss}
+  \vfill
+  {\large Think of a choice you make again and again, such as where to eat lunch. How do you decide when to try something new and when to go back to your favorite?}
+  \vfill
+  \lecturesource{Exploration vs. Exploitation: Discuss prompt.}
+\end{frame}
+
 \begin{frame}{What Is a Bandit Problem?}
   An agent repeatedly chooses among $K$ options, called \hilite{arms}, and
   receives a reward from the arm it pulls.
@@ -91,29 +98,31 @@
 \begin{frame}{Bandit Problems in Practice}
   Each system tries one option at a time and sees only that option's outcome:
 
-  \vspace{0.4em}
+  \vspace{0.1em}
   \centering
-  {\small\setlength{\tabcolsep}{4pt}%
+  {\footnotesize\setlength{\tabcolsep}{4pt}%
   \begin{tabular}{>{\raggedright\arraybackslash}p{0.22\textwidth}>{\raggedright\arraybackslash}p{0.21\textwidth}>{\raggedright\arraybackslash}p{0.24\textwidth}>{\raggedright\arraybackslash}p{0.24\textwidth}}
     \toprule
     \textbf{Application} & \textbf{Arms} & \textbf{Reward of one pull} & \textbf{Cost of exploring}\\
     \midrule
     Clinical trials\newline{\scriptsize\href{https://pmc.ncbi.nlm.nih.gov/articles/PMC4856206/}{Villar et al., 2015}} & treatments given to patients & 1 if the treatment works, 0 if not & some patients get a less effective treatment\\
-    \addlinespace[2pt]
+    \addlinespace[3pt]
     News recommendation\newline{\scriptsize\href{https://arxiv.org/abs/1003.0146}{Li et al., 2010}} & articles for the Yahoo!\ front page & 1 if the visitor clicks, 0 if not & some visitors see a less popular article\\
-    \addlinespace[2pt]
+    \addlinespace[3pt]
     Network routing\newline{\scriptsize\href{https://arxiv.org/abs/1309.7367}{Talebi et al., 2018}} & paths through a computer network & time for the data to arrive & some data take a slower path\\
-    \addlinespace[2pt]
+    \addlinespace[3pt]
     Online pricing\newline{\scriptsize\href{https://doi.org/10.1287/mksc.2018.1129}{Misra et al., 2019}} & candidate prices for a product & profit on the sale, 0 if no sale & some customers see a less profitable price\\
+    \addlinespace[3pt]
+    Reaction conditions\newline{\scriptsize\href{https://doi.org/10.1038/s41586-024-07021-y}{Wang et al., 2024}} & catalyst, solvent, and base choices & yield of the reaction, from 0 to 1 & some runs use poor conditions\\
     \bottomrule
   \end{tabular}}
 
-  \vspace{0.4em}
+  \vspace{0.2em}
   \raggedright
   Delay and profit are rescaled to $[0,1]$, with faster or more profitable
   closer to 1.
   \lecturesource{What Is a Bandit Problem?: applications table and the rescaling sentence.
-    The lead sentence and the table's cells are shortened from the lecture's.}
+    The lead sentence and the table's cells are shortened from the lecture's; the reaction-conditions row was added October 26, 2026.}
 \end{frame}
 
 \begin{frame}{Stochastic Bandit Model}
@@ -320,6 +329,13 @@
   \lecturesource{Comparing the Regret Bounds: table and closing paragraph; the epsilon-greedy Theorem from Epsilon-Greedy Exploration.}
 \end{frame}
 
+\begin{frame}{Discuss}
+  \vfill
+  {\large UCB1 has the strongest guarantee, yet explore-first is still common in practice. When might it be the better choice, for example when each pull is a slow experiment that we must plan in advance?}
+  \vfill
+  \lecturesource{Comparing the Regret Bounds: Discuss prompt.}
+\end{frame}
+
 \begin{frame}{Binary Bernoulli Bandit Problem}
   Each reward is binary, $r_t\in\{0,1\}$: arm $a$ pays 1 with an unknown
   probability $\theta_a$, so $r\sim\texttt{Bern}(\theta_a)$ and
@@ -401,6 +417,13 @@
   so it is pulled; a success makes its posterior $\BetaDist(2,2)$, mean $1/2$.
   \lecturesource{Thompson Sampling Binary Bernoulli Bandit: the Worked Example.
     Figure: ../figs/Fig-Thompson-Example (TikZ, light PDF); drawn for the deck.}
+\end{frame}
+
+\begin{frame}{Discuss}
+  \vfill
+  {\large Suppose each arm is a set of reaction conditions and each pull is one experiment, a success if the yield clears a target. After a few weeks of experiments, what do the posteriors tell us that the success counts alone do not?}
+  \vfill
+  \lecturesource{Thompson Sampling Binary Bernoulli Bandit: Discuss prompt after the worked example.}
 \end{frame}
 
 \begin{frame}{Lab: Bandit Algorithms}
