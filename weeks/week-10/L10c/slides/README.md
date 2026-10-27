@@ -58,5 +58,5 @@ Source notebook snapshots (SHA-256):
 | Notebook | SHA-256 |
 |---|---|
 | CHEME-5800-L10c-Lecture-StochasticMultiarmBandits-Fall-2026.ipynb | `26e0a768b0faef3a42c33239691daa9642751eeafe3e34d37d7404216e1246d8` |
-| CHEME-5800-L10c-Example-UCB1StepByStep-Fall-2026.ipynb | `49a2814ba81e6e604606ab193aa6967842e6082d178c946d74963beacf8325c7` |
+| CHEME-5800-L10c-Example-UCB1StepByStep-Fall-2026.ipynb | `a5e6de8f302eb5eca208f4141cccf65c50d982c5cf848a171b7be496b1b7c43d` |
 | CHEME-5800-L10d-Lab-BanditAlgorithms-Fall-2026.ipynb | `66960d07c1caf5d2fd15c33839322799850e8898284910fb01b57d1589d68c46` |
