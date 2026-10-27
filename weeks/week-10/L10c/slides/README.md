@@ -12,7 +12,7 @@ A second pass the same day added a posterior figure to the Thompson sampling wor
 
 **Revised October 26, 2026** after mid-semester feedback. Three Discuss slides carry the lecture's new discussion prompts, and the applications table gained a reaction-conditions row (Wang et al., 2024) to match the lecture; the table is set one size smaller so the five rows fit.
 
-**Revised October 27, 2026** for the new [UCB1 example](../CHEME-5800-L10c-Example-UCB1StepByStep-Fall-2026.ipynb). A Lecture and Example slide follows the objectives, a Discuss slide carries the lecture's new prompt at the end of the regret section, and an example slide follows the UCB1 worked example, where the lecture stops for the example. Later the same day, the instructor asked for the slides to follow the lecture's order and to hold 60 to 80 words each. The Bernoulli slide was split in three to match the lecture: the Bernoulli model, then a new slide on zero-one rewards (the indicator reward, why rewards are 0 and 1 rather than $\pm1$, and the sample mean as the fraction of successes), then the Beta prior and posterior. The applications table now spans two slides, with shorter cells, and every slide above 80 words was tightened. Discuss slides and the figure slides stay shorter.
+**Revised October 27, 2026** for the new [UCB1 example](../CHEME-5800-L10c-Example-UCB1StepByStep-Fall-2026.ipynb). A Lecture and Example slide follows the objectives, a Discuss slide carries the lecture's new prompt at the end of the regret section, and an example slide follows the UCB1 worked example, where the lecture stops for the example. Later the same day, the instructor asked for the slides to follow the lecture's order and to hold 60 to 80 words each. The Bernoulli slide was split in three to match the lecture: the Bernoulli model, then a new slide on zero-one rewards (the indicator reward, why rewards are 0 and 1 rather than $\pm1$, and the sample mean as the fraction of successes), then the Beta prior and posterior. The applications table now spans two slides, with shorter cells, and every slide above 80 words was tightened. Discuss slides and the figure slides stay shorter. A final pass that day matched the lecture's edits: the rescaling line says arrival time rather than delay, both Discuss prompts were revised (the explore-first prompt lost its hint; the Thompson prompt asks which arms to keep testing), the lab slide no longer states the arm or game counts, the second takeaway names the four rules' ways of exploring, and the Summary closes on bandit feedback rather than Markov decision processes. A final clarity pass rewrote the explore-first bound slide in plain words, writing each bound as one big-O expression (the same bound, with the exponents inside the big-O) and defining big-O once; the same pass clarified the bandit arms caption, the rescaling line, the explore-first max and min, the confidence radius, the UCB1 example caption, the comparison paragraph, and the zero-one coding bullet, and the lecture received the same edits.
 
 The style files and Cornell seal are copied unchanged from L10a (identical to L9c and L9a, which match the approved L6a deck). The deck keeps their 16:9 format, typography, palette, title page, and footer. Text, equations, and tables are editable in the LaTeX source.
 
@@ -36,14 +36,14 @@ Requirements: XeLaTeX and `latexmk`. The style uses Helvetica Neue when availabl
 |---|---|
 | 1–3 | Title, three learning objectives, and the lecture and example |
 | 4–5 | Exploration versus exploitation; Discuss: trying something new versus returning to a favorite |
-| 6–8 | The bandit arms figure; the applications table, split over two slides, with one source per row, including reaction conditions, and the rescaling of delay and profit |
+| 6–8 | The bandit arms figure; the applications table, split over two slides, with one source per row, including reaction conditions, and the rescaling of arrival time and profit |
 | 9–11 | The stochastic bandit model and its assumptions; the regret $R(T)$, the cumulative gap loss $G(T)$, and $\mathbb E[R(T)]=\mathbb E[G(T)]$; Discuss: what else to know when two algorithms both find the best arm |
-| 12–13 | The explore-first algorithm; its regret bound, with "of order" and big-O defined |
+| 12–13 | The explore-first algorithm; its regret bound, with big-O defined |
 | 14 | The epsilon-greedy algorithm with the capped $\epsilon_t$ |
 | 15–18 | Optimism under uncertainty and the confidence radius; the UCB1 algorithm and its regret bound; the two-arm worked example and figure; Example: step through UCB1 |
 | 19–20 | Comparing the three regret bounds, with the Slivkins theorem numbers; Discuss: when explore-first is the better choice |
 | 21–24 | The binary Bernoulli bandit and the Bernoulli distribution; zero-one rewards as an indicator, and the sample mean as the fraction of successes; the Beta prior and posterior; epsilon-greedy for Bernoulli rewards |
-| 25–27 | The Thompson sampling algorithm, the Russo et al. (2020) comparison, and its 1933 origin; the worked example and its posterior figure; Discuss: what the posteriors tell us about reaction conditions |
+| 25–27 | The Thompson sampling algorithm, the Russo et al. (2020) comparison, and its 1933 origin; the worked example and its posterior figure; Discuss: which reaction conditions to keep testing, and how the posteriors help decide |
 | 28 | Lab: bandit algorithms |
 | 29 | Summary with three key takeaways |
 
@@ -57,6 +57,6 @@ Source notebook snapshots (SHA-256):
 
 | Notebook | SHA-256 |
 |---|---|
-| CHEME-5800-L10c-Lecture-StochasticMultiarmBandits-Fall-2026.ipynb | `329c2a576d517fe4c39931260983908cacb3a9720da307e0cc8265280f327e49` |
+| CHEME-5800-L10c-Lecture-StochasticMultiarmBandits-Fall-2026.ipynb | `26e0a768b0faef3a42c33239691daa9642751eeafe3e34d37d7404216e1246d8` |
 | CHEME-5800-L10c-Example-UCB1StepByStep-Fall-2026.ipynb | `49a2814ba81e6e604606ab193aa6967842e6082d178c946d74963beacf8325c7` |
 | CHEME-5800-L10d-Lab-BanditAlgorithms-Fall-2026.ipynb | `66960d07c1caf5d2fd15c33839322799850e8898284910fb01b57d1589d68c46` |

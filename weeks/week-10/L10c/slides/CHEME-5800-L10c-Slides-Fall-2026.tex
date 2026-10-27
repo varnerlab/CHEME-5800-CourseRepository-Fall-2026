@@ -98,13 +98,13 @@
 
   \vspace{0.2em}
   \centering
-  \includegraphics[width=\textwidth,height=0.52\paperheight,keepaspectratio]{assets/Fig-Bandit-Arms.pdf}
+  \includegraphics[width=\textwidth,height=0.49\paperheight,keepaspectratio]{assets/Fig-Bandit-Arms.pdf}
 
   \vspace{0.2em}
   \raggedright
-  \hilite{Only the pulled arm reports a reward.} In round $t$, arm $a_t$ yields
-  reward $r_t$; $\mu^\star$ is the largest of the unseen means $\mu(a)$, and
-  $\Delta(1)$ is arm 1's gap below it.
+  \hilite{Only the pulled arm reports a reward.} In round $t$, the agent pulls
+  arm $a_t$ and sees one reward $r_t$. The means $\mu(a)$ are hidden; $\mu^\star$
+  is the largest, and $\Delta(1)$ is how far arm 1 falls below it.
   \lecturesource{What Is a Bandit Problem?: definition, figure, and caption.
     Figure: ../figs/Fig-Bandit-Arms (TikZ, light PDF).}
 \end{frame}
@@ -148,8 +148,8 @@
 
   \vspace{0.6em}
   \raggedright
-  Delay and profit are not rewards between 0 and 1, so we rescale them to
-  $[0,1]$, with faster or more profitable closer to 1.
+  Arrival time and profit do not lie between 0 and 1, so we rescale them to
+  $[0,1]$, with a faster arrival or a higher profit closer to 1.
   \lecturesource{What Is a Bandit Problem?: applications table, last two rows, and the rescaling sentence.
     The reaction-conditions row was added October 26, 2026.}
 \end{frame}
@@ -224,26 +224,26 @@
   \end{enumerate}
 
   \vspace{0.3em}
-  The $\max$ pulls each arm at least once; the $\min$ fits exploring into
-  $T$ rounds.
+  The $\max$ makes sure each arm is pulled at least once; the $\min$ keeps
+  the exploration within $T$ rounds.
   \lecturesource{Explore-First Exploration: description and Explore-First Algorithm. Preserve the Initialize/For/numbered-step format.}
 \end{frame}
 
 \begin{frame}{Explore-First: Regret Bound}
-  With $N$ of order $(T/K)^{2/3}(\log T)^{1/3}$, explore-first achieves
+  With this choice of $N$, explore-first achieves
   \href{\slivkinslink}{(Slivkins, Theorem 1.5)}:
   \[
-    \boxed{\mathbb E[R(T)]\le T^{2/3}\cdot\mathcal O(K\log T)^{1/3}}
+    \boxed{\mathbb E[R(T)]\le\mathcal O\left(T^{2/3}(K\log T)^{1/3}\right)}
   \]
-  This $N$ balances the cost of
-  exploring against the cost of committing to a poorly estimated arm.
+  Here, $\mathcal O(x)$ means at most a constant times $x$, and the constant
+  does not depend on $T$ or $K$.
 
   \vspace{0.8em}
   \begin{itemize}\setlength{\itemsep}{0.5em}
-    \item \hilite{Of order $x$}: a constant multiple of $x$.
-    \item \hilite{Big-O}, $\mathcal O(x)$: at most a constant multiple of $x$.
+    \item Too few exploration pulls, and we may commit to the wrong arm.
+    \item Too many, and we waste pulls on poor arms.
   \end{itemize}
-  Neither constant depends on $T$ or $K$.
+  This $N$ balances the two costs.
   \lecturesource{Explore-First Exploration: Theorem, the balance sentence, and the order and big-O paragraph.}
 \end{frame}
 
@@ -279,8 +279,8 @@
 
   \vspace{0.5em}
   The \hilite{upper confidence bound} of arm $a$ at round $t$ is
-  $\mub(a)+U(a,t)$. The \hilite{confidence radius} allows for how uncertain
-  the sample mean still is:
+  $\mub(a)+U(a,t)$. The \hilite{confidence radius} is an uncertainty bonus
+  that is large when arm $a$ has few pulls:
   \[
     U(a,t)=\sqrt{\frac{2\log t}{N_a}},
   \]
@@ -321,13 +321,13 @@
 
   \vspace{0.2em}
   \centering
-  \includegraphics[width=\textwidth,height=0.5\paperheight,keepaspectratio]{assets/Fig-UCB-Example.pdf}
+  \includegraphics[width=\textwidth,height=0.47\paperheight,keepaspectratio]{assets/Fig-UCB-Example.pdf}
 
   \vspace{0.2em}
   \raggedright
-  \hilite{One observation leaves more uncertainty than four.} UCB1 pulls arm 2,
-  whose bound $1.893$ beats arm 1's $1.697$, even above the largest possible
-  reward of 1.
+  \hilite{One observation leaves more uncertainty than four.} UCB1 pulls arm 2:
+  its bound, $1.893$, beats arm 1's $1.697$. A bound can exceed 1, the largest
+  possible reward, because the bonus is large when an arm has few pulls.
   \lecturesource{Optimism Under Uncertainty: Worked Example, figure, and caption.
     Figure: ../figs/Fig-UCB-Example (TikZ, light PDF).}
 \end{frame}
@@ -357,9 +357,9 @@
     \toprule
     \textbf{Algorithm} & \textbf{How it explores} & \textbf{Expected-regret bound}\\
     \midrule
-    Explore-first & pulls every arm $N$ times, then commits & $T^{2/3}\cdot\mathcal O(K\log T)^{1/3}$\\
+    Explore-first & pulls every arm $N$ times, then commits & $\mathcal O\left(T^{2/3}(K\log T)^{1/3}\right)$\\
     \addlinespace
-    Epsilon-greedy & pulls a random arm with a shrinking probability $\epsilon_t$ & $T^{2/3}\cdot\mathcal O(K\log T)^{1/3}$\\
+    Epsilon-greedy & pulls a random arm with a shrinking probability $\epsilon_t$ & $\mathcal O\left(T^{2/3}(K\log T)^{1/3}\right)$\\
     \addlinespace
     UCB1 & pulls the arm with the largest upper confidence bound & $\mathcal O\left(\sqrt{KT\log T}\right)$\\
     \bottomrule
@@ -367,9 +367,9 @@
 
   \vspace{0.5em}
   \raggedright
-  All three grow more slowly than $T$, so the regret per round shrinks toward
-  zero. The UCB1 bound grows with about $\sqrt T$ rather than $T^{2/3}$, the
-  strongest guarantee of the three.
+  All three bounds grow more slowly than $T$, so the regret per round shrinks
+  toward zero. The UCB1 bound grows roughly like $\sqrt T$, more slowly than
+  $T^{2/3}$, so UCB1 has the strongest guarantee of the three.
 
   \vspace{0.3em}
   {\small Bounds: \href{\slivkinslink}{Slivkins}, Theorems 1.5, 1.6, and 1.15.}
@@ -378,7 +378,7 @@
 
 \begin{frame}{Discuss}
   \vfill
-  {\large UCB1 has the strongest guarantee, yet explore-first is still common in practice. When might it be the better choice, for example when each pull is a slow experiment that we must plan in advance?}
+  {\large UCB1 has the strongest guarantee, yet explore-first is still common in practice. When might it be the better choice?}
   \vfill
   \lecturesource{Comparing the Regret Bounds: Discuss prompt.}
 \end{frame}
@@ -407,8 +407,8 @@
 
   \vspace{0.6em}
   \begin{itemize}\setlength{\itemsep}{0.6em}
-    \item Unlike class labels, which we code as $\pm1$, rewards are added up,
-      so a success is 1 and a failure is 0.
+    \item With this coding, rather than the $\pm1$ we used for class labels,
+      the sum of the rewards counts the successes.
     \item After $n$ pulls of arm $a$, the sample mean is the fraction of
       successes, and it approaches $\theta_a$ as $n$ grows:
   \end{itemize}
@@ -496,7 +496,7 @@
 
 \begin{frame}{Discuss}
   \vfill
-  {\large Suppose each arm is a set of reaction conditions and each pull is one experiment, a success if the yield clears a target. After a few weeks of experiments, what do the posteriors tell us that the success counts alone do not?}
+  {\large Suppose each arm is a set of reaction conditions and each pull is one experiment, a success if the yield clears a target. After a few weeks of experiments, which arms would you keep testing, and how do the posteriors help you decide?}
   \vfill
   \lecturesource{Thompson Sampling Binary Bernoulli Bandit: Discuss prompt after the worked example.}
 \end{frame}
@@ -507,7 +507,7 @@
   \vspace{0.6em}
   \begin{itemize}\setlength{\itemsep}{0.6em}
     \item we run \hilite{explore-first}, \hilite{epsilon-greedy}, and
-      \hilite{UCB1} on a bandit with seven arms, average their regret over 30
+      \hilite{UCB1} on a bandit with several arms, average their regret over many
       games, and compare how fast it grows with the bounds,
     \item we implement \hilite{Thompson sampling} for a binary Bernoulli bandit
       and watch the posterior of the best arm concentrate around its true
@@ -527,15 +527,15 @@
   \begin{itemize}\setlength{\itemsep}{0.6em}
     \item \textbf{\ink{Exploration and exploitation.}} Too little exploration can
       lock an agent onto an arm that only looked good by chance.
-    \item \textbf{\ink{Bandit algorithms.}} They explore up front, at random,
-      optimistically, or by sampling.
+    \item \textbf{\ink{Bandit algorithms.}} The four rules explore on a fixed
+      schedule, at random, with an optimism bonus, or by sampling.
     \item \textbf{\ink{Regret bounds.}} The UCB1 bound grows like
       $\sqrt T$, more slowly than the $T^{2/3}$ bounds of the other two.
   \end{itemize}
 
   \vspace{0.5em}
-  When actions also change the environment's state, we use a Markov
-  decision process.
+  Every algorithm learns from bandit feedback: the agent sees the reward of
+  the arm it pulls and nothing about the others.
   \lecturesource{Summary: three key takeaways and concluding sentence.}
 \end{frame}
 
