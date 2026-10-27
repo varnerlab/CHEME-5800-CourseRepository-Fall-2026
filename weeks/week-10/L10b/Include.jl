@@ -47,7 +47,7 @@ end
 # every run, with no guard, so re-running the setup cell picks up the student's
 # edits; the notebook calls it by qualified name
 # (`L10bWMA.my_weighted_majority(...)`) for the same reason.
-include(joinpath(CHEME5800_L10B_ROOT, "src", "Compute-solution.jl"))
+include(joinpath(CHEME5800_L10B_ROOT, "src", "Compute.jl"))
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
