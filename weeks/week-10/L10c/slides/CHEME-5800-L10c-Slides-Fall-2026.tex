@@ -15,6 +15,7 @@
 \renewcommand{\vnlecturecode}{L10c}
 \newcommand{\lecturelink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-10/L10c/CHEME-5800-L10c-Lecture-StochasticMultiarmBandits-Fall-2026.ipynb}
 \newcommand{\lablink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-10/L10d/CHEME-5800-L10d-Lab-BanditAlgorithms-Fall-2026.ipynb}
+\newcommand{\examplelink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-10/L10c/CHEME-5800-L10c-Example-UCB1StepByStep-Fall-2026.ipynb}
 \newcommand{\slivkinslink}{https://arxiv.org/abs/1904.07272}
 \newcommand{\lecturesource}[1]{\note{[Sources]\par
   \href{\lecturelink}{L10c lecture: Stochastic Multi-Armed Bandit Problems.}\par
@@ -39,35 +40,48 @@
   {\large\textbf{\ink{Today's concepts}}}
   \vspace{0.2em}
   \begin{itemize}\setlength{\itemsep}{0.4em}
-    \item \hilite{Balance exploration and exploitation}: choose between trying
-      actions to learn about them and taking the action that looks best so far,
-      and see why an agent needs both.
+    \item \hilite{Balance exploration and exploitation}: trying actions to learn
+      about them versus taking the action that looks best so far.
     \item \hilite{Solve multi-armed bandit problems}: choose the next arm with
-      the explore-first, epsilon-greedy, UCB1, and Thompson sampling
-      algorithms.
-    \item \hilite{Compare bandit algorithms with regret}: define the regret of
-      a bandit algorithm and compare the expected-regret bounds of
-      explore-first, epsilon-greedy, and UCB1.
+      explore-first, epsilon-greedy, UCB1, and Thompson sampling.
+    \item \hilite{Compare bandit algorithms with regret}: define regret and
+      compare the bounds of explore-first, epsilon-greedy, and UCB1.
   \end{itemize}
   \slidenote{Lecture:}{\href{\lecturelink}{Stochastic Multi-Armed Bandit Problems}}
   \lecturesource{Introduction and three Learning Objectives.}
 \end{frame}
 
+\begin{frame}{Lecture and Example}
+  \textbf{\ink{Lecture:}}
+  \href{\lecturelink}{Stochastic Multi-Armed Bandit Problems}
+
+  In this lecture, we define the bandit problem and its regret, and work
+  through four algorithms for choosing the next arm.
+
+  \vspace{1.1em}
+  \textbf{\ink{Example:}}
+  \href{\examplelink}{Step Through the UCB1 Algorithm One Round at a Time}
+
+  In this example, three sets of reaction conditions are the arms of a bandit.
+  We play the first rounds of UCB1 by hand and predict each pull before we
+  compute it.
+  \lecturesource{Introduction and Examples.}
+\end{frame}
+
 \begin{frame}{Exploration vs. Exploitation}
-  An agent chooses an action, receives a reward, and uses that observation to
-  decide what to try next. Its goal is to collect as much reward as possible.
+  An agent chooses an action, receives a reward, and uses it to decide what to
+  try next, aiming to collect as much reward as possible.
 
   \vspace{0.6em}
   \begin{itemize}\setlength{\itemsep}{0.7em}
-    \item \hilite{Exploration}: try actions that have not been tried often, to
-      learn about their rewards.
+    \item \hilite{Exploration}: try less-tried actions to learn their rewards.
     \item \hilite{Exploitation}: take the action that looks best so far. An
       agent that only exploits never tries anything new; how boring!
   \end{itemize}
 
   \vspace{0.8em}
   Explore too much, and we give up reward now. Exploit too much, and we may
-  write off an action whose low observed reward was simply bad luck.
+  write off an action that was just unlucky.
   \lecturesource{Exploration vs. Exploitation: opening paragraph, the two numbered items, and the closing paragraph.}
 \end{frame}
 
@@ -96,7 +110,7 @@
 \end{frame}
 
 \begin{frame}{Bandit Problems in Practice}
-  Each system tries one option at a time and sees only that option's outcome:
+  Each system tries one option at a time and sees only its outcome:
 
   \vspace{0.1em}
   \centering
@@ -105,44 +119,58 @@
     \toprule
     \textbf{Application} & \textbf{Arms} & \textbf{Reward of one pull} & \textbf{Cost of exploring}\\
     \midrule
-    Clinical trials\newline{\scriptsize\href{https://pmc.ncbi.nlm.nih.gov/articles/PMC4856206/}{Villar et al., 2015}} & treatments given to patients & 1 if the treatment works, 0 if not & some patients get a less effective treatment\\
+    Clinical trials\newline{\scriptsize\href{https://pmc.ncbi.nlm.nih.gov/articles/PMC4856206/}{Villar et al., 2015}} & treatments & 1 if it works, 0 if not & some patients get a worse treatment\\
     \addlinespace[3pt]
-    News recommendation\newline{\scriptsize\href{https://arxiv.org/abs/1003.0146}{Li et al., 2010}} & articles for the Yahoo!\ front page & 1 if the visitor clicks, 0 if not & some visitors see a less popular article\\
+    News recommendation\newline{\scriptsize\href{https://arxiv.org/abs/1003.0146}{Li et al., 2010}} & front-page articles & 1 if clicked, 0 if not & some visitors see a less popular article\\
     \addlinespace[3pt]
-    Network routing\newline{\scriptsize\href{https://arxiv.org/abs/1309.7367}{Talebi et al., 2018}} & paths through a computer network & time for the data to arrive & some data take a slower path\\
+    Network routing\newline{\scriptsize\href{https://arxiv.org/abs/1309.7367}{Talebi et al., 2018}} & network paths & data arrival time & some data take a slower path\\
+    \bottomrule
+  \end{tabular}}
+  \lecturesource{What Is a Bandit Problem?: applications table, first three rows.
+    The lead sentence and the table's cells are shortened from the lecture's.}
+\end{frame}
+
+\begin{frame}{Bandit Problems in Practice (continued)}
+  Every exploratory pull has a real cost:
+
+  \vspace{0.1em}
+  \centering
+  {\footnotesize\setlength{\tabcolsep}{4pt}%
+  \begin{tabular}{>{\raggedright\arraybackslash}p{0.22\textwidth}>{\raggedright\arraybackslash}p{0.21\textwidth}>{\raggedright\arraybackslash}p{0.24\textwidth}>{\raggedright\arraybackslash}p{0.24\textwidth}}
+    \toprule
+    \textbf{Application} & \textbf{Arms} & \textbf{Reward of one pull} & \textbf{Cost of exploring}\\
+    \midrule
+    Online pricing\newline{\scriptsize\href{https://doi.org/10.1287/mksc.2018.1129}{Misra et al., 2019}} & candidate prices & profit, or 0 if no sale & some customers see a worse price\\
     \addlinespace[3pt]
-    Online pricing\newline{\scriptsize\href{https://doi.org/10.1287/mksc.2018.1129}{Misra et al., 2019}} & candidate prices for a product & profit on the sale, 0 if no sale & some customers see a less profitable price\\
-    \addlinespace[3pt]
-    Reaction conditions\newline{\scriptsize\href{https://doi.org/10.1038/s41586-024-07021-y}{Wang et al., 2024}} & catalyst, solvent, and base choices & yield of the reaction, from 0 to 1 & some runs use poor conditions\\
+    Reaction conditions\newline{\scriptsize\href{https://doi.org/10.1038/s41586-024-07021-y}{Wang et al., 2024}} & catalyst, solvent, and base & yield, from 0 to 1 & some runs use poor conditions\\
     \bottomrule
   \end{tabular}}
 
-  \vspace{0.2em}
+  \vspace{0.6em}
   \raggedright
-  Delay and profit are rescaled to $[0,1]$, with faster or more profitable
-  closer to 1.
-  \lecturesource{What Is a Bandit Problem?: applications table and the rescaling sentence.
-    The lead sentence and the table's cells are shortened from the lecture's; the reaction-conditions row was added October 26, 2026.}
+  Delay and profit are not rewards between 0 and 1, so we rescale them to
+  $[0,1]$, with faster or more profitable closer to 1.
+  \lecturesource{What Is a Bandit Problem?: applications table, last two rows, and the rescaling sentence.
+    The reaction-conditions row was added October 26, 2026.}
 \end{frame}
 
 \begin{frame}{Stochastic Bandit Model}
-  The agent has a fixed set of arms $\A$, with $|\A|=K$, and plays for $T$
-  rounds. Arm $a$ draws its rewards from a distribution $\mathcal D_a$ on
-  $[0,1]$, with mean reward $\mu(a)=\mathbb E_{r\sim\mathcal D_a}[r]$.
+  The agent has a fixed set of arms $\A$, with $|\A|=K$, and plays $T$ rounds.
+  Arm $a$ draws rewards from $\mathcal D_a$ on $[0,1]$, with
+  mean reward $\mu(a)=\mathbb E_{r\sim\mathcal D_a}[r]$.
 
   \vspace{0.4em}
   For $t=1,2,\ldots,T$ \textbf{do}:
   \begin{enumerate}\setlength{\itemsep}{0.2em}
-    \item The agent chooses an arm $a_t\in\A$ using its previous actions and
-      observed rewards.
+    \item The agent chooses an arm $a_t$ from its past actions and rewards.
     \item The environment independently draws $r_t\sim\mathcal D_{a_t}$.
     \item The agent receives $r_t$ and updates its estimates.
   \end{enumerate}
 
   \vspace{0.5em}
-  The regret bounds assume independent draws, \hilite{stationary}
-  distributions (they do not change), and rewards between 0 and 1. Maximizing
-  total reward is the same goal as minimizing \hilite{regret}.
+  The bounds assume independent draws, \hilite{stationary} distributions that
+  do not change, and rewards in $[0,1]$. Maximizing total
+  reward means minimizing \hilite{regret}.
   \lecturesource{Stochastic Bandit Model: definition, assumptions, the For loop, and the goal paragraph.}
 \end{frame}
 
@@ -172,26 +200,32 @@
   \lecturesource{Regret: R(T), the gap loss G(T) (pseudo-regret), and the expectation identity.}
 \end{frame}
 
+\begin{frame}{Discuss}
+  \vfill
+  {\large Two algorithms both find the best arm by the end of a game. What else would we want to know before we say they did equally well?}
+  \vfill
+  \lecturesource{Regret: Discuss prompt.}
+\end{frame}
+
 \begin{frame}{Explore-First Algorithm}
   Pull each arm $N$ times (exploration), then pull the arm with the highest
-  sample mean for the rest of the game (exploitation).
+  sample mean (exploitation).
 
   \vspace{0.4em}
-  \textbf{Initialize}: Given $K$ arms and the number of rounds $T\ge K$, choose
+  \textbf{Initialize}: Given $K$ arms and $T\ge K$ rounds, choose
   \[
     N=\min\left\{\left\lfloor\frac{T}{K}\right\rfloor,\;\max\left\{1,\;\operatorname{round}\left[\left(\frac{T}{K}\right)^{2/3}(\log T)^{1/3}\right]\right\}\right\}.
   \]
   \begin{enumerate}\setlength{\itemsep}{0.2em}
     \item For each arm $a\in\A$ \textbf{do}: pull arm $a$ for $N$ rounds and
-      compute its sample mean $\mub(a)$, the average of its $N$ rewards.
-    \item Choose $\hat a\gets\arg\max_{a\in\A}\mub(a)$, breaking ties by the
-      first arm index.
+      compute its sample mean $\mub(a)$.
+    \item Choose $\hat a\gets\arg\max_{a\in\A}\mub(a)$; ties go to the first arm.
     \item For $t=KN+1,\ldots,T$ \textbf{do}: pull arm $\hat a$.
   \end{enumerate}
 
   \vspace{0.3em}
-  Here, $\log$ is the natural logarithm; the $\max$ pulls every arm at least
-  once, and the $\min$ fits the exploration in $T$ rounds.
+  The $\max$ pulls each arm at least once; the $\min$ fits exploring into
+  $T$ rounds.
   \lecturesource{Explore-First Exploration: description and Explore-First Algorithm. Preserve the Initialize/For/numbered-step format.}
 \end{frame}
 
@@ -214,66 +248,63 @@
 \end{frame}
 
 \begin{frame}{Epsilon-Greedy Algorithm}
-  Spread exploration out: pull a random arm with probability $\epsilon_t$,
-  which shrinks over time, and the best arm so far otherwise.
+  Pull a random arm with a shrinking probability $\epsilon_t$, and otherwise
+  the best arm so far.
 
   \vspace{0.3em}
-  \textbf{Initialize}: Given $K$ arms and $T\ge K$ rounds, pull each arm once and
-  call its reward $r_a$; set its pull count $N_a\gets1$ and sample mean
-  $\mub(a)\gets r_a$.
+  \textbf{Initialize}: Given $K$ arms and $T\ge K$ rounds, pull each arm once;
+  set $N_a\gets1$ and $\mub(a)\gets r_a$, its first reward.
 
   \vspace{0.2em}
   For $t=K+1,\ldots,T$ \textbf{do}:
   \begin{enumerate}\setlength{\itemsep}{0.15em}
-    \item Draw $u$ uniformly from $[0,1]$ and compute
+    \item Draw $u\sim\mathcal U[0,1]$ and compute
       $\epsilon_t=\min\left\{1,\left(K\log t/t\right)^{1/3}\right\}$.
     \item Choose the arm $a_t$:
       \begin{itemize}\setlength{\itemsep}{0.1em}
-        \item If $u\le\epsilon_t$ \textbf{then} choose $a_t\in\A$ uniformly at
-          random (exploration).
-        \item Otherwise, $a_t\gets\arg\max_{a\in\A}\mub(a)$, breaking ties by
-          the first arm index (exploitation).
+        \item If $u\le\epsilon_t$ \textbf{then} choose $a_t$ at random
+          (exploration).
+        \item Otherwise, $a_t\gets\arg\max_{a\in\A}\mub(a)$; ties go to the
+          first arm (exploitation).
       \end{itemize}
-    \item Pull arm $a_t$ and receive a reward $r_t$ from the environment.
-    \item Update the pull count $N_{a_t}$ and the sample mean $\mub(a_t)$.
+    \item Pull arm $a_t$ and receive $r_t$.
+    \item Update $N_{a_t}$ and $\mub(a_t)$.
   \end{enumerate}
   \lecturesource{Epsilon-Greedy Exploration: idea and Epsilon-Greedy Algorithm (its Theorem is on the Comparing the Regret Bounds slide). Preserve the Initialize/For/numbered-step format and the If/Otherwise branches.}
 \end{frame}
 
 \begin{frame}{Optimism Under Uncertainty}
-  Assume each arm is as good as it can be given the observations so far, and
-  pull the arm with the best optimistic estimate.
+  Assume each arm is as good as the data so far allow, and pull the arm with
+  the best optimistic estimate.
 
   \vspace{0.5em}
   The \hilite{upper confidence bound} of arm $a$ at round $t$ is
-  $\mub(a)+U(a,t)$, where the \hilite{confidence radius} is an allowance for how
-  uncertain the sample mean still is:
+  $\mub(a)+U(a,t)$. The \hilite{confidence radius} allows for how uncertain
+  the sample mean still is:
   \[
     U(a,t)=\sqrt{\frac{2\log t}{N_a}},
   \]
-  and $N_a$ is the number of times arm $a$ has been pulled before round $t$.
+  where $N_a$ counts the pulls of arm $a$ before round $t$.
 
   \vspace{0.5em}
-  With high probability, the upper confidence bound lies above the true mean
-  $\mu(a)$. This idea leads to the UCB1 algorithm of
-  \href{https://doi.org/10.1023/A:1013689704352}{Auer, Cesa-Bianchi, and Fischer (2002)}.
+  With high probability, the bound lies above the true mean $\mu(a)$. This
+  leads to UCB1 \href{https://doi.org/10.1023/A:1013689704352}{(Auer et al., 2002)}.
   \lecturesource{Optimism Under Uncertainty: opening paragraph and the UCB definition.}
 \end{frame}
 
 \begin{frame}{UCB1 Algorithm}
-  \textbf{Initialize}: Given $K$ arms and $T\ge K$ rounds, pull each arm once and
-  call its reward $r_a$; set its pull count $N_a\gets1$ and sample mean
-  $\mub(a)\gets r_a$.
+  \textbf{Initialize}: Given $K$ arms and $T\ge K$ rounds, pull each arm once;
+  set $N_a\gets1$ and $\mub(a)\gets r_a$, its first reward.
 
   \vspace{0.3em}
   For $t=K+1,\ldots,T$ \textbf{do}:
   \begin{enumerate}\setlength{\itemsep}{0.25em}
     \item Compute the confidence radius $U(a,t)$ for each arm $a\in\A$.
     \item Choose the arm with the largest upper confidence bound,
-      $a_t\gets\arg\max_{a\in\A}\left\{\mub(a)+U(a,t)\right\}$, breaking ties
-      by the first arm index.
-    \item Pull arm $a_t$ and receive a reward $r_t$ from the environment.
-    \item Update the pull count $N_{a_t}$ and the sample mean $\mub(a_t)$.
+      $a_t\gets\arg\max_{a\in\A}\left\{\mub(a)+U(a,t)\right\}$; ties go to the
+      first arm.
+    \item Pull arm $a_t$ and receive a reward $r_t$.
+    \item Update $N_{a_t}$ and $\mub(a_t)$.
   \end{enumerate}
 
   \vspace{0.6em}
@@ -301,6 +332,24 @@
     Figure: ../figs/Fig-UCB-Example (TikZ, light PDF).}
 \end{frame}
 
+\begin{frame}{Example: Step Through UCB1}
+  In this example, three sets of reaction conditions are the arms; an
+  experiment succeeds if the yield clears a target.
+
+  \vspace{0.6em}
+  \begin{enumerate}\setlength{\itemsep}{0.6em}
+    \item Build the arms, and see how a few experiments can rank them in the
+      wrong order.
+    \item Play the first rounds of UCB1 by hand: \hilite{predict each pull},
+      then compute $\mub(a)$, $U(a,t)$, and the bound of every arm.
+    \item Play a full game, check it against the course package, and find
+      which arms cost the most reward.
+  \end{enumerate}
+  \slidenote{Example:}{\href{\examplelink}{Step through the UCB1 algorithm one round at a time}}
+  \lecturesource{Optimism Under Uncertainty: example callout.
+    Companion example: Tasks 1--3.}
+\end{frame}
+
 \begin{frame}{Comparing the Regret Bounds}
   \centering
   {\small\setlength{\tabcolsep}{6pt}%
@@ -308,9 +357,9 @@
     \toprule
     \textbf{Algorithm} & \textbf{How it explores} & \textbf{Expected-regret bound}\\
     \midrule
-    Explore-first & pulls every arm $N$ times, then commits to one arm & $T^{2/3}\cdot\mathcal O(K\log T)^{1/3}$\\
+    Explore-first & pulls every arm $N$ times, then commits & $T^{2/3}\cdot\mathcal O(K\log T)^{1/3}$\\
     \addlinespace
-    Epsilon-greedy & pulls a random arm with probability $\epsilon_t$, which shrinks over time & $T^{2/3}\cdot\mathcal O(K\log T)^{1/3}$\\
+    Epsilon-greedy & pulls a random arm with a shrinking probability $\epsilon_t$ & $T^{2/3}\cdot\mathcal O(K\log T)^{1/3}$\\
     \addlinespace
     UCB1 & pulls the arm with the largest upper confidence bound & $\mathcal O\left(\sqrt{KT\log T}\right)$\\
     \bottomrule
@@ -318,14 +367,12 @@
 
   \vspace{0.5em}
   \raggedright
-  All three grow more slowly than $T$, so the expected regret per round shrinks
-  toward zero as the game gets longer. The UCB1 bound grows with about
-  $\sqrt T$ rather than $T^{2/3}$, the strongest guarantee of the three.
+  All three grow more slowly than $T$, so the regret per round shrinks toward
+  zero. The UCB1 bound grows with about $\sqrt T$ rather than $T^{2/3}$, the
+  strongest guarantee of the three.
 
   \vspace{0.3em}
-  {\small Bounds from \href{\slivkinslink}{Slivkins}, Theorems 1.5, 1.6, and
-  1.15. The epsilon-greedy bound, with the capped $\epsilon_t$, holds at every
-  round $t$.}
+  {\small Bounds: \href{\slivkinslink}{Slivkins}, Theorems 1.5, 1.6, and 1.15.}
   \lecturesource{Comparing the Regret Bounds: table and closing paragraph; the epsilon-greedy Theorem from Epsilon-Greedy Exploration.}
 \end{frame}
 
@@ -337,25 +384,54 @@
 \end{frame}
 
 \begin{frame}{Binary Bernoulli Bandit Problem}
-  Each reward is binary, $r_t\in\{0,1\}$: arm $a$ pays 1 with an unknown
-  probability $\theta_a$, so $r\sim\texttt{Bern}(\theta_a)$ and
-  $\mu(a)=\theta_a$.
-
-  \vspace{0.5em}
-  Ready to get your mind blown? We can represent our uncertainty about each
-  $\theta_a$ with a \hilite{prior}, our belief before any rewards, and update
-  it as rewards arrive:
+  A special case: each reward is binary, $r_t\in\{0,1\}$. Arm $a$ pays 1 with
+  an unknown probability $\theta_a$, so $r\sim\texttt{Bern}(\theta_a)$:
+  \[
+    \texttt{Bern}(r;\theta)=\begin{cases}\theta & \text{if } r=1\\ 1-\theta & \text{if } r=0\end{cases},
+    \qquad \mathbb E[r]=\theta,\quad \text{Var}[r]=\theta(1-\theta).
+  \]
   \begin{itemize}\setlength{\itemsep}{0.4em}
-    \item $\BetaDist(\alpha,\beta)$ describes an unknown probability on $[0,1]$;
-      $\alpha,\beta>0$ set its shape, its mean is $\alpha/(\alpha+\beta)$, and
-      $\BetaDist(1,1)$ is uniform.
+    \item \hilite{Reward model}: the agent knows the form of each reward
+      distribution, but not its success probability.
+    \item \hilite{Binary}: an action can be a complex experiment, as long as
+      its outcome is true or false.
+  \end{itemize}
+  So $\mu(a)=\theta_a$, and the agent must learn which arm has the largest
+  $\theta_a$.
+  \lecturesource{Binary Bernoulli Bandit Problem: the model, the reward-model and binary bullets, and the Bernoulli distribution.}
+\end{frame}
+
+\begin{frame}{From Zeros and Ones to a Probability}
+  The reward of one pull is an \hilite{indicator},
+  $r=\mathbb{1}\{\text{success}\}$: 1 if the action succeeds, 0 if it fails.
+
+  \vspace{0.6em}
+  \begin{itemize}\setlength{\itemsep}{0.6em}
+    \item Unlike class labels, which we code as $\pm1$, rewards are added up,
+      so a success is 1 and a failure is 0.
+    \item After $n$ pulls of arm $a$, the sample mean is the fraction of
+      successes, and it approaches $\theta_a$ as $n$ grows:
+  \end{itemize}
+  \[
+    \mub(a)=\frac{1}{n}\sum_{i=1}^{n}r_i=\frac{\text{number of successes}}{n}\;\longrightarrow\;\theta_a
+  \]
+  \lecturesource{Binary Bernoulli Bandit Problem: From zeros and ones to a probability.}
+\end{frame}
+
+\begin{frame}{A Beta Model of Each Arm}
+  Ready to get your mind blown? Instead of one estimate of each $\theta_a$, we
+  keep a distribution that describes our uncertainty about it:
+  \begin{itemize}\setlength{\itemsep}{0.4em}
+    \item The \hilite{prior} is our belief before any rewards.
+      $\BetaDist(\alpha,\beta)$ describes an unknown probability on $[0,1]$;
+      its mean is $\alpha/(\alpha+\beta)$, and $\BetaDist(1,1)$ is uniform.
     \item After $S$ successes and $F$ failures, the \hilite{posterior}, our
       updated belief, is again a Beta distribution:
   \end{itemize}
   \[
     \boxed{\BetaDist(\alpha,\beta)\;\longrightarrow\;\BetaDist(\alpha+S,\,\beta+F)}
   \]
-  \lecturesource{Binary Bernoulli Bandit Problem: the model, the "Ready to get your mind blown?" paragraph, and the Beta distribution box.}
+  \lecturesource{Binary Bernoulli Bandit Problem: the "Ready to get your mind blown?" paragraph and the Beta distribution box.}
 \end{frame}
 
 \begin{frame}{Epsilon-Greedy for the Bernoulli Bandit}
@@ -390,16 +466,15 @@
       for every arm $a\in\A$.
     \item Choose the arm with the highest sample,
       $a_t\gets\arg\max_{a\in\A}\{p(a)\}$.
-    \item Pull arm $a_t$ and receive $r_t\in\{0,1\}$ from the environment.
+    \item Pull arm $a_t$ and receive $r_t\in\{0,1\}$.
     \item Update $S(a_t)\gets S(a_t)+r_t$ and $F(a_t)\gets F(a_t)+(1-r_t)$.
   \end{enumerate}
 
   \vspace{0.5em}
-  Thompson sampling explores mostly arms that could still be the best, so it
-  often beats epsilon-greedy \href{https://arxiv.org/abs/1707.02038}{(Russo et
-  al., 2020)}. \href{https://doi.org/10.1093/biomet/25.3-4.285}{Thompson
-  (1933)} proposed it for two treatments: give each one with the probability
-  that it is the better one.
+  It explores mostly arms that could still be the best, so it often beats
+  epsilon-greedy \href{https://arxiv.org/abs/1707.02038}{(Russo et al., 2020)}.
+  \href{https://doi.org/10.1093/biomet/25.3-4.285}{Thompson (1933)} proposed
+  it for choosing between two treatments.
   \lecturesource{Thompson Sampling Binary Bernoulli Bandit: Thompson Sampling Algorithm and the paragraph after it. The Thompson (1933) line is from the What Is a Bandit Problem? section.}
 \end{frame}
 
@@ -443,8 +518,8 @@
 \end{frame}
 
 \begin{frame}{Summary}
-  We introduced the stochastic multi-armed bandit problem and four algorithms
-  for balancing exploration and exploitation.
+  We introduced bandit problems and four ways to balance exploration and
+  exploitation.
 
   \vspace{0.5em}
   {\large\textbf{\ink{Key takeaways}}}
@@ -452,15 +527,14 @@
   \begin{itemize}\setlength{\itemsep}{0.6em}
     \item \textbf{\ink{Exploration and exploitation.}} Too little exploration can
       lock an agent onto an arm that only looked good by chance.
-    \item \textbf{\ink{Bandit algorithms.}} The four algorithms explore up front,
-      at random, optimistically, or by sampling from posteriors.
-    \item \textbf{\ink{Regret bounds.}} The UCB1 bound grows with about
-      $\sqrt T$, more slowly than the $T^{2/3}$ bounds of explore-first and
-      epsilon-greedy.
+    \item \textbf{\ink{Bandit algorithms.}} They explore up front, at random,
+      optimistically, or by sampling.
+    \item \textbf{\ink{Regret bounds.}} The UCB1 bound grows like
+      $\sqrt T$, more slowly than the $T^{2/3}$ bounds of the other two.
   \end{itemize}
 
   \vspace{0.5em}
-  When actions also change the state of the environment, we use a Markov
+  When actions also change the environment's state, we use a Markov
   decision process.
   \lecturesource{Summary: three key takeaways and concluding sentence.}
 \end{frame}

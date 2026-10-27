@@ -9,6 +9,7 @@ entry_notebooks = [
   "L10a/CHEME-5800-L10a-Lecture-OnlineLearningAndRegret-Fall-2026.ipynb",
   "L10b/CHEME-5800-L10b-Lab-WeightedMajorityAlgorithm-Fall-2026.ipynb",
   "L10c/CHEME-5800-L10c-Lecture-StochasticMultiarmBandits-Fall-2026.ipynb",
+  "L10c/CHEME-5800-L10c-Example-UCB1StepByStep-Fall-2026.ipynb",
   "L10d/CHEME-5800-L10d-Lab-BanditAlgorithms-Fall-2026.ipynb",
 ]
 supporting_notebooks = []

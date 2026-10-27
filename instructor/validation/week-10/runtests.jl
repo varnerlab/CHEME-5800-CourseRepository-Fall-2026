@@ -187,6 +187,58 @@ end
     @testset "L10c lecture links" begin
         check_lecture_links("L10c", "CHEME-5800-L10c-Lecture-StochasticMultiarmBandits-Fall-2026.ipynb")
     end
+
+    @testset "L10c UCB1 example" begin
+        example = "CHEME-5800-L10c-Example-UCB1StepByStep-Fall-2026.ipynb"
+        path = joinpath(WEEK_ROOT, "L10c", example)
+        notebook = JSON.parsefile(path)
+
+        # Local links resolve inside the week -
+        text = join((join(cell["source"]) for cell in notebook["cells"] if cell["cell_type"] == "markdown"), "\n")
+        targets = [m.captures[1] for m in eachmatch(r"\]\(([^)\s]+)\)", text)]
+        local_targets = filter(t -> !startswith(t, "http") && !startswith(t, "#"), targets)
+        @test length(local_targets) ≥ 2
+        for target in local_targets
+            @test isfile(normpath(joinpath(dirname(path), target)))
+            @test startswith(normpath(joinpath(dirname(path), target)), WEEK_ROOT)
+        end
+
+        # The example ships with outputs, none of them errors -
+        code_cells = [cell for cell in notebook["cells"] if cell["cell_type"] == "code"]
+        @test count(cell -> !isempty(cell["outputs"]), code_cells) ≥ 7
+        @test all(output["output_type"] != "error" for cell in code_cells for output in cell["outputs"])
+
+        # Run the example's cells -
+        workspace = Module(:L10cExampleValidation)
+        Core.eval(workspace, :(include(path::AbstractString) = Base.include(@__MODULE__, path)))
+        for (index, cell) in enumerate(code_cells)
+            Base.include_string(REPL.softscope, workspace, join(cell["source"]),
+                joinpath(dirname(path), "validation-cell-$(index).jl"))
+        end
+        w = workspace
+
+        # The hand-played rounds open the full game, and the full game matches the course package -
+        @test length(w.actions) == w.K + 1 + w.number_of_logged_rounds
+        @test w.game.actions[1:length(w.actions)] == w.actions
+        @test sum(w.pulls) == length(w.actions) && w.totals ≈ [sum(w.rewards[w.actions .== a]) for a in 1:w.K]
+        w.Random.seed!(w.seed)
+        package_game = solve(build(MyUCB1AlgorithmModel, (K = w.K,)), T = w.T, world = w.world, return_history = true)
+        @test package_game.actions == w.game.actions
+
+        # "every radius is the same" after one pull each, so round K + 1 goes to the best-looking first experiment -
+        @test w.actions[w.K + 1] == argmax(w.rewards[1:w.K])
+
+        # The bounds recorded in the full game follow the lecture's formula -
+        t = w.K + 5
+        N = [count(==(a), w.game.actions[1:(t - 1)]) for a in 1:w.K]
+        μ̄ = [sum(w.game.rewards[1:(t - 1)][w.game.actions[1:(t - 1)] .== a]) for a in 1:w.K] ./ N
+        @test w.game.bounds[t, :] ≈ μ̄ .+ sqrt.(2 * log(t) ./ N)
+
+        # "The best arm received most of the pulls", and the second-best arm received more than the worst -
+        order = sortperm(w.θ)
+        @test argmax(w.game.pulls) == argmax(w.θ)
+        @test w.game.pulls[order[2]] > w.game.pulls[order[1]]
+    end
 end
 
 @meeting "L10d" begin
