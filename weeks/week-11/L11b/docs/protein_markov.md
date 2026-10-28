@@ -83,6 +83,40 @@ only the pairs that name the same sequence twice, so one unordered pair can be d
 more than once. A local random-number generator seeded with `seed` makes the estimate
 reproducible.
 
+## `onehot_column`
+
+```julia
+onehot_column(position, residue; alphabet=AMINO_ACIDS) -> Int
+```
+
+Return the column of a one-hot matrix holding `residue` at alignment `position`, inverting
+the layout `onehot_matrix` builds. Use it to read a profile entry or a singular-vector
+loading for one (position, amino acid) pair.
+
+## `residue_indicator`
+
+```julia
+residue_indicator(sequences, position, residue) -> Vector{Float64}
+```
+
+Return the 0/1 column saying which sequences carry `residue` at `position`: one entry per
+sequence, `1.0` where it matches. This is a single column of the one-hot matrix, read off
+the sequences directly.
+
+## `coupling_correlation`
+
+```julia
+coupling_correlation(sequences, first_position, first_residue,
+    second_position, second_residue) -> Float64
+```
+
+Correlate two (position, amino acid) indicator columns across a collection, measuring
+whether two choices along the chain move together. The positions need not be adjacent,
+which is the point: a first-order Markov model ties each position only to the one before
+it, so it cannot reproduce agreement between distant positions. When either column is
+constant, the Pearson correlation is undefined and the function returns `0.0` rather than
+failing.
+
 ## `onehot_matrix`
 
 ```julia

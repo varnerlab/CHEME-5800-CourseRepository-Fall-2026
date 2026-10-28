@@ -23,18 +23,22 @@
 module L11bProteinMarkov
 
 import Random
+using Statistics: cor, std # coupling_correlation compares two indicator columns
 
 export AMINO_ACIDS,
     PositionAwareMarkovModel,
     amino_acid_composition,
     conserved_positions,
+    coupling_correlation,
     fit_position_aware_markov,
     kl_divergence,
     mean_nearest_identity,
+    onehot_column,
     onehot_matrix,
     pairwise_diversity,
     position_frequency,
     read_fasta,
+    residue_indicator,
     sample_sequences,
     scaffold_retention,
     sequence_identity,
@@ -222,6 +226,120 @@ function onehot_matrix(sequences::AbstractVector{<:AbstractString};
         end
     end
     return X
+end
+
+"""
+    onehot_column(position::Integer, residue::Char;
+        alphabet::AbstractVector{Char} = AMINO_ACIDS) -> Int
+
+Return the column of a one-hot matrix holding `residue` at alignment `position`.
+
+This inverts the layout `onehot_matrix` builds: position blocks of `q` columns, one column
+per alphabet symbol inside each block. Use it to read a profile entry or a loading for a
+particular (position, amino acid) pair.
+
+### Arguments
+- `position::Integer`: the alignment position, counted from 1.
+- `residue::Char`: the amino acid, which must be in `alphabet`.
+- `alphabet::AbstractVector{Char}`: the symbols, in the order `onehot_matrix` used.
+
+### Returns
+- `Int`: the column index, `(position - 1)*q + i` for the `i` of `residue`.
+
+### Errors
+Throws an `ArgumentError` if `position` is not positive, or `residue` is outside `alphabet`.
+
+### Example
+```julia
+X = onehot_matrix(alignment);
+profile = vec(mean(X, dims = 1));
+profile[onehot_column(18, 'Y')] # the family frequency of Y at position 18
+```
+"""
+function onehot_column(position::Integer, residue::Char;
+    alphabet::AbstractVector{Char} = AMINO_ACIDS)::Int
+
+    position ≥ 1 || throw(ArgumentError("Alignment positions start at 1."))
+    index = findfirst(==(residue), alphabet)
+    isnothing(index) && throw(ArgumentError("Residue $(residue) is outside the alphabet."))
+    return (position - 1)*length(alphabet) + index
+end
+
+"""
+    residue_indicator(sequences::AbstractVector{<:AbstractString}, position::Integer,
+        residue::Char) -> Vector{Float64}
+
+Return the 0/1 column saying which sequences carry `residue` at `position`.
+
+Entry `k` is `1.0` when `sequences[k]` has `residue` there and `0.0` otherwise. This is one
+column of the one-hot matrix, read directly off the sequences rather than built from the
+whole matrix.
+
+### Arguments
+- `sequences::AbstractVector{<:AbstractString}`: the collection to inspect.
+- `position::Integer`: the alignment position.
+- `residue::Char`: the amino acid to test for.
+
+### Returns
+- `Vector{Float64}`: one entry per sequence, each `0.0` or `1.0`.
+
+### Errors
+Throws an `ArgumentError` for an empty collection, and a `BoundsError` if `position` lies
+outside some sequence.
+"""
+function residue_indicator(sequences::AbstractVector{<:AbstractString}, position::Integer,
+    residue::Char)::Vector{Float64}
+
+    isempty(sequences) && throw(ArgumentError("At least one sequence is required."))
+    all(1 ≤ position ≤ length(sequence) for sequence ∈ sequences) ||
+        throw(BoundsError(first(sequences), position))
+    return [sequence[position] == residue ? 1.0 : 0.0 for sequence ∈ sequences]
+end
+
+"""
+    coupling_correlation(sequences::AbstractVector{<:AbstractString},
+        first_position::Integer, first_residue::Char,
+        second_position::Integer, second_residue::Char) -> Float64
+
+Correlate two (position, amino acid) indicator columns across a collection of sequences.
+
+This measures whether two choices along the chain move together. A positive value says the
+sequences carrying `first_residue` at `first_position` also tend to carry `second_residue`
+at `second_position`; a negative value says they tend not to. The positions need not be
+adjacent, which is the point: a first-order Markov model ties each position only to the one
+before it, so it cannot reproduce a correlation between distant positions.
+
+A constant column has no variation to correlate, which happens when a residue never appears
+at a position or appears in every sequence. The Pearson correlation is undefined there, and
+this function reports `0.0`, meaning no measurable agreement, rather than failing.
+
+### Arguments
+- `sequences::AbstractVector{<:AbstractString}`: the collection to measure.
+- `first_position`, `second_position::Integer`: the two alignment positions.
+- `first_residue`, `second_residue::Char`: the amino acid to test for at each.
+
+### Returns
+- `Float64`: the Pearson correlation in `[-1, 1]`, or `0.0` when either column is constant.
+
+### Errors
+Throws an `ArgumentError` for an empty collection, and a `BoundsError` if a position lies
+outside some sequence.
+
+### Example
+```julia
+coupling_correlation(alignment, 18, 'Y', 28, 'E') # do Y18 and E28 travel together?
+```
+"""
+function coupling_correlation(sequences::AbstractVector{<:AbstractString},
+    first_position::Integer, first_residue::Char,
+    second_position::Integer, second_residue::Char)::Float64
+
+    a = residue_indicator(sequences, first_position, first_residue)
+    b = residue_indicator(sequences, second_position, second_residue)
+
+    # cor(...) divides by the standard deviations, so a constant column would divide by zero -
+    (std(a) == 0 || std(b) == 0) && return 0.0
+    return cor(a, b)
 end
 
 """

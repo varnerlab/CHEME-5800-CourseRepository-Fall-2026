@@ -488,9 +488,12 @@ end
             @test w.outcome == "reached the charging station" && length(w.path) - 1 == 33
             @test w.path[2] == (20, 19) && (5, 19) ∈ w.path && (5, 4) ∈ w.path && w.path[end] == (4, 3)
             @test (20 - 4, 20 - 3) == (16, 17) # "16 squares in x and 17 in y"
+            # follow_policy now lives in src/Utility.jl and takes the world explicitly -
+            walk(policy, square) = w.follow_policy(policy, square, w.world, w.rewards,
+                w.absorbing_state_set; charging_reward = w.charging_reward)
             # a robot that starts in an absorbing state does not move -
-            @test w.follow_policy(w.my_π, (4, 3)) == ([(4, 3)], "is already at the charging station")
-            @test w.follow_policy(w.my_π, (19, 20)) == ([(19, 20)], "is already in a lava pit")
+            @test walk(w.my_π, (4, 3)) == ([(4, 3)], "is already at the charging station")
+            @test walk(w.my_π, (19, 20)) == ([(19, 20)], "is already in a lava pit")
 
             # the γ = 0.05 what-if: 8 sweeps, left along y = 19 to the edge, then back to a visited square -
             long_run_model = MyValueIterationModel(5000)
@@ -498,7 +501,7 @@ end
                 m_try = build(MyMDPProblemModel, (𝒮 = w.𝒮, 𝒜 = w.𝒜, T = w.T, R = w.R, γ = γ_try))
                 s_try = L11dValueIteration.mysolve(long_run_model, m_try, ϵ = w.ϵ)
                 π_try = policy(Q(m_try, s_try.U))
-                return (m_try, s_try, π_try, w.follow_policy(π_try, w.startstate))
+                return (m_try, s_try, π_try, walk(π_try, w.startstate))
             end
             (m_low, s_low, π_low, (path_low, outcome_low)) = run_gamma(0.05)
             @test s_low.converged && s_low.iterations == 8 && outcome_low == "walks in a loop" && length(path_low) - 1 == 20
@@ -515,12 +518,12 @@ end
             # answer sheet: the start squares that reach the station, and the sweeps for γ = 0.5 and 0.99 -
             starts = [w.world.coordinates[s] for s in w.𝒮 if !(w.world.coordinates[s] ∈ w.absorbing_state_set)]
             @test length(starts) == 394
-            @test count(w.follow_policy(π_low, c)[2] == "reached the charging station" for c in starts) == 213
+            @test count(walk(π_low, c)[2] == "reached the charging station" for c in starts) == 213
             for (γ_try, sweeps) in ((0.5, 28), (0.99, 34))
                 (m_try, s_try, π_try, (path_try, outcome_try)) = run_gamma(γ_try)
                 @test s_try.converged && s_try.iterations == sweeps
                 @test outcome_try == "reached the charging station" && length(path_try) - 1 == 33
-                @test count(w.follow_policy(π_try, c)[2] == "reached the charging station" for c in starts) == 394
+                @test count(walk(π_try, c)[2] == "reached the charging station" for c in starts) == 394
             end
         end
     end

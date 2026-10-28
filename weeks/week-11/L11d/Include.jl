@@ -45,6 +45,11 @@ end
 # for the same reason.
 include(joinpath(CHEME5800_L11D_ROOT, "src", "Compute.jl"))
 
+# Supplied helpers, loaded once: walking a policy and drawing the resulting path.
+if !isdefined(@__MODULE__, :L11dUtility)
+    include(joinpath(CHEME5800_L11D_ROOT, "src", "Utility.jl"))
+end
+
 
 # --- 3. IMPORTS --------------------------------------------------------------
 # Everything this meeting brings into scope. One `using` per line so each can
@@ -61,6 +66,9 @@ using Test           # @test / @testset for the checks in the notebook
 #
 # Packages:
 using Plots          # figures
+#
+# This meeting's supplied helpers (section 2):
+using .L11dUtility  # follow_policy and draw_path
 #
 # There is deliberately no `using .L11dValueIteration`. Re-running this file
 # replaces that module, and on Julia 1.12 a second `using` of the replacement

@@ -1,83 +1,184 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="740" height="408" viewBox="0 0 740 408" role="img" aria-labelledby="title desc">
-  <title id="title">Grid world for one Bellman backup</title>
-  <desc id="desc">Coordinates increase rightward and upward. The center at (2,2) is an obstacle. The goal at (3,3) earns ten on entry and zero thereafter. The corner at (3,1) has the available actions up and left.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="620" viewBox="0 0 1100 620" role="img" aria-labelledby="title desc">
+  <title id="title">One Bellman backup of the corner state in the slippery grid world</title>
+  <desc id="desc">Two panels. The left panel is a three by three grid with x increasing rightward and y upward, showing the value of every square after one sweep: minus one at (1,3), seven point four at (2,3), zero at the goal (3,3), minus one point four at (1,2), an obstacle at (2,2), seven point four at (3,2), minus one at (1,1), minus one point four at (2,1), and minus one at the highlighted corner (3,1). The right panel is a backup tree rooted at that corner. Two action branches, up and left, each split into three outcomes whose edge widths show their probabilities: the intended move with probability zero point eight and two perpendicular slips with probability zero point one each. Every outcome earns a reward of minus one. Moving up reaches (3,2), (2,1) and (3,1) for an action value of four point one one two; moving left reaches (2,1), (3,2) and (3,1) for an action value of minus one point four three two. The new value of the corner is the larger of the two, four point one one two, so the best action is up.</desc>
+
   <style>
-    text { font-family: Arial, Helvetica, sans-serif; fill: #202b36; }
-    .cell { fill: #f7f9fb; stroke: #617181; stroke-width: 1.5; }
-    .goal { fill: #e1f2e6; }
-    .obstacle { fill: #dbe1e7; }
-    .start { fill: #e3efff; }
-    .arrow { fill: none; stroke: #2265b2; stroke-width: 4; marker-end: url(#action-head); }
-    .action-head { fill: #2265b2; }
-    .axis { stroke: #617181; stroke-width: 1.5; marker-end: url(#axis-head); }
-    .axis-head { fill: #617181; }
-    .muted { fill: #4c5f70; }
-    .action-label { fill: #18579f; font-weight: bold; }
+    .f { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif; }
+    text { fill: #1f2937; font-variant-numeric: tabular-nums; }
+
+    .eyebrow  { fill: #8b97a6; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; }
+    .sub      { fill: #8b97a6; font-size: 12.5px; }
+    .coord    { fill: #9aa5b1; font-size: 11px; letter-spacing: .4px; }
+    .value    { font-size: 21px; font-weight: 600; }
+    .tag      { fill: #6b7785; font-size: 10.5px; font-weight: 700; letter-spacing: .9px; }
+    .colhead  { fill: #9aa5b1; font-size: 10px; font-weight: 700; letter-spacing: 1.1px; }
+    .cellv    { font-size: 14.5px; }
+    .dim      { fill: #76828f; font-size: 14.5px; }
+    .note     { fill: #76828f; font-size: 11.5px; }
+
+    .sq       { fill: #fbfcfd; stroke: #dde3ea; stroke-width: 1; }
+    .sq-goal  { fill: #eaf6ee; stroke: #bfe0ca; }
+    .sq-obs   { fill: #eef1f4; stroke: #dde3ea; }
+    .sq-focus { fill: #ffffff; stroke: #2f6fb5; stroke-width: 2.25; }
+
+    .node     { fill: #ffffff; stroke: #2f6fb5; stroke-width: 1.75; }
+    .node-a   { fill: #2f6fb5; stroke: none; }
+    .node-at  { fill: #ffffff; font-size: 13.5px; font-weight: 650; }
+
+    .link       { fill: none; stroke: #2f6fb5; stroke-linecap: round; }
+    .link-stem  { stroke-width: 1.75; opacity: .55; }
+    .link-major { stroke-width: 7; opacity: .9; }
+    .link-minor { stroke-width: 1.75; opacity: .45; }
+
+    .accent   { fill: #2f6fb5; font-weight: 650; }
+    .pmajor   { fill: #2f6fb5; font-size: 14.5px; font-weight: 700; }
+    .pminor   { fill: #93a0ad; font-size: 14.5px; }
+    .rule     { stroke: #e6eaef; stroke-width: 1; }
+    .axis     { stroke: #c3ccd6; stroke-width: 1.25; stroke-linecap: round; }
+    .band     { fill: #f4f8fc; stroke: #d6e4f2; stroke-width: 1; }
+
     @media screen and (prefers-color-scheme: dark) {
-      text { fill: #edf2f7; }
-      .cell { fill: #263441; stroke: #a8b7c5; }
-      .goal { fill: #204b38; }
-      .obstacle { fill: #4a5562; }
-      .start { fill: #193e65; }
-      .arrow { stroke: #79baff; }
-      .action-head { fill: #79baff; }
-      .axis { stroke: #a8b7c5; }
-      .axis-head { fill: #a8b7c5; }
-      .muted { fill: #bacbd9; }
-      .action-label { fill: #95c9ff; }
+      text { fill: #e8edf3; }
+      .eyebrow, .sub, .coord, .colhead { fill: #7f8d9d; }
+      .tag  { fill: #9fadbc; }
+      .dim, .note { fill: #96a4b3; }
+      .sq       { fill: #1d2731; stroke: #33414f; }
+      .sq-goal  { fill: #1b3a2c; stroke: #2f5f47; }
+      .sq-obs   { fill: #2b3643; stroke: #3a4857; }
+      .sq-focus { fill: #16202a; stroke: #6fa8e6; }
+      .node     { fill: #16202a; stroke: #6fa8e6; }
+      .node-a   { fill: #6fa8e6; }
+      .node-at  { fill: #0f1720; }
+      .link     { stroke: #6fa8e6; }
+      .accent, .pmajor { fill: #8fc0f2; }
+      .pminor   { fill: #68788a; }
+      .rule     { stroke: #2b3643; }
+      .axis     { stroke: #46535f; }
+      .band     { fill: #17242f; stroke: #2f4a63; }
     }
   </style>
+
   <defs>
-    <marker id="action-head" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path class="action-head" d="M 0 0 L 10 5 L 0 10 Z"/>
+    <marker id="tip" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7"
+      markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M 0 0.6 L 8 4 L 0 7.4 Z" fill="#c3ccd6"/>
     </marker>
-    <marker id="axis-head" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path class="axis-head" d="M 0 0 L 10 5 L 0 10 Z"/>
-    </marker>
+    <filter id="lift" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="2.5" flood-color="#1f2937" flood-opacity="0.10"/>
+    </filter>
   </defs>
-  <g>
-    <rect class="cell" x="62" y="28" width="100" height="100"/>
-    <rect class="cell" x="162" y="28" width="100" height="100"/>
-    <rect class="cell goal" x="262" y="28" width="100" height="100"/>
-    <rect class="cell" x="62" y="128" width="100" height="100"/>
-    <rect class="cell obstacle" x="162" y="128" width="100" height="100"/>
-    <rect class="cell" x="262" y="128" width="100" height="100"/>
-    <rect class="cell" x="62" y="228" width="100" height="100"/>
-    <rect class="cell" x="162" y="228" width="100" height="100"/>
-    <rect class="cell start" x="262" y="228" width="100" height="100"/>
-  </g>
-  <g font-size="16" text-anchor="middle">
-    <text x="112" y="82">(1,3)</text>
-    <text x="212" y="82">(2,3)</text>
-    <text x="312" y="58" font-weight="bold">Goal</text>
-    <text x="312" y="82">(3,3)</text>
-    <text x="312" y="108" font-size="14">+10 on entry</text>
-    <text x="112" y="182">(1,2)</text>
-    <text x="212" y="171" font-weight="bold">Obstacle</text>
-    <text x="212" y="196">(2,2)</text>
-    <text x="312" y="160">(3,2)</text>
-    <text x="112" y="282">(1,1)</text>
-    <text x="193" y="306">(2,1)</text>
-    <text x="312" y="306" font-weight="bold">(3,1)</text>
-  </g>
-  <path class="arrow" d="M 312 272 L 312 194"/>
-  <path class="arrow" d="M 302 278 L 216 278"/>
-  <text class="action-label" x="326" y="221" font-size="15">up</text>
-  <text class="action-label" x="227" y="262" font-size="15">left</text>
-  <path class="axis" d="M 62 355 L 362 355"/>
-  <path class="axis" d="M 35 328 L 35 28"/>
-  <text class="muted" x="376" y="361" font-size="17">x</text>
-  <text class="muted" x="29" y="20" font-size="17">y</text>
-  <g font-size="17">
-    <text x="410" y="69" font-size="21" font-weight="bold">Update the corner (3,1)</text>
-    <text x="410" y="106">Two available actions: up and left</text>
-    <text x="410" y="154" font-weight="bold">Each action has three outcomes</text>
-    <text x="410" y="184">0.8: move in the intended direction</text>
-    <text x="410" y="213">0.1: slip in each perpendicular direction</text>
-    <text x="410" y="260" font-weight="bold">Rewards</text>
-    <text x="410" y="290">Goal entry: +10; no further reward</text>
-    <text x="410" y="319">Obstacle bump: −5; remain in place</text>
-    <text x="410" y="348">Other outcomes: −1</text>
-    <text class="muted" x="410" y="377" font-size="15">A slip off the grid also leaves the robot in place.</text>
+
+  <g class="f">
+
+    <text class="eyebrow" x="48" y="52">THE WORLD AFTER ONE SWEEP</text>
+    <text class="sub" x="48" y="73">Every square holds its value U&#8321;.</text>
+
+    <g transform="translate(0,56)">
+    <g>
+      <rect class="sq" x="48" y="96" width="88" height="88" rx="5"/>
+      <rect class="sq" x="136" y="96" width="88" height="88" rx="5"/>
+      <rect class="sq sq-goal" x="224" y="96" width="88" height="88" rx="5"/>
+      <rect class="sq" x="48" y="184" width="88" height="88" rx="5"/>
+      <rect class="sq sq-obs" x="136" y="184" width="88" height="88" rx="5"/>
+      <rect class="sq" x="224" y="184" width="88" height="88" rx="5"/>
+      <rect class="sq" x="48" y="272" width="88" height="88" rx="5"/>
+      <rect class="sq" x="136" y="272" width="88" height="88" rx="5"/>
+      <rect class="sq sq-focus" x="224" y="272" width="88" height="88" rx="5" filter="url(#lift)"/>
+    </g>
+
+    <g text-anchor="middle">
+      <text class="coord" x="92"  y="124">(1,3)</text><text class="value" x="92"  y="154">&#8722;1.00</text>
+      <text class="coord" x="180" y="124">(2,3)</text><text class="value" x="180" y="154">7.40</text>
+      <text class="tag"   x="268" y="121">GOAL</text><text class="value" x="268" y="150">0.00</text>
+      <text class="note"  x="268" y="169">+10 on entry</text>
+
+      <text class="coord" x="92"  y="212">(1,2)</text><text class="value" x="92"  y="242">&#8722;1.40</text>
+      <text class="tag"   x="180" y="228">OBSTACLE</text><text class="coord" x="180" y="248">(2,2)</text>
+      <text class="coord" x="268" y="212">(3,2)</text><text class="value" x="268" y="242">7.40</text>
+
+      <text class="coord" x="92"  y="300">(1,1)</text><text class="value" x="92"  y="330">&#8722;1.00</text>
+      <text class="coord" x="180" y="300">(2,1)</text><text class="value" x="180" y="330">&#8722;1.40</text>
+      <text class="tag accent" x="268" y="297">UPDATING</text>
+      <text class="value accent" x="268" y="327">&#8722;1.00</text>
+      <text class="coord accent" x="268" y="346">(3,1)</text>
+    </g>
+
+    <path class="axis" d="M 48 376 L 312 376" marker-end="url(#tip)"/>
+    <path class="axis" d="M 34 360 L 34 96" marker-end="url(#tip)"/>
+    <text class="coord" x="318" y="380">x</text>
+    <text class="coord" x="29" y="88">y</text>
+    </g>
+
+
+    <text class="eyebrow" x="448" y="52">ONE BELLMAN BACKUP OF (3,1)</text>
+    <text class="sub" x="448" y="73">&#947; = 0.9 &#183; edge width shows the outcome probability</text>
+
+    <g class="colhead">
+      <text x="792" y="112" text-anchor="end">P</text>
+      <text x="816" y="112">NEXT</text>
+      <text x="912" y="112" text-anchor="end">REWARD</text>
+      <text x="1020" y="112" text-anchor="end">VALUE</text>
+    </g>
+    <path class="rule" d="M 760 122 L 1020 122"/>
+
+    <rect class="node" x="448" y="300" width="112" height="60" rx="13" filter="url(#lift)"/>
+    <text class="accent" x="504" y="326" font-size="15" text-anchor="middle">s = (3,1)</text>
+    <text class="dim" x="504" y="346" font-size="12.5" text-anchor="middle">U&#8321; = &#8722;1.00</text>
+
+    <path class="link link-stem" d="M 560 318 C 596 300 600 230 620 212"/>
+    <path class="link link-stem" d="M 560 342 C 596 360 600 430 620 448"/>
+
+    <rect class="node-a" x="620" y="172" width="74" height="38" rx="19"/>
+    <text class="node-at" x="657" y="196" text-anchor="middle">up</text>
+    <text class="accent" x="657" y="152" font-size="14" text-anchor="middle">Q = 4.112</text>
+
+    <path class="link link-major" d="M 698 182 C 724 168 736 154 752 148"/>
+    <path class="link link-minor" d="M 698 191 L 752 191"/>
+    <path class="link link-minor" d="M 698 200 C 724 214 736 228 752 234"/>
+
+    <rect class="node-a" x="620" y="440" width="74" height="38" rx="19"/>
+    <text class="node-at" x="657" y="464" text-anchor="middle">left</text>
+    <text class="accent" x="657" y="502" font-size="14" text-anchor="middle">Q = &#8722;1.432</text>
+
+    <path class="link link-major" d="M 698 450 C 724 436 736 422 752 416"/>
+    <path class="link link-minor" d="M 698 459 L 752 459"/>
+    <path class="link link-minor" d="M 698 468 C 724 482 736 496 752 502"/>
+
+    <g>
+      <text class="pmajor" x="792" y="153" text-anchor="end">0.8</text>
+      <text class="cellv" x="816" y="153">(3,2)</text>
+      <text class="dim"   x="912" y="153" text-anchor="end">&#8722;1</text>
+      <text class="cellv" x="1020" y="153" text-anchor="end">7.40</text>
+
+      <text class="pminor" x="792" y="196" text-anchor="end">0.1</text>
+      <text class="cellv" x="816" y="196">(2,1)</text>
+      <text class="dim"   x="912" y="196" text-anchor="end">&#8722;1</text>
+      <text class="cellv" x="1020" y="196" text-anchor="end">&#8722;1.40</text>
+
+      <text class="pminor" x="792" y="239" text-anchor="end">0.1</text>
+      <text class="cellv" x="816" y="239">(3,1)</text>
+      <text class="dim"   x="912" y="239" text-anchor="end">&#8722;1</text>
+      <text class="cellv" x="1020" y="239" text-anchor="end">&#8722;1.00</text>
+
+      <text class="pmajor" x="792" y="421" text-anchor="end">0.8</text>
+      <text class="cellv" x="816" y="421">(2,1)</text>
+      <text class="dim"   x="912" y="421" text-anchor="end">&#8722;1</text>
+      <text class="cellv" x="1020" y="421" text-anchor="end">&#8722;1.40</text>
+
+      <text class="pminor" x="792" y="464" text-anchor="end">0.1</text>
+      <text class="cellv" x="816" y="464">(3,2)</text>
+      <text class="dim"   x="912" y="464" text-anchor="end">&#8722;1</text>
+      <text class="cellv" x="1020" y="464" text-anchor="end">7.40</text>
+
+      <text class="pminor" x="792" y="507" text-anchor="end">0.1</text>
+      <text class="cellv" x="816" y="507">(3,1)</text>
+      <text class="dim"   x="912" y="507" text-anchor="end">&#8722;1</text>
+      <text class="cellv" x="1020" y="507" text-anchor="end">&#8722;1.00</text>
+    </g>
+
+    <text class="note" x="1020" y="286" text-anchor="end">thin branches are slips &#8212; a perpendicular move, or the grid edge</text>
+
+    <rect class="band" x="448" y="546" width="572" height="46" rx="10"/>
+    <text class="cellv" x="470" y="575" font-size="15">U&#8322;(3,1) = max( 4.112 , &#8722;1.432 ) = <tspan class="accent" font-size="16">4.112</tspan><tspan class="dim" font-size="13">   best action: up</tspan></text>
   </g>
 </svg>
