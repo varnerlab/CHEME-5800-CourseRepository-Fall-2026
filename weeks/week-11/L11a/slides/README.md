@@ -36,6 +36,10 @@ Requirements: XeLaTeX and `latexmk`. The style uses Helvetica Neue when availabl
 | 14 | Lab: a Markov word generator |
 | 15 | Summary with three key takeaways |
 
+The lecture's Lab section also links an optional position-aware protein-generator
+example. It is an extension for students to explore and does not add a separate
+slide to the core 15-slide deck.
+
 ## Sources and scope
 
 Notebook-section mappings appear in Beamer source notes, omitted from the projected PDF. Notebook hyperlinks point to their repository locations on the main branch.
@@ -46,6 +50,6 @@ Source notebook snapshots (SHA-256):
 
 | Notebook | SHA-256 |
 |---|---|
-| CHEME-5800-L11a-Lecture-MarkovModels-Fall-2026.ipynb | `3471381169c53a5f3670c539392523961e3199fcd6f23e63546fbaa94293cc8f` |
+| CHEME-5800-L11a-Lecture-MarkovModels-Fall-2026.ipynb | `c7cf559c77804de3f732407a2e25df6ef8499887d839213baa11f88e05cf5627` |
 | CHEME-5800-L11a-Example-MarkovModels-Fall-2026.ipynb | `8bb3e71337bcb673ab0935d9da9c0f72d76f5c4ff1f77476fb4eca5e565c6d70` |
 | CHEME-5800-L11b-Lab-MarkovWordGenerator-Fall-2026.ipynb | `ac579c52fc6b3422c2c6198d3917e5288c3e7da67449638c81643cf7447d10d1` |

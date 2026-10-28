@@ -45,6 +45,11 @@ end
 # (`L11bMarkov.my_transition_matrix(...)`) for the same reason.
 include(joinpath(CHEME5800_L11B_ROOT, "src", "Compute.jl"))
 
+# `L11bProteinMarkov` holds the complete position-aware protein generator used
+# by the optional computational example. It is separate from the student's
+# word-generator exercise, so the example never depends on unfinished TODOs.
+include(joinpath(CHEME5800_L11B_ROOT, "src", "ProteinMarkov.jl"))
+
 
 # --- 3. IMPORTS --------------------------------------------------------------
 # Everything this meeting brings into scope. One `using` per line so each can
@@ -57,11 +62,14 @@ include(joinpath(CHEME5800_L11B_ROOT, "src", "Compute.jl"))
 #                                         and sample_words
 #
 # Standard library:
+using LinearAlgebra  # svd and rank, as in the week-7 dimensionality-reduction material
 using Random         # seeded random number generation
+using Statistics     # mean, for centering the one-hot data matrix
 using Test           # @test / @testset for the checks in the notebook
 #
 # Packages:
 using DataFrames     # tabular records held as columns
+using Plots          # figures
 using PrettyTables   # formatted table output in the notebook
 #
 # There is deliberately no `using .L11bMarkov`. Re-running this file replaces

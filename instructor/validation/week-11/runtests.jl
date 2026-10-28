@@ -194,6 +194,58 @@ end
             @test rows == [(4, 340, 92), (5, 631, 44), (6, 828, 8), (7, 934, 0), (8, 985, 0)]
             @test round(100 * 92 / 340) == 27
         end
+
+        @testset "Position-aware protein generator" begin
+            # A small hand-counted alignment checks the position-specific rows -
+            synthetic_alignment = ["ACD", "ACE", "BCD"]
+            synthetic_model = L11bProteinMarkov.fit_position_aware_markov(
+                synthetic_alignment;
+                alphabet = ['A', 'B', 'C', 'D', 'E'],
+            )
+            @test synthetic_model.initial_probabilities == [2/3, 1/3, 0, 0, 0]
+            @test synthetic_model.transition_probabilities[1, 1, :] == [0, 0, 1, 0, 0]
+            @test synthetic_model.transition_probabilities[1, 2, :] == [0, 0, 1, 0, 0]
+            @test synthetic_model.transition_probabilities[2, 3, :] == [0, 0, 0, 2/3, 1/3]
+
+            # The vendored paper alignment is fixed and works without a network connection -
+            data_path = joinpath(WEEK_ROOT, "L11b", "data", "PF00014-kunitz-alignment.fasta")
+            @test bytes2hex(open(SHA.sha256, data_path)) ==
+                "cf503ea9e35f2c607fa95f36354b424f448d5e04d429e0e222569bc606e34595"
+            records = L11bProteinMarkov.read_fasta(data_path)
+            alignment = L11bProteinMarkov.standard_alignment(records)
+            @test (length(records), length(alignment), length(first(alignment))) == (99, 83, 53)
+
+            # Run the optional example exactly as a student receives it -
+            example = "CHEME-5800-L11b-Example-MarkovProteinGenerator-Fall-2026.ipynb"
+            @test check_local_links("L11b", example; markdown_only = false) ≥ 8
+            path = joinpath(WEEK_ROOT, "L11b", example)
+            notebook = JSON.parsefile(path)
+            code_cells = [cell for cell in notebook["cells"] if cell["cell_type"] == "code"]
+            @test count(cell -> !isempty(cell["outputs"]), code_cells) ≥ 8
+            @test all(output["output_type"] != "error" for cell in code_cells for output in cell["outputs"])
+
+            workspace = Module(:L11bProteinExampleValidation)
+            Core.eval(workspace, :(include(path::AbstractString) = Base.include(@__MODULE__, path)))
+            for (index, cell) in enumerate(code_cells)
+                Base.invokelatest(Base.include_string, REPL.softscope, workspace, join(cell["source"]),
+                    joinpath(dirname(path), "protein-validation-cell-$(index).jl"))
+            end
+            w = workspace
+
+            # The example's fixed seed makes its reported scientific comparison reproducible -
+            @test w.cysteine_positions == [2, 11, 27, 35, 48, 52]
+            @test length(Set(w.generated_sequences)) == 1000
+            @test all(sequence ∉ Set(w.protein_alignment) for sequence in w.generated_sequences)
+            @test w.unconditioned_marker_frequency == 0.315
+            @test w.conditioned_marker_frequency == 0.887
+            @test w.unconditioned_scaffold_retention == 0.761
+            @test w.conditioned_scaffold_retention == 0.619
+            @test w.unconditioned_composition_divergence < w.conditioned_composition_divergence
+            @test w.unconditioned_diversity > w.conditioned_diversity
+            @test w.unconditioned_nearest_identity < w.conditioned_nearest_identity
+            @test collect(w.comparison_table.source) ==
+                ["Stored family", "Unconditioned Markov", "Conditioned Markov"]
+        end
     end
 end
 

@@ -1,6 +1,6 @@
 schema_version = 2
 week = 11
-version = "1.3"
+version = "1.4"
 status = "prototype"
 cadence = "meeting"
 title = "Markov models, MDPs, and value iteration"
@@ -9,6 +9,7 @@ entry_notebooks = [
   "L11a/CHEME-5800-L11a-Lecture-MarkovModels-Fall-2026.ipynb",
   "L11a/CHEME-5800-L11a-Example-MarkovModels-Fall-2026.ipynb",
   "L11b/CHEME-5800-L11b-Lab-MarkovWordGenerator-Fall-2026.ipynb",
+  "L11b/CHEME-5800-L11b-Example-MarkovProteinGenerator-Fall-2026.ipynb",
   "L11c/CHEME-5800-L11c-Lecture-MarkovDecisionProcesses-Fall-2026.ipynb",
   "L11c/CHEME-5800-L11c-Example-RandomRollout-Fall-2026.ipynb",
   "L11d/CHEME-5800-L11d-Lab-ValueIterationGridWorld-Fall-2026.ipynb",
@@ -18,6 +19,7 @@ datasets = [
   "L11a/figs/Fig-ThreeState-MM-Schematic.svg",
   "L11a/figs/Fig-TransitionMatrix-Schematic.svg",
   "L11a/figs/Fig-Matrix-Vector-Left-bA-product.svg",
+  "L11b/data/PF00014-kunitz-alignment.fasta",
   "L11c/figs/Fig-GridWorld-Backup.svg",
 ]
 student_paths = ["README.md", "L11a", "L11b", "L11c", "L11d"]
