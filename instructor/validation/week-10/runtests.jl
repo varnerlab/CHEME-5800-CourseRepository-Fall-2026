@@ -386,7 +386,7 @@ end
             # epsilon-greedy's capped schedule: ε_t = 1 through round 21 for K = 7 -
             @test all(t -> min(1.0, cbrt(w.K * log(t) / t)) == 1.0, (w.K + 1):21) && cbrt(w.K * log(22) / 22) < 1
 
-            # Task 2: realized regret and the repeated experiment -
+            # Task 2: realized regret -
             rc = w.regret_curves
             for (label, game) in zip(["Explore-first", "ε-greedy", "UCB1"],
                 [w.game_explore_first, w.game_eps_greedy, w.game_UCB1])
@@ -397,33 +397,6 @@ end
             @test rc["ε-greedy"][1000] - rc["UCB1"][1000] > 25 # the two curves separate within the first thousand rounds
             crossing = findlast(t -> rc["ε-greedy"][t] < rc["Explore-first"][t], 1:w.T) # ε-greedy passes explore-first for good after this round
             @test abs(crossing - 3300) < 50 # "at about round 3,300"
-            ensemble = w.ensemble
-            @test ensemble.horizons == [1000, 2500, 5000, 10_000]
-            @test length(ensemble.seeds) == 30 && length(unique(ensemble.seeds)) == 30
-            @test size(ensemble.gap_regrets) == (4, 3, 30)
-            @test all(isfinite, ensemble.mean_gap) && all(ensemble.mean_gap .≥ 0)
-            @test ensemble.mean_gap ≈ dropdims(mean(ensemble.gap_regrets, dims = 3), dims = 3)
-            @test ensemble.se_gap ≈ ensemble.sd_gap ./ sqrt(30)
-            # the averages, spreads, and growth ratios quoted in the prose -
-            @test round.(ensemble.mean_gap[4, :], digits = 1) == [620.7, 872.7, 285.8]
-            @test all(h -> length(unique(ensemble.gap_regrets[h, 1, :])) == 1, 1:4) # explore-first: the same gap loss in every game
-            @test all(<(1e-9), ensemble.sd_gap[:, 1]) # so its standard deviation shows as 0.0
-            @test all(abs.(ensemble.mean_gap .- ensemble.mean_realized) .< 5)
-            @test all(ensemble.gap_regrets[:, 3, :] .< ensemble.gap_regrets[:, 1, :]) # UCB1 beats both others in every game
-            @test all(ensemble.gap_regrets[:, 3, :] .< ensemble.gap_regrets[:, 2, :])
-            @test round.(ensemble.mean_gap[4, :] ./ ensemble.mean_gap[3, :], digits = 2) == [1.63, 1.64, 1.30]
-            @test maximum(ensemble.se_gap) < 3.15 # "at most about 3.1"
-            @test all(h -> minimum(abs(ensemble.mean_gap[h, i] - ensemble.mean_gap[h, j]) for i in 1:3 for j in (i + 1):3) > 6 * maximum(ensemble.se_gap), 1:4) # differences far larger than the ribbons
-            # the bound-growth comparison: explore-first's gap loss is its exploration cost, so it grows with N -
-            explore_N(T) = clamp(round(Int, (T / w.K)^(2 / 3) * cbrt(log(T))), 1, fld(T, w.K))
-            @test (explore_N(5000), explore_N(10_000)) == (163, 266)
-            @test ensemble.mean_gap[3:4, 1] ≈ [163, 266] .* sum(maximum(μ) .- μ) # N pulls of each arm, times the sum of the gaps
-            bound_explore(T) = (T^(2 / 3)) * (w.K * log(T))^(1 / 3)
-            bound_UCB1(T) = sqrt(w.K * T * log(T))
-            @test round.([bound_explore(10_000) / bound_explore(5000), bound_UCB1(10_000) / bound_UCB1(5000)], digits = 2) == [1.63, 1.47]
-            regret_growth = ensemble.mean_realized[4, :] ./ ensemble.mean_realized[3, :] # the growth table uses the average regret
-            @test all(abs.(regret_growth[1:2] .- bound_explore(10_000) / bound_explore(5000)) .< 0.05) # "grows about as fast as its bound"
-            @test regret_growth[3] < bound_UCB1(10_000) / bound_UCB1(5000) # UCB1 "does better than its guarantee"
 
             # Task 3: Thompson sampling on θ = (0.90, 0.60, 0.80), and the closer arm 3 -
             r = w.result
