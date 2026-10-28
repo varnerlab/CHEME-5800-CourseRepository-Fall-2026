@@ -102,9 +102,9 @@
 
   \vspace{0.2em}
   \raggedright
-  \hilite{Only the pulled arm reports a reward.} In round $t$, the agent pulls
-  arm $a_t$ and sees one reward $r_t$. The means $\mu(a)$ are hidden; $\mu^\star$
-  is the largest, and $\Delta(1)$ is how far arm 1 falls below it.
+  \hilite{The agent sees only the blue dot.} In round $t$, it pulls arm $a_t$
+  and sees one reward $r_t$. It does not know $\mu^\star$ or which arm has it,
+  but enough pulls will reveal both. The question is how to choose the pulls.
   \lecturesource{What Is a Bandit Problem?: definition, figure, and caption.
     Figure: ../figs/Fig-Bandit-Arms (TikZ, light PDF).}
 \end{frame}
@@ -175,34 +175,25 @@
 \end{frame}
 
 \begin{frame}{Regret}
-  Let $\mu^\star=\max_{a\in\A}\mu(a)$. Always pulling the best arm earns
-  $T\mu^\star$ in expectation, so the regret of one game (one run of $T$
-  rounds) and the \hilite{cumulative gap loss} are:
+  \hilite{Regret} is the reward an agent loses while it learns:
   \[
-    R(T)=T\mu^\star-\sum_{t=1}^{T}r_t,
-    \qquad
-    G(T)=\sum_{t=1}^{T}\Delta(a_t),\quad\Delta(a)=\mu^\star-\mu(a).
+    R(T)=\underbrace{T\mu^\star}_{\text{best-arm}}-\underbrace{\sum_{t=1}^{T}r_t}_{\text{our reward}}
   \]
-
-  \vspace{0.2em}
-  \begin{itemize}\setlength{\itemsep}{0.4em}
-    \item $R(T)$ moves with reward luck, even after the agent has found the
-      best arm.
-    \item $G(T)$ adds the mean reward given up by each pull, so a pull of the
-      best arm adds nothing.
-  \end{itemize}
-
-  \vspace{0.3em}
-  A pull of $a_t$ has expected reward $\mu(a_t)$, so the two agree on average:
+  Each pull of arm $a$ gives up the gap $\Delta(a)=\mu^\star-\mu(a)$ on
+  average. Adding the gaps of the pulled arms gives the \hilite{gap loss}:
   \[
-    \boxed{\mathbb E[R(T)]=\mathbb E[G(T)]}
+    G(T)=\sum_{t=1}^{T}\underbrace{\Delta(a_t)}_{\text{lost pull }t}
   \]
-  \lecturesource{Regret: R(T), the gap loss G(T) (pseudo-regret), and the expectation identity.}
+  The agent cannot compute $R(T)$ or $G(T)$, because they use the arm means;
+  we compute them when we make up the arms to test an algorithm. Rewards are
+  random, so $R(T)$ and $G(T)$ vary from game to game; on average,
+  $\boxed{\mathbb E[R(T)]=\mathbb E[G(T)]}$.
+  \lecturesource{Regret: R(T), the gap loss G(T), and the expectation identity.}
 \end{frame}
 
 \begin{frame}{Discuss}
   \vfill
-  {\large Two algorithms both find the best arm by the end of a game. What else would we want to know before we say they did equally well?}
+  {\large Two algorithms choose among the same arms, and by the last round both are pulling the best arm. Did they lose the same amount of reward? Why or why not?}
   \vfill
   \lecturesource{Regret: Discuss prompt.}
 \end{frame}
@@ -235,8 +226,6 @@
   \[
     \boxed{\mathbb E[R(T)]\le\mathcal O\left(T^{2/3}(K\log T)^{1/3}\right)}
   \]
-  Here, $\mathcal O(x)$ means at most a constant times $x$, and the constant
-  does not depend on $T$ or $K$.
 
   \vspace{0.8em}
   \begin{itemize}\setlength{\itemsep}{0.5em}
@@ -244,7 +233,7 @@
     \item Too many, and we waste pulls on poor arms.
   \end{itemize}
   This $N$ balances the two costs.
-  \lecturesource{Explore-First Exploration: Theorem, the balance sentence, and the order and big-O paragraph.}
+  \lecturesource{Explore-First Exploration: Theorem and the balance sentence.}
 \end{frame}
 
 \begin{frame}{Epsilon-Greedy Algorithm}
