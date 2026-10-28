@@ -421,6 +421,9 @@ end
             bound_explore(T) = (T^(2 / 3)) * (w.K * log(T))^(1 / 3)
             bound_UCB1(T) = sqrt(w.K * T * log(T))
             @test round.([bound_explore(10_000) / bound_explore(5000), bound_UCB1(10_000) / bound_UCB1(5000)], digits = 2) == [1.63, 1.47]
+            regret_growth = ensemble.mean_realized[4, :] ./ ensemble.mean_realized[3, :] # the growth table uses the average regret
+            @test all(abs.(regret_growth[1:2] .- bound_explore(10_000) / bound_explore(5000)) .< 0.05) # "grows about as fast as its bound"
+            @test regret_growth[3] < bound_UCB1(10_000) / bound_UCB1(5000) # UCB1 "does better than its guarantee"
 
             # Task 3: Thompson sampling on θ = (0.90, 0.60, 0.80), and the closer arm 3 -
             r = w.result

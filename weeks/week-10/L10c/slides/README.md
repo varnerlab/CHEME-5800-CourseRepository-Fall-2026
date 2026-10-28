@@ -16,6 +16,8 @@ A second pass the same day added a posterior figure to the Thompson sampling wor
 
 **Revised October 28, 2026** to match the lecture's rewritten Regret section. The regret slide now opens with regret as the reward an agent loses while it learns, notes that the agent can compute neither $R(T)$ nor $G(T)$, which we can compute only when we know the arm means, and labels the terms of $R(T)$ and $G(T)$ with underbraces, as the lecture does. The name "cumulative gap loss" is now "gap loss". The bandit arms figure gained a line naming what is hidden from the agent; the bandit arms slide picks it up from the figure folder, and its caption now matches the lecture: the agent sees only the blue dot, and the question is how to choose the pulls. The big-O definition was removed from the explore-first bound slide and the lecture, because students have used big-O since week 3.
 
+A second revision the same day matched the lecture's pseudocode edits. The explore-first slide gives the number of pulls per arm as $N\approx(T/K)^{2/3}(\log T)^{1/3}$, rounded, with at least 1 and at most $\lfloor T/K\rfloor$ pulls, in place of the nested $\min$, $\max$, and round; the bound slide adds that explore-first explores for a fraction $(K\log T/T)^{1/3}$ of the game. The epsilon-greedy slide keeps the $\min$ with 1 and labels the second term with an underbrace as larger than 1 in early rounds, draws $u$ in the step that uses it, and closes by naming $\epsilon_t$ as the explore-first exploration fraction with $T$ replaced by $t$. The Thompson sampling slide defines $p(a)$ as a sampled guess at the success probability $\theta_a$. The regret slide now says that each pull of arm $a$ earns, on average, the gap $\Delta(a)$ less than a pull of the best arm, in place of "gives up the gap".
+
 The style files and Cornell seal are copied unchanged from L10a (identical to L9c and L9a, which match the approved L6a deck). The deck keeps their 16:9 format, typography, palette, title page, and footer. Text, equations, and tables are editable in the LaTeX source.
 
 ## Build
@@ -41,7 +43,7 @@ Requirements: XeLaTeX and `latexmk`. The style uses Helvetica Neue when availabl
 | 6–8 | The bandit arms figure; the applications table, split over two slides, with one source per row, including reaction conditions, and the rescaling of arrival time and profit |
 | 9–11 | The stochastic bandit model and its assumptions; the regret $R(T)$ and the gap loss $G(T)$, with their terms labeled, and $\mathbb E[R(T)]=\mathbb E[G(T)]$; Discuss: whether two algorithms that both end on the best arm lost the same reward |
 | 12–13 | The explore-first algorithm; its regret bound |
-| 14 | The epsilon-greedy algorithm with the capped $\epsilon_t$ |
+| 14 | The epsilon-greedy algorithm, with $\epsilon_t$ as the explore-first exploration fraction spread over the game |
 | 15–18 | Optimism under uncertainty and the confidence radius; the UCB1 algorithm and its regret bound; the two-arm worked example and figure; Example: step through UCB1 |
 | 19–20 | Comparing the three regret bounds, with the Slivkins theorem numbers; Discuss: when explore-first is the better choice |
 | 21–24 | The binary Bernoulli bandit and the Bernoulli distribution; zero-one rewards as an indicator, and the sample mean as the fraction of successes; the Beta prior and posterior; epsilon-greedy for Bernoulli rewards |
@@ -59,6 +61,6 @@ Source notebook snapshots (SHA-256):
 
 | Notebook | SHA-256 |
 |---|---|
-| CHEME-5800-L10c-Lecture-StochasticMultiarmBandits-Fall-2026.ipynb | `0b1218d22cc7288d003489ee3e138ba9c317ecea4cb09e7a28e0a1e92d32db90` |
+| CHEME-5800-L10c-Lecture-StochasticMultiarmBandits-Fall-2026.ipynb | `5e0682ab6dd2f7970d31e040475b7d0a1d53f4d8ed3c493627d893df09a3b41c` |
 | CHEME-5800-L10c-Example-UCB1StepByStep-Fall-2026.ipynb | `a5e6de8f302eb5eca208f4141cccf65c50d982c5cf848a171b7be496b1b7c43d` |
-| CHEME-5800-L10d-Lab-BanditAlgorithms-Fall-2026.ipynb | `66960d07c1caf5d2fd15c33839322799850e8898284910fb01b57d1589d68c46` |
+| CHEME-5800-L10d-Lab-BanditAlgorithms-Fall-2026.ipynb | `3333bcf9f77b20c4d7832ea43615017eea59be97fb9af5f3de01be82f0ab2269` |

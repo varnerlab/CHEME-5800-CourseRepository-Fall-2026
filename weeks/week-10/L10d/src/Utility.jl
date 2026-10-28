@@ -76,8 +76,8 @@ For every horizon `T` in `horizons` (the number of rounds in a game), every algo
 seed in `seeds`, the function sets the seed, plays a new game of `T` rounds, and records two
 numbers for that game:
 
-- the **gap loss**, `G = Σₜ (μ⋆ - μ(aₜ))`. Each pull is charged the mean reward given up by the
-  arm it chose, so a pull of the best arm costs nothing.
+- the **gap loss**, `G = Σₜ (μ⋆ - μ(aₜ))`. Each pull is charged the gap of the arm it chose, how
+  much less that arm earns on average than the best arm, so a pull of the best arm costs nothing.
 - the **realized regret**, `R = T⋅μ⋆ - Σₜ rₜ`: the expected reward from always pulling the best
   arm, minus the rewards the algorithm actually received.
 
@@ -182,7 +182,7 @@ function compare_bandits(arms::Array{<:Distribution,1}, horizons::Array{Int64,1}
                 model = build(models[j], (K = K,)); # (K = K,) is a NamedTuple with one field; the comma makes it a tuple
                 game = solve(model, T = T, world = world, return_history = true); # game.actions and game.rewards
 
-                # gap loss: add up the mean reward given up in each round -
+                # gap loss: add up the gap of the arm pulled in each round -
                 gap = 0.0;
                 for t ∈ 1:T
                     aₜ = game.actions[t]; # the arm pulled in round t

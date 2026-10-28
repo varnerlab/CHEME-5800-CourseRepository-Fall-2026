@@ -179,8 +179,8 @@
   \[
     R(T)=\underbrace{T\mu^\star}_{\text{best-arm}}-\underbrace{\sum_{t=1}^{T}r_t}_{\text{our reward}}
   \]
-  Each pull of arm $a$ gives up the gap $\Delta(a)=\mu^\star-\mu(a)$ on
-  average. Adding the gaps of the pulled arms gives the \hilite{gap loss}:
+  Each pull of arm $a$ earns, on average, the gap $\Delta(a)=\mu^\star-\mu(a)$
+  less than a pull of the best arm. Adding the gaps of the pulled arms gives the \hilite{gap loss}:
   \[
     G(T)=\sum_{t=1}^{T}\underbrace{\Delta(a_t)}_{\text{lost pull }t}
   \]
@@ -205,18 +205,16 @@
   \vspace{0.4em}
   \textbf{Initialize}: Given $K$ arms and $T\ge K$ rounds, choose
   \[
-    N=\min\left\{\left\lfloor\frac{T}{K}\right\rfloor,\;\max\left\{1,\;\operatorname{round}\left[\left(\frac{T}{K}\right)^{2/3}(\log T)^{1/3}\right]\right\}\right\}.
+    N\approx\left(\frac{T}{K}\right)^{2/3}(\log T)^{1/3},
   \]
+  rounded to the nearest integer, with at least 1 and at most
+  $\lfloor T/K\rfloor$ pulls per arm.
   \begin{enumerate}\setlength{\itemsep}{0.2em}
     \item For each arm $a\in\A$ \textbf{do}: pull arm $a$ for $N$ rounds and
       compute its sample mean $\mub(a)$.
     \item Choose $\hat a\gets\arg\max_{a\in\A}\mub(a)$; ties go to the first arm.
     \item For $t=KN+1,\ldots,T$ \textbf{do}: pull arm $\hat a$.
   \end{enumerate}
-
-  \vspace{0.3em}
-  The $\max$ makes sure each arm is pulled at least once; the $\min$ keeps
-  the exploration within $T$ rounds.
   \lecturesource{Explore-First Exploration: description and Explore-First Algorithm. Preserve the Initialize/For/numbered-step format.}
 \end{frame}
 
@@ -232,7 +230,9 @@
     \item Too few exploration pulls, and we may commit to the wrong arm.
     \item Too many, and we waste pulls on poor arms.
   \end{itemize}
-  This $N$ balances the two costs.
+  This $N$ balances the two costs. It explores for a fraction
+  $KN/T\approx\left(K\log T/T\right)^{1/3}$ of the game, which shrinks as $T$
+  grows.
   \lecturesource{Explore-First Exploration: Theorem and the balance sentence.}
 \end{frame}
 
@@ -247,9 +247,9 @@
   \vspace{0.2em}
   For $t=K+1,\ldots,T$ \textbf{do}:
   \begin{enumerate}\setlength{\itemsep}{0.15em}
-    \item Draw $u\sim\mathcal U[0,1]$ and compute
-      $\epsilon_t=\min\left\{1,\left(K\log t/t\right)^{1/3}\right\}$.
-    \item Choose the arm $a_t$:
+    \item Compute the exploration probability
+      $\displaystyle\epsilon_t=\min\left\{1,\;\underbrace{\left(K\log t/t\right)^{1/3}}_{>1\text{ in early rounds}}\right\}$.
+    \item Choose the arm $a_t$: draw $u\sim\text{Uniform}(0,1)$.
       \begin{itemize}\setlength{\itemsep}{0.1em}
         \item If $u\le\epsilon_t$ \textbf{then} choose $a_t$ at random
           (exploration).
@@ -259,7 +259,11 @@
     \item Pull arm $a_t$ and receive $r_t$.
     \item Update $N_{a_t}$ and $\mub(a_t)$.
   \end{enumerate}
-  \lecturesource{Epsilon-Greedy Exploration: idea and Epsilon-Greedy Algorithm (its Theorem is on the Comparing the Regret Bounds slide). Preserve the Initialize/For/numbered-step format and the If/Otherwise branches.}
+
+  \vspace{0.3em}
+  This $\epsilon_t$ is the explore-first exploration fraction with $T$
+  replaced by $t$, spread over the game.
+  \lecturesource{Epsilon-Greedy Exploration: idea, Epsilon-Greedy Algorithm, and the explore-first link after it (its Theorem is on the Comparing the Regret Bounds slide). Preserve the Initialize/For/numbered-step format and the If/Otherwise branches.}
 \end{frame}
 
 \begin{frame}{Optimism Under Uncertainty}
@@ -452,7 +456,8 @@
   For $t=1,2,\ldots,T$ \textbf{do}:
   \begin{enumerate}\setlength{\itemsep}{0.25em}
     \item Sample $p(a)\sim\BetaDist\left(\alpha(a)+S(a),\,\beta(a)+F(a)\right)$
-      for every arm $a\in\A$.
+      for every arm $a\in\A$, a sampled guess at its success probability
+      $\theta_a$.
     \item Choose the arm with the highest sample,
       $a_t\gets\arg\max_{a\in\A}\{p(a)\}$.
     \item Pull arm $a_t$ and receive $r_t\in\{0,1\}$.
