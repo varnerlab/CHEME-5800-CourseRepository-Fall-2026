@@ -43,7 +43,7 @@ end
 # on every run, with no guard, so re-running the setup cell picks up the
 # student's edits; the notebook calls it by qualified name
 # (`L10dThompson.my_thompson_sampling(...)`) for the same reason.
-include(joinpath(CHEME5800_L10D_ROOT, "src", "Compute.jl"))
+include(joinpath(CHEME5800_L10D_ROOT, "src", "Compute-solution.jl"))
 
 # Supplied helpers, loaded once: the repeated games for Task 2 and the Bernoulli
 # world for Task 3.
