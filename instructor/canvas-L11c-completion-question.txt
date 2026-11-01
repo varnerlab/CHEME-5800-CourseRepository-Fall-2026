@@ -1,0 +1,6 @@
+L11c Completion Survey: Markov Decision Processes
+
+After you watch the L11c lecture and example videos, answer the question below. There is no right or wrong answer; you receive full credit for completing it.
+
+Question (Essay):
+What is one idea from L11c that made sense to you, and one idea that still feels unclear?
