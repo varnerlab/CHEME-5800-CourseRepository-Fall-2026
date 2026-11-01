@@ -5,7 +5,7 @@
 %
 % Notation follows the lecture: the MDP tuple (S, A, R(s,a), T(s'|s,a), gamma),
 % available actions A_s, observed rewards r, the policy pi, value functions U_k,
-% U^*, action values Q_1(s,a), the tolerance epsilon, the iteration limit k_max,
+% U^*, the tolerance epsilon, the iteration limit k_max,
 % and for random rollout the depth d, number of rollouts N, return G, visit
 % counts n(s), and the estimate \hat{U}(s).
 \documentclass[aspectratio=169,11pt]{beamer}
@@ -193,56 +193,6 @@
       best possible policy.
   \end{itemize}
   \lecturesource{Value Iteration: definition, Bellman backup, and convergence paragraph.}
-\end{frame}
-
-\begin{frame}{Worked Example: One Bellman Backup}
-  Update the corner $s=(3,1)$: only up and left keep the robot on the grid,
-  and both earn $-1$. Starting from $U_0=0$, one
-  sweep leaves these values:
-
-  \vspace{0.2em}
-  \centering
-  \includegraphics[width=\textwidth,height=0.55\paperheight,keepaspectratio]{../figs/Fig-GridWorld-Backup/Fig-GridWorld-Backup.pdf}
-  \lecturesource{Value Iteration: Example: One Bellman Backup, the setup and the figure.
-    Figure: ../figs/Fig-GridWorld-Backup/Fig-GridWorld-Backup.pdf (TikZ source).}
-\end{frame}
-
-\begin{frame}{Where Do $10$ and $0$ Come From?}
-  From $(3,2)$, choosing up is a move into the goal, so
-  \[
-    R\bigl((3,2),\text{up}\bigr)=+10.
-  \]
-  A slip changes where the robot lands, not the reward.
-
-  \vspace{0.4em}
-  In the first sweep every $U_{0}(s')=0$, so the $\gamma$ term drops out:
-  \[
-    U_{1}(3,2)=10+0.9\,(0)=10.
-  \]
-  The goal is terminal, so it has no actions left to earn reward, and its
-  value stays $0$.
-  \lecturesource{Value Iteration: Example: One Bellman Backup, the note on where 10 and 0 come from.}
-\end{frame}
-
-\begin{frame}{Worked Example: Comparing the Two Actions}
-  $Q_1(s,a)$ is the expected return of taking $a$ and then using the values
-  $U_1$. Up reaches $(3,2)$ with probability $0.8$, slips to $(2,1)$ or stays
-  with probability $0.1$ each; left swaps the two neighbors:
-  \[
-    \begin{aligned}
-      Q_1((3,1),\mathrm{up})&=-1+0.9\bigl(0.8(10)+0.1(-1)+0.1(-1)\bigr)=6.02,\\
-      Q_1((3,1),\mathrm{left})&=-1+0.9\bigl(0.8(-1)+0.1(10)+0.1(-1)\bigr)=-0.91.
-    \end{aligned}
-  \]
-
-  \vspace{0.3em}
-  The Bellman backup takes the larger:
-  \[
-    \boxed{U_2(3,1)=\max\{6.02,\,-0.91\}=6.02}
-  \]
-  The greedy action is up. Every state in the next sweep uses the previous
-  sweep's values in the same way.
-  \lecturesource{Value Iteration: Example: One Bellman Backup, the two action values and the result.}
 \end{frame}
 
 \begin{frame}{Value Iteration Algorithm}

@@ -1,4 +1,4 @@
-FIGURE_DIRS := Fig-GridWorld Fig-GridWorld-Backup
+FIGURE_DIRS := Fig-GridWorld
 
 .DEFAULT_GOAL := all
 .PHONY: all clean $(FIGURE_DIRS)

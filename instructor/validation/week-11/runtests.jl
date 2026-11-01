@@ -246,39 +246,8 @@ end
 end
 
 @meeting "L11c" begin
-    @testset "L11c lecture and worked backup" begin
+    @testset "L11c lecture" begin
         @test check_local_links("L11c", "CHEME-5800-L11c-Lecture-MarkovDecisionProcesses-Fall-2026.ipynb") ≥ 1
-
-        # Derive the worked example from the grid geometry; the reward depends only on the chosen move -
-        states = [(x, y) for x in 1:3 for y in 1:3 if (x, y) != (2, 2)]
-        moves = Dict(:up => (0, 1), :down => (0, -1), :left => (-1, 0), :right => (1, 0))
-        on_grid(c) = all(1 ≤ component ≤ 3 for component in c)
-        available(s) = s == (3, 3) ? [:stay] : [a for (a, m) in moves if on_grid(s .+ m)]
-        function grid_outcomes(s, a)
-            s == (3, 3) && return [(1.0, s, 0.0)]
-            intended = moves[a]
-            perpendicular = [m for m in values(moves) if sum(m .* intended) == 0]
-            outcomes = Tuple{Float64,Tuple{Int,Int},Float64}[]
-            for (probability, move) in zip((0.8, 0.1, 0.1), (intended, perpendicular...))
-                destination = s .+ move
-                target = s .+ intended
-                reward = target == (2, 2) ? -5.0 : target == (3, 3) ? 10.0 : -1.0
-                next = on_grid(destination) && destination != (2, 2) ? destination : s
-                push!(outcomes, (probability, next, reward))
-            end
-            return outcomes
-        end
-        backup(U, s, a) = sum(p * (r + 0.9 * U[next]) for (p, next, r) in grid_outcomes(s, a))
-        U₀ = Dict(s => 0.0 for s in states)
-        U₁ = Dict(s => maximum(backup(U₀, s, a) for a in available(s)) for s in states)
-        U₂ = Dict(s => maximum(backup(U₁, s, a) for a in available(s)) for s in states)
-        @test length(states) == 8
-        @test Set(available((3, 1))) == Set([:up, :left])
-        @test [U₁[s] for s in [(3, 2), (2, 1), (3, 1)]] ≈ [10.0, -1.0, -1.0]
-        @test backup(U₁, (3, 1), :up) ≈ 6.02
-        @test backup(U₁, (3, 1), :left) ≈ -0.91
-        @test U₂[(3, 1)] ≈ 6.02
-        @test U₀[(3, 3)] == U₁[(3, 3)] == U₂[(3, 3)] == 0.0
     end
 
     @testset "L11c random rollout example" begin

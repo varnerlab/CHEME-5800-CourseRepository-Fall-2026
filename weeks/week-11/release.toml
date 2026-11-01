@@ -1,6 +1,6 @@
 schema_version = 2
 week = 11
-version = "1.4"
+version = "1.5"
 status = "ready"
 cadence = "meeting"
 title = "Markov models, MDPs, and value iteration"
@@ -20,7 +20,6 @@ datasets = [
   "L11a/figs/Fig-TransitionMatrix-Schematic.svg",
   "L11a/figs/Fig-Matrix-Vector-Left-bA-product.svg",
   "L11b/data/PF00014-kunitz-alignment.fasta",
-  "L11c/figs/Fig-GridWorld-Backup.svg",
 ]
 student_paths = ["README.md", "L11a", "L11b", "L11c", "L11d"]
 instructor_only_paths = ["../../instructor/validation/week-11"]

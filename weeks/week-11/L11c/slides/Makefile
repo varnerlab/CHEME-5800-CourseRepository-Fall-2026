@@ -8,7 +8,7 @@ BUILD_DIR ?= ../../../../build/slides/L11c
 
 STYLES := vnslides.sty vnslides-base.sty vnflow.sty
 SEAL := assets/cornell-seal.pdf
-FIGURES := ../figs/Fig-GridWorld/Fig-GridWorld.pdf ../figs/Fig-GridWorld-Backup/Fig-GridWorld-Backup.pdf
+FIGURES := ../figs/Fig-GridWorld/Fig-GridWorld.pdf
 
 .DEFAULT_GOAL := slides
 .PHONY: slides figures clean distclean
