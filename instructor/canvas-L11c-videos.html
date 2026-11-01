@@ -1,0 +1,63 @@
+<!--
+INSTRUCTOR-FACING CANVAS COPY
+
+1. Open this .html file in a web browser; it will render as a page.
+2. Select the rendered page (Command+A on macOS or Ctrl+A on Windows).
+3. Copy it, then paste it into a Canvas page in the Week-11 module.
+   (Or paste the HTML below into the Canvas HTML editor.)
+4. Preview the Canvas page and test all three video links before publishing.
+-->
+
+<h2>L11c: Markov Decision Processes</h2>
+
+<p>
+  The L11c material comes in three recordings: two lecture videos, followed by
+  a worked example. The lecture and example notebooks are in the
+  <code>L11c</code> folder of the week-11 release.
+</p>
+
+<h3>Lecture, part 1: The problem</h3>
+
+<p>
+  What changes when an agent can choose what happens next? In this video, we
+  add actions and rewards to a Markov chain to build a Markov decision process.
+  We define its states, actions, rewards, transition model, and discount
+  factor, and the policy that picks an action in each state. A robot in a small
+  grid world shows how these pieces fit together, and a process operating
+  window shows the same structure in chemical engineering.
+</p>
+
+<p>
+  <a href="https://cornell.zoom.us/rec/share/2TOb1nmoDCqR6PCSmBux9SpF1YRHS0UJ2kNlzmj8dxdHceOkF-TkSdUXNnbUmp29.YYuVHhwlbjyWA-ct?startTime=1793565207000" target="_blank" rel="noopener">&#9654; Watch the L11c lecture video, part 1</a>
+</p>
+
+<h3>Lecture, part 2: The algorithms</h3>
+
+<p>
+  How do we find the best action in every state? In this video, we develop two
+  methods. Value iteration updates the value of each state from the values of
+  the states it can reach next, until the values stop changing; the converged
+  values give the optimal policy. Random rollout estimates a state's value by
+  simulating random moves and averaging the discounted rewards. It does not
+  need the transition probabilities, but it measures what random moves are
+  worth, not what the best moves are worth.
+</p>
+
+<p>
+  <a href="https://cornell.zoom.us/rec/share/ym9hJdwawU7G_nck4_5z-jXEJ_-mRF4Y-O7gSDzoZj8rexQUREnkBIGPi0iBQ35v.0pFC_OJ2XfmTR2Wr?startTime=1793566710000" target="_blank" rel="noopener">&#9654; Watch the L11c lecture video, part 2</a>
+</p>
+
+<h3>Example: Random rollout</h3>
+
+<p>
+  Can random moves tell a roomba how to get home? In this example, we build a
+  grid world with a charging station and lava pits as an MDP. We estimate the
+  value of every square with random rollouts, then score each move and pick the
+  best one to get a policy. We follow the policy from a starting square and see
+  where it works and where it fails. In the L11d lab, we compute the optimal
+  policy with value iteration.
+</p>
+
+<p>
+  <a href="https://cornell.zoom.us/rec/share/Do5ZuSlXHLhhvoNkqKNWJ8-jeThSy9d6AwbnO4cUVFk0I1Tq26q9PO_LRad5bqOR.SD02fc6K9to75szn?startTime=1793568692000" target="_blank" rel="noopener">&#9654; Watch the L11c example video</a>
+</p>
