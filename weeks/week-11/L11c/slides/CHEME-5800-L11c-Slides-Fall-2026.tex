@@ -158,7 +158,7 @@
 
 \begin{frame}{Grid World: The Layout}
   \centering
-  \includegraphics[width=\textwidth,height=0.64\paperheight,keepaspectratio]{assets/Fig-GridWorld-Backup.pdf}
+  \includegraphics[width=\textwidth,height=0.64\paperheight,keepaspectratio]{../figs/Fig-GridWorld-Backup/Fig-GridWorld-Backup.pdf}
 
   \vspace{0.3em}
   \raggedright
@@ -166,7 +166,7 @@
   moves. A bump or a slip off the grid leaves it in place, and the goal is
   terminal.
   \lecturesource{MDP Components: the paragraph after the grid world components, the figure, and the closing sentence on pi^*.
-    Figure: ../figs/Fig-GridWorld-Backup.svg (light colors).}
+    Figure: ../figs/Fig-GridWorld-Backup/Fig-GridWorld-Backup.pdf (TikZ source).}
 \end{frame}
 
 \begin{frame}{Value Iteration}
@@ -366,22 +366,23 @@
   \lecturesource{Random Rollout Algorithm: Computational Complexity.}
 \end{frame}
 
-\begin{frame}{Example: Value Iteration and Random Rollout}
-  In this example, we return to the slippery $3\times3$ grid world:
+\begin{frame}{Example: Random Rollout in the Lava Grid World}
+  In this example, a robot must reach its charging station without falling
+  into a lava pit:
 
   \vspace{0.6em}
   \begin{enumerate}\setlength{\itemsep}{0.6em}
-    \item Build the MDP and check it against the Bellman backup we worked by
-      hand.
-    \item Solve it with value iteration, and extract the optimal policy.
-    \item Estimate each square's value with random rollouts, and compare the
-      estimates with the exact value of the random policy and with $U^{*}$.
+    \item Build the lava grid world as an MDP, and shape the rewards so moves
+      toward the station pay a little more.
+    \item Estimate each square's value by averaging random rollouts.
+    \item Read a policy from the estimates with $Q(s,a)$, and follow it from a
+      start square.
   \end{enumerate}
 
   \vspace{0.6em}
-  The rollouts match the random policy, far below the optimal values, and their
-  standard error shrinks only as $1/\sqrt{n}$.
-  \slidenote{Example:}{\href{\examplelink}{Value iteration and random rollout in the slippery grid world}}
+  The policy reaches the station from most squares, but loops from some squares
+  whose way passes beside a lava pit.
+  \slidenote{Example:}{\href{\examplelink}{Random rollout in the lava grid world}}
   \lecturesource{Example section. Companion example: Tasks 1--3 and the third key takeaway.}
 \end{frame}
 

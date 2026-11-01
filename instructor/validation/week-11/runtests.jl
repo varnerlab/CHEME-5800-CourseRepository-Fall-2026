@@ -1,6 +1,7 @@
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-11"))
 include(joinpath(@__DIR__, "..", "release_scope.jl"))
 import JSON  # reads the notebooks whose cells the suite runs or whose links it checks
+import LinearAlgebra  # solves for the exact random-policy values in the L11c example check
 import REPL  # REPL.softscope applies Jupyter's scoping rules to those cells
 import SHA   # checks the vocabulary file the L11b lab reads from code/src/data
 using Test   # @testset must be defined when the file is parsed, even if no meeting that loads it is released
@@ -292,7 +293,7 @@ end
         path = joinpath(WEEK_ROOT, "L11c", example)
         notebook = JSON.parsefile(path)
         code_cells = [cell for cell in notebook["cells"] if cell["cell_type"] == "code"]
-        @test count(cell -> !isempty(cell["outputs"]), code_cells) ≥ 8
+        @test count(cell -> !isempty(cell["outputs"]), code_cells) ≥ 4
         @test all(output["output_type"] != "error" for cell in code_cells for output in cell["outputs"])
 
         # Run the example's cells -
@@ -303,46 +304,69 @@ end
                 joinpath(dirname(path), "validation-cell-$(index).jl"))
         end
         w = workspace
-        G = w.L11cGridWorld
+        G = w.L11cRollout
+        ordinary = [s for s in w.𝒮 if w.world.coordinates[s] ∉ w.absorbing_state_set]
 
-        # The model is the lecture's grid world, and it reproduces the worked backup -
-        @test length(w.world.squares) == 8 && w.world.terminal == Set([w.world.index[(3, 3)]])
-        @test Set(w.world.actions[w.world.index[(3, 1)]]) == Set([1, 3]) # up and left
-        lecture = G.build_slippery_grid(γ = 0.9)
-        U₁ = [maximum(G.q_value(lecture, zeros(8), s, a) for a in lecture.actions[s]) for s in 1:8]
-        @test U₁[lecture.index[(3, 2)]] ≈ 7.4 && G.q_value(lecture, U₁, lecture.index[(3, 1)], 1) ≈ 4.112
+        # The world: the charging station and the lava pits are absorbing, and shaping filled the rest -
+        @test w.absorbing_state_set == Set(c for (c, r) in w.rewards if r in (w.charging_reward, w.lava_reward))
+        @test w.world.rewards[w.world.states[w.charging_station_coordinates]] == w.charging_reward
+        @test G.rbf(w.charging_station_coordinates, w.charging_station_coordinates) == 1.0
+        @test length(w.rewards) == w.nstates # every square has a reward once shaping is on
 
-        # Value iteration converged to a fixed point, and the policy reaches the goal around the obstacle -
-        @test w.solution.converged
-        @test maximum(abs(w.solution.U[s] - maximum(G.q_value(w.world, w.solution.U, s, a) for a in w.world.actions[s]))
-            for s in 1:8) ≤ w.ϵ
-        @test [G.ACTION_NAMES[w.π_star[w.world.index[q]]] for q in [(1, 1), (1, 2), (1, 3), (2, 3), (2, 1), (3, 1), (3, 2)]] ==
-            ["up", "up", "right", "right", "right", "up", "up"]
-
-        # "The two squares next to the goal have the largest values" -
-        nonterminal = [s for s in 1:8 if s ∉ w.world.terminal]
-        top_two = sort(nonterminal; by = s -> -w.solution.U[s])[1:2]
-        @test Set(w.world.squares[top_two]) == Set([(3, 2), (2, 3)])
-
-        # The depth-d policy evaluation equals the mean rollout return, and the rollouts estimate it -
-        @test all(w.solution.U .≥ w.U_random .- 1e-8)
-        @test all(abs(w.rollout.U[s] - w.U_random_d[s]) < abs(w.rollout.U[s] - w.solution.U[s]) for s in nonterminal)
-        @test sum(w.rollout.n) == w.number_of_rollouts && w.rollout.U[w.world.index[(3, 3)]] == 0.0
-        @test abs(mean(w.corner_returns) - w.U_random_d[w.s₀]) ≤ 4 * std(w.corner_returns) / sqrt(length(w.corner_returns))
-        # The depth-d values equal an independent enumeration of the expected rollout return -
-        function enumerated_return(s, depth)
-            (depth == 0 || s in w.world.terminal) && return 0.0
-            return sum(sum(p * (r + w.world.γ * enumerated_return(s′, depth - 1)) for (p, s′, r) in w.world.outcomes[(s, a)])
-                for a in w.world.actions[s]) / length(w.world.actions[s])
-        end
-        for depth in 1:4
-            @test G.random_policy_values(w.world, d = depth) ≈ [enumerated_return(s, depth) for s in 1:8]
+        # R and T: absorbing states earn nothing and stay put, and leaving the grid is never cheap -
+        for s in w.𝒮, a in w.𝒜
+            position = w.world.coordinates[s]
+            if position ∈ w.absorbing_state_set
+                @test w.R[s, a] == 0.0 && w.T[s, s, a] == 1.0
+            elseif !haskey(w.world.states, position .+ w.world.moves[a])
+                @test w.R[s, a] == -50000.0 && w.T[s, s, a] == 1.0
+            end
         end
 
-        # "The rollouts never read T or R": the same seeded rollouts in a world whose T and R are unusable -
-        blind = G.SlipperyGridWorld(w.world.squares, w.world.index, w.world.actions, w.world.terminal,
-            w.world.outcomes, fill(NaN, size(w.world.T)), fill(NaN, size(w.world.R)), w.world.γ)
-        @test G.random_rollout(blind, w.MersenneTwister(w.seed), w.number_of_rollouts, w.d).U == w.rollout.U
+        # A rollout collects nothing from an absorbing square, and a one-step rollout earns R[s,a] for a legal move -
+        station = w.world.states[w.charging_station_coordinates]
+        @test G.myrollout(w.m, w.world, station, w.d, w.absorbing_state_set) == 0.0
+        s₁ = first(ordinary)
+        legal = [w.R[s₁, a] for a in w.𝒜 if haskey(w.world.states, w.world.coordinates[s₁] .+ w.world.moves[a])]
+        one_step = [G.myrollout(w.m, w.world, s₁, 1, w.absorbing_state_set) for _ in 1:20]
+        @test all(any(g ≈ r for r in legal) for g in one_step)
+
+        # The estimates are the random policy's values: solve for them exactly and compare within sampling error -
+        U_random = let
+            P = zeros(w.nstates, w.nstates); r̄ = zeros(w.nstates)
+            for s in ordinary
+                legal_actions = [a for a in w.𝒜 if haskey(w.world.states, w.world.coordinates[s] .+ w.world.moves[a])]
+                for a in legal_actions
+                    s′ = argmax(w.T[s, :, a])
+                    r̄[s] += w.R[s, a] / length(legal_actions)
+                    w.world.coordinates[s′] ∉ w.absorbing_state_set && (P[s, s′] += 1 / length(legal_actions))
+                end
+            end
+            (LinearAlgebra.I - w.γ * P) \ r̄ # the depth limit cuts off at most γ^d of the return, negligible here
+        end
+        w.Random.seed!(w.seed + 1)
+        spread = [w.std([G.myrollout(w.m, w.world, s, w.d, w.absorbing_state_set) for _ in 1:w.N]) for s in w.𝒮]
+        @test all(abs(w.utility_array[s] - U_random[s]) ≤ 5 * spread[s] / sqrt(w.N) + 1e-8 for s in w.𝒮)
+        @test all(w.utility_array[s] == 0.0 for s in w.𝒮 if s ∉ ordinary)
+
+        # "Squares beside a pit get low estimates" -
+        lava = [c for (c, r) in w.rewards if r == w.lava_reward]
+        beside = [s for s in ordinary if any(sum(abs.(w.world.coordinates[s] .- c)) == 1 for c in lava)]
+        others = setdiff(ordinary, beside)
+        @test w.mean(w.utility_array[beside]) < w.mean(w.utility_array[others])
+
+        # The policy is greedy in Q, and from the start square the roomba reaches the charging station -
+        @test w.my_π == [argmax(w.my_Q[s, :]) for s in w.𝒮]
+        @test w.outcome == "reached the charging station"
+        @test all(w.path[i + 1] .- w.path[i] in values(w.world.moves) for i in 1:(length(w.path) - 1))
+        @test isempty(intersect(w.path[1:end-1], w.absorbing_state_set))
+
+        # "From most squares the policy leads to the station; from some it walks in a loop" -
+        endings = [G.follow_policy(w.my_π, w.world.coordinates[s], w.world, w.rewards, w.absorbing_state_set;
+            charging_reward = w.charging_reward)[2] for s in ordinary]
+        @test count(==("reached the charging station"), endings) > length(ordinary) / 2
+        @test count(==("walks in a loop"), endings) ≥ 1
+        @test count(==("fell into a lava pit"), endings) == 0
     end
 end
 

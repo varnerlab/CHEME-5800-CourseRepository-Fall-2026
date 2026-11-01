@@ -5,11 +5,10 @@ STEM := $(basename $(TEXFILE))
 LATEXMK ?= latexmk
 LATEX_FLAGS ?= -interaction=nonstopmode -halt-on-error
 BUILD_DIR ?= ../../../../build/slides/L11c
-RSVG ?= rsvg-convert
 
 STYLES := vnslides.sty vnslides-base.sty vnflow.sty
 SEAL := assets/cornell-seal.pdf
-FIGURES := assets/Fig-GridWorld-Backup.pdf
+FIGURES := ../figs/Fig-GridWorld-Backup/Fig-GridWorld-Backup.pdf
 
 .DEFAULT_GOAL := slides
 .PHONY: slides figures clean distclean
@@ -21,13 +20,10 @@ $(PDF): $(TEXFILE) $(STYLES) $(SEAL) $(FIGURES)
 	$(LATEXMK) -xelatex -outdir=$(BUILD_DIR) $(LATEX_FLAGS) $(TEXFILE)
 	cp $(BUILD_DIR)/$(PDF) $(PDF)
 
-# The notebook figure is an SVG with a dark-mode style block; rsvg-convert
-# ignores the media query and writes the light colors. As in the L10a deck, the
-# copy converted here adds xml:space="preserve" to every <text> element so
-# librsvg keeps the spaces inside labels. The notebook SVG is unchanged.
-assets/%.pdf: ../figs/%.svg
-	mkdir -p assets
-	sed 's/<text /<text xml:space="preserve" /' $< | $(RSVG) -f pdf -o $@
+# The deck includes the TikZ PDF directly; the figure's own Makefile builds it
+# (and the notebook SVG) from the standalone source.
+../figs/%.pdf: ../figs/%.tex ../figs/mdp-figure.tex
+	$(MAKE) -C $(dir $@)
 
 clean:
 	$(LATEXMK) -outdir=$(BUILD_DIR) -c $(TEXFILE)

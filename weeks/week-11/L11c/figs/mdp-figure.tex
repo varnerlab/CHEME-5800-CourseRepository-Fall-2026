@@ -1,0 +1,25 @@
+% Shared style for the L11c standalone TikZ diagrams. It follows the CHEME 5820
+% TikZ figures (skip-gram window, SSM block, RNN unfold): Latin Modern text,
+% math labels, pastel fills with dark outlines, and plain arrows.
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usetikzlibrary{arrows.meta,calc,positioning}
+\tikzset{
+  every picture/.style={font=\small},
+  cell/.style={draw=black!70,line width=0.6pt,fill=white},
+  goal/.style={cell,fill=green!14},
+  block/.style={cell,fill=gray!30},
+  focus/.style={draw=orange!70!black,line width=1.4pt,fill=orange!20},
+  neighbor/.style={draw=gray!50,line width=0.6pt,dashed},
+  axis/.style={draw=black!60,line width=0.5pt,-{Stealth[length=2mm]}},
+  tick/.style={text=black!60,font=\footnotesize},
+  note/.style={text=black!55,font=\footnotesize},
+  arr/.style={-{Stealth[length=2.5mm]},thick,draw=black!75},
+  chosen/.style={arr,draw=orange!70!black,line width=1.2pt},
+  state/.style={circle,draw=blue!60!black,fill=blue!12,line width=0.8pt,
+    minimum size=10.5mm,inner sep=0pt,font=\footnotesize},
+  root/.style={state,draw=orange!70!black,fill=orange!20,line width=1.2pt},
+  action/.style={circle,fill=black!80,minimum size=2.4mm,inner sep=0pt},
+  prob/.style={fill=white,inner sep=1.2pt,font=\footnotesize},
+}

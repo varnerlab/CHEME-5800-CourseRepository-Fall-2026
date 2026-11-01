@@ -8,9 +8,9 @@ example builds a position-aware Markov generator from a small Kunitz protein-fam
 alignment, evaluates its candidate sequences, and conditions the generator toward a
 selected amino-acid marker. The second half
 adds actions and rewards to the chain to form a Markov decision process, solved by value
-iteration and estimated by random rollouts; the L11c example compares the two on the lecture's
-slippery grid world and shows that rollouts estimate the value of random actions, not the optimal
-value. In the L11d lab, students write their own
+iteration and estimated by random rollouts; the L11c example estimates values with random
+rollouts in a lava grid world and shows that a policy read from those estimates is not the
+optimal policy. In the L11d lab, students write their own
 value iteration with a convergence check and use it to guide a robot through a grid world
 to a charging station while avoiding lava pits.
 

@@ -40,8 +40,11 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
 end
 
 
-# Reload the example's grid world when the setup cell is rerun -
-include(joinpath(CHEME5800_L11C_ROOT, "src", "GridWorld.jl"))
+# The example's helpers, loaded once: reward shaping, the random rollout, and
+# walking and drawing a policy.
+if !isdefined(@__MODULE__, :L11cRollout)
+    include(joinpath(CHEME5800_L11C_ROOT, "src", "Rollout.jl"))
+end
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
@@ -50,15 +53,17 @@ include(joinpath(CHEME5800_L11C_ROOT, "src", "GridWorld.jl"))
 #
 # Already imported by the root bootstrap above, listed so this block is the
 # whole picture rather than most of it:
-#   VLDataScienceMachineLearningPackage   the course package
+#   VLDataScienceMachineLearningPackage   the course package: the grid world
+#                                         and MDP models, myrandpolicy,
+#                                         myrandstep, Q, and policy
 #
 # Standard library:
-using LinearAlgebra  # factorizations, norms, and matrix operations
 using Random         # seeded random number generation
 using Statistics     # mean, std, and friends
 using Test           # @test / @testset for the checks in the notebook
 #
 # Packages:
-using DataFrames     # tabular records held as columns
 using Plots          # figures
-using PrettyTables   # formatted table output in the notebook
+#
+# This meeting's helpers (section 2):
+using .L11cRollout   # rbf, myrollout, follow_policy, square, and draw_path

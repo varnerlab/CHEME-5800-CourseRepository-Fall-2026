@@ -34,7 +34,7 @@ Requirements: XeLaTeX and `latexmk`. The style uses Helvetica Neue when availabl
 | 12–13 | The value iteration algorithm and policy extraction; its computational complexity |
 | 14–15 | Random rollout compared with value iteration; its algorithm |
 | 16–17 | What a rollout estimates and the truncation bound; its computational complexity and accuracy |
-| 18 | Example: value iteration and random rollout in the slippery grid world |
+| 18 | Example: random rollout in the lava grid world |
 | 19 | Lab: value iteration in a grid world |
 | 20 | Summary with three key takeaways |
 
@@ -51,5 +51,5 @@ Source notebook snapshots (SHA-256):
 | Notebook | SHA-256 |
 |---|---|
 | CHEME-5800-L11c-Lecture-MarkovDecisionProcesses-Fall-2026.ipynb | `c010aabe6991f1b04cd3375f9d430a166c5eae0c7a760f7bf93b5a594af9e630` |
-| CHEME-5800-L11c-Example-RandomRollout-Fall-2026.ipynb | `d469b99cb15f191a84dffdaecd16bedb162b2f0eec13e754496e07fdf8014ecc` |
+| CHEME-5800-L11c-Example-RandomRollout-Fall-2026.ipynb | `5f342e536544b59da3578d3bfa60b21b13f63a1d19eccd73347ad1ba13b89b9d` |
 | CHEME-5800-L11d-Lab-ValueIterationGridWorld-Fall-2026.ipynb | `6d873576808aa765bf9fa0a78f2336984e65ce35156bf1a771bad268843eef36` |
