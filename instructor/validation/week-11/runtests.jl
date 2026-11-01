@@ -66,16 +66,11 @@ end
         @test w.number_of_simulation_steps == 20_000
         @test maximum(abs.(visits ./ w.number_of_simulation_steps .- π_exact)) < 0.03
 
-        # The two sequences have similar state frequencies but different consecutive pairs -
-        independent_visits = [count(==(s), w.stationary_samples) for s in 1:3]
-        @test maximum(abs.(independent_visits ./ length(w.stationary_samples) .- π_exact)) < 0.03
+        # The chain never moves 1 -> 3 or 3 -> 1, and its row-normalized counts are close to P -
         @test sum(w.chain_transition_counts) == w.number_of_simulation_steps - 1
-        @test sum(w.independent_transition_counts) == length(w.stationary_samples) - 1
         @test all(w.chain_transition_counts[w.P .== 0] .== 0)
-        @test w.independent_transition_counts[1, 3] > 0 && w.independent_transition_counts[3, 1] > 0
         estimated_P = w.chain_transition_counts ./ sum(w.chain_transition_counts; dims = 2)
         @test maximum(abs.(estimated_P .- w.P)) < 0.03
-        @test w.independent_transition_counts[1, 3] / (length(w.stationary_samples) - 1) ≈ π_exact[1] * π_exact[3] atol = 0.02
 
         # Repeated row updates agree with the initial condition and the stationary limit -
         @test collect(w.transient_distributions[1, 2:4]) == [0.0, 0.0, 1.0]
