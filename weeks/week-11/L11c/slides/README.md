@@ -2,7 +2,7 @@
 
 [PDF deck](CHEME-5800-L11c-Slides-Fall-2026.pdf) · [Editable LaTeX source](CHEME-5800-L11c-Slides-Fall-2026.tex)
 
-The 21-slide deck follows the [Markov Decision Processes lecture](../CHEME-5800-L11c-Lecture-MarkovDecisionProcesses-Fall-2026.ipynb) in its order: the lecture and example, from Markov chains to decisions, the five MDP components, the agent's goal, the grid world example, its layout figure, and grid worlds in chemical engineering, value iteration and the Bellman backup, the one-backup worked example over three slides (the figure, where 7.4 and 0 come from, and the two action values), the value iteration algorithm with policy extraction and its cost, then random rollout, its algorithm, and its cost and accuracy, the example, the lab, and the Summary. Three learning objectives align with three closing takeaways.
+The 21-slide deck follows the [Markov Decision Processes lecture](../CHEME-5800-L11c-Lecture-MarkovDecisionProcesses-Fall-2026.ipynb) in its order: the lecture and example, from Markov chains to decisions, the five MDP components, the agent's goal, the grid world example, its layout figure, and grid worlds in chemical engineering, value iteration and the Bellman backup, the one-backup worked example over three slides (the figure, where 10 and 0 come from, and the two action values), the value iteration algorithm with policy extraction and its cost, then random rollout, its algorithm, and its cost and accuracy, the example, the lab, and the Summary. Three learning objectives align with three closing takeaways.
 
 **Review status:** Built October 26, 2026; not yet reviewed by the instructor. A read-only codex review scored the first build 8.1/10, recomputed the worked backup (7.4, −1.4, −1, 4.112, −1.432), and found the other equations faithful. Its main finding was applied: the random rollout pseudocode had dropped the lecture's `terminated` flag and While loop, and now keeps them. The policy slide's note on $\pi$ and the Summary no longer name another lecture or preview next week (the course rule of October 15), and the truncation-bound slide now defines $U^{\mathrm{random}}$ and $U_d^{\mathrm{random}}$. Its suggestion to narrow the continuous-state claim on the rollout cost slide was declined, because the deck states the lecture's claim. The deck was not re-scored after these fixes. The same day, a new example notebook comparing value iteration and random rollout was added, and the deck gained the lecture-and-example slide and an example slide. The build has no overfull or underfull boxes. On November 1, 2026, the deck was synced with the instructor's lecture edits: the terminal-state, convergence-properties, and older random-rollout material was removed, the layout slide now shows the layout figure, the backup figure and the note on 7.4 and 0 were added to the worked example, and a slide on grid worlds in chemical engineering was added.
 
@@ -28,9 +28,9 @@ Requirements: XeLaTeX and `latexmk`. The style uses Helvetica Neue when availabl
 |---|---|
 | 1–4 | Title, three learning objectives, the lecture and example, and the move from Markov chains to decisions |
 | 5–6 | The MDP tuple and its five components; the agent's goal, a policy that maximizes the discounted objective |
-| 7–9 | The grid world example's components; its layout figure, the expected reward, and the terminal goal; grid worlds in chemical engineering |
+| 7–9 | The grid world example's components; its layout figure, rewards that depend only on the chosen action, and the terminal goal; grid worlds in chemical engineering |
 | 10 | Value iteration, the Bellman backup, and $U^{*}$ |
-| 11–13 | Worked example: the setup and the backup figure; where 7.4 and 0 come from; the two action values and $U_2(3,1)=4.112$ |
+| 11–13 | Worked example: the setup and the backup figure; where 10 and 0 come from; the two action values and $U_2(3,1)=6.02$ |
 | 14–15 | The value iteration algorithm and policy extraction; its computational complexity |
 | 16–18 | Random rollout; its algorithm; its computational complexity and accuracy |
 | 19 | Example: random rollout in the lava grid world |
@@ -49,6 +49,6 @@ Source notebook snapshots (SHA-256):
 
 | Notebook | SHA-256 |
 |---|---|
-| CHEME-5800-L11c-Lecture-MarkovDecisionProcesses-Fall-2026.ipynb | `d90b771ce54e40df62cebddcc9ae3a65913a1abb721c823363aacaa239222a04` |
+| CHEME-5800-L11c-Lecture-MarkovDecisionProcesses-Fall-2026.ipynb | `a6802f8ac2f9021f621a002bf021ed64fb7b531ce3aaa719b6af600e5d3510f2` |
 | CHEME-5800-L11c-Example-RandomRollout-Fall-2026.ipynb | `fa6c98467202405a9f4c47124f329ca0f021394e0de1350b654f0720ee42b96b` |
 | CHEME-5800-L11d-Lab-ValueIterationGridWorld-Fall-2026.ipynb | `6d873576808aa765bf9fa0a78f2336984e65ce35156bf1a771bad268843eef36` |

@@ -96,9 +96,8 @@
     \item \hilite{State space} $\Sset$: all possible states $s$ of the system.
     \item \hilite{Action space} $\Aset$: all possible actions $a$; the actions
       available in state $s$ are $\Aset_s\subseteq\Aset$.
-    \item \hilite{Reward function} $R(s,a)$: the expected immediate reward of
-      action $a$ in state $s$. When the outcome is random, $R(s,a)$ averages over
-      the outcomes; $r$ is the reward actually received on a single step.
+    \item \hilite{Reward function} $R(s,a)$: the immediate reward for taking
+      action $a$ in state $s$; $r$ is the reward received on a single step.
     \item \hilite{Transition model}
       $T(s'\,|\,s,a)=P(s_{t+1}=s'\,|\,s_t=s,a_t=a)$: the probability that
       action $a$ in state $s$ leads to state $s'$.
@@ -132,9 +131,9 @@
       than the obstacle at $(2,2)$; $x$ increases to the right and $y$ upward.
     \item \hilite{Actions}: up, down, left, right; moves off the grid are
       unavailable, so $\Aset_s\subsetneq\Aset$ on the edges.
-    \item \hilite{Rewards}: $+10$ for entering the goal at $(3,3)$, $-5$ for a
-      bump into the obstacle, and $-1$ for every other outcome, including a slip
-      off the grid.
+    \item \hilite{Rewards}: $+10$ for choosing a move into the goal at
+      $(3,3)$, $-5$ for choosing a move into the obstacle, and $-1$ for every
+      other action.
     \item \hilite{Transitions}: slippery terrain; the intended move succeeds with
       probability $0.8$, and each perpendicular move happens with probability
       $0.1$.
@@ -150,8 +149,8 @@
 
   \vspace{0.3em}
   \raggedright
-  Because moves are random, $R(s,a)$ averages over where the robot actually
-  moves. A bump or a slip off the grid leaves it in place, and the goal is
+  The reward depends on the action the robot chooses; slips change only where
+  it lands. A bump or a slip off the grid leaves it in place, and the goal is
   terminal, so it earns zero further reward after entry.
   \lecturesource{MDP Components: the paragraph after the grid world components, and the figure.
     Figure: ../figs/Fig-GridWorld/Fig-GridWorld.pdf (TikZ source).}
@@ -198,7 +197,7 @@
 
 \begin{frame}{Worked Example: One Bellman Backup}
   Update the corner $s=(3,1)$: only up and left keep the robot on the grid,
-  and every outcome of either action earns $-1$. Starting from $U_0=0$, one
+  and both earn $-1$. Starting from $U_0=0$, one
   sweep leaves these values:
 
   \vspace{0.2em}
@@ -208,19 +207,21 @@
     Figure: ../figs/Fig-GridWorld-Backup/Fig-GridWorld-Backup.pdf (TikZ source).}
 \end{frame}
 
-\begin{frame}{Where Do $7.4$ and $0$ Come From?}
-  The $+10$ is earned on the move into the goal, so it counts toward the square
-  the robot moves from. From $(3,2)$, moving up gives
+\begin{frame}{Where Do $10$ and $0$ Come From?}
+  From $(3,2)$, choosing up is a move into the goal, so
   \[
-    0.8\,(+10)+0.1\,(-5)+0.1\,(-1)=7.4,
+    R\bigl((3,2),\text{up}\bigr)=+10.
   \]
-  reaching the goal with probability $0.8$, bumping the obstacle with
-  probability $0.1$, and slipping off the grid with probability $0.1$.
+  A slip changes where the robot lands, not the reward.
 
-  \vspace{0.6em}
-  The goal itself is terminal: nothing is left to earn there, so its value
-  stays $0$.
-  \lecturesource{Value Iteration: Example: One Bellman Backup, the note on where 7.4 and 0 come from.}
+  \vspace{0.4em}
+  In the first sweep every $U_{0}(s')=0$, so the $\gamma$ term drops out:
+  \[
+    U_{1}(3,2)=10+0.9\,(0)=10.
+  \]
+  The goal is terminal, so it has no actions left to earn reward, and its
+  value stays $0$.
+  \lecturesource{Value Iteration: Example: One Bellman Backup, the note on where 10 and 0 come from.}
 \end{frame}
 
 \begin{frame}{Worked Example: Comparing the Two Actions}
@@ -229,15 +230,15 @@
   with probability $0.1$ each; left swaps the two neighbors:
   \[
     \begin{aligned}
-      Q_1((3,1),\mathrm{up})&=-1+0.9\bigl(0.8(7.4)+0.1(-1.4)+0.1(-1)\bigr)=4.112,\\
-      Q_1((3,1),\mathrm{left})&=-1+0.9\bigl(0.8(-1.4)+0.1(7.4)+0.1(-1)\bigr)=-1.432.
+      Q_1((3,1),\mathrm{up})&=-1+0.9\bigl(0.8(10)+0.1(-1)+0.1(-1)\bigr)=6.02,\\
+      Q_1((3,1),\mathrm{left})&=-1+0.9\bigl(0.8(-1)+0.1(10)+0.1(-1)\bigr)=-0.91.
     \end{aligned}
   \]
 
   \vspace{0.3em}
   The Bellman backup takes the larger:
   \[
-    \boxed{U_2(3,1)=\max\{4.112,\,-1.432\}=4.112}
+    \boxed{U_2(3,1)=\max\{6.02,\,-0.91\}=6.02}
   \]
   The greedy action is up. Every state in the next sweep uses the previous
   sweep's values in the same way.

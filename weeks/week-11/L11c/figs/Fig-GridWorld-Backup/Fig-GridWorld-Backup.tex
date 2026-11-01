@@ -11,13 +11,13 @@
   \foreach \i in {0,...,3} \draw[black!70,line width=0.6pt] (\i,0) -- (\i,3) (0,\i) -- (3,\i);
   \draw[orange!70!black,line width=1.4pt] (2,0) rectangle (3,1);
   \node at (0.5,2.5) {$-1$};
-  \node at (1.5,2.5) {$7.4$};
+  \node at (1.5,2.5) {$10$};
   \node[align=center] at (2.5,2.5) {$0$\\[-1pt]{\footnotesize goal}};
-  \node at (0.5,1.5) {$-1.4$};
+  \node at (0.5,1.5) {$-1$};
   \node[align=center,font=\footnotesize] at (1.5,1.5) {obstacle};
-  \node at (2.5,1.5) {$7.4$};
+  \node at (2.5,1.5) {$10$};
   \node at (0.5,0.5) {$-1$};
-  \node at (1.5,0.5) {$-1.4$};
+  \node at (1.5,0.5) {$-1$};
   \node at (2.5,0.5) {$-1$};
 
   \draw[axis] (0,-0.42) -- (3.3,-0.42) node[right,tick] {$x$};
@@ -30,7 +30,7 @@
 
   % --- Backup tree for s = (3,1): state -> action -> next state ---
   \begin{scope}[shift={(4.6,0)}]
-    \node[root,label={[text=orange!70!black]left:{$U_2(3,1)=4.112$\ }}] (s) at (2.9,3.15) {$(3,1)$};
+    \node[root,label={[text=orange!70!black]left:{$U_2(3,1)=6.02$\ }}] (s) at (2.9,3.15) {$(3,1)$};
     \node[action,label={[font=\small]left:up}]    (up) at (1.2,1.95) {};
     \node[action,label={[font=\small]right:left}] (lf) at (4.6,1.95) {};
     \draw[chosen] (s) -- (up);
@@ -55,12 +55,12 @@
     \draw[arr] (lf) -- node[prob,pos=0.45] {$0.8$} (l2);
     \draw[arr] (lf) -- node[prob,pos=0.45] {$0.1$} (l3);
 
-    \foreach \n/\v in {u1/-1.4,u2/7.4,u3/-1,l1/7.4,l2/-1.4,l3/-1}
+    \foreach \n/\v in {u1/-1,u2/10,u3/-1,l1/10,l2/-1,l3/-1}
       \node[font=\footnotesize,below=1pt] at (\n.south) {$\v$};
 
-    \node[text=orange!70!black,anchor=east] at ($(up)+(-0.32,0.3)$) {$Q_1=4.112$};
-    \node[anchor=west] at ($(lf)+(0.32,0.3)$) {$Q_1=-1.432$};
-    \node[note] at (2.9,-0.78) {numbers below the states are $U_1(s')$; every move earns $r=-1$; $\gamma=0.9$};
+    \node[text=orange!70!black,anchor=east] at ($(up)+(-0.32,0.3)$) {$Q_1=6.02$};
+    \node[anchor=west] at ($(lf)+(0.32,0.3)$) {$Q_1=-0.91$};
+    \node[note] at (2.9,-0.78) {numbers below the states are $U_1(s')$; both actions earn $R=-1$; $\gamma=0.9$};
   \end{scope}
 \end{tikzpicture}
 \end{document}
