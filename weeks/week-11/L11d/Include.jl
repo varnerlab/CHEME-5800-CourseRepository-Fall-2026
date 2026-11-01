@@ -68,7 +68,7 @@ using Test           # @test / @testset for the checks in the notebook
 using Plots          # figures
 #
 # This meeting's supplied helpers (section 2):
-using .L11dUtility  # follow_policy and draw_path
+using .L11dUtility  # follow_policy, square, arrow_shape, and draw_path
 #
 # There is deliberately no `using .L11dValueIteration`. Re-running this file
 # replaces that module, and on Julia 1.12 a second `using` of the replacement

@@ -15,8 +15,7 @@ export mysolve
 """
     mysolve(model::MyValueIterationModel, problem::MyMDPProblemModel; ϵ::Float64 = 1e-6) -> NamedTuple
 
-Solve the MDP `problem` by value iteration with a convergence check, the algorithm from the
-L11c lecture.
+Solve the MDP `problem` by value iteration with a convergence check.
 
 Each pass over the states, a sweep, replaces the value of every state `s` with its Bellman
 backup, the largest value of `R(s,a) + γ⋅Σ T(s′|s,a)⋅U(s′)` over the actions `a`. The loop
@@ -35,7 +34,7 @@ sweeps, whichever comes first; in the second case it also logs a warning. The st
 A `NamedTuple` with the fields:
 - `U::Array{Float64,1}`: the value of each state after the last sweep, `|𝒮|` entries.
 - `iterations::Int64`: the number of sweeps, `k + 1` for the iteration counter `k` of the
-  L11c algorithm when the loop stops.
+  algorithm when the loop stops.
 - `converged::Bool`: `true` if the last sweep changed no value by more than `ϵ`; `false` if
   the loop stopped because it reached `k_max` sweeps without meeting the tolerance.
 

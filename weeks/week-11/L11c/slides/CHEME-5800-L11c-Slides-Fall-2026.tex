@@ -1,13 +1,13 @@
 % L11c lecture companion. Notebook hashes and coverage are recorded in README.md.
 % Style files and Cornell seal are copied unchanged from the L10c deck (identical
 % to L10a, L9c, and L9a, which match the approved L6a deck). The grid world
-% figure is converted from the notebook SVG in ../figs by `make figures`.
+% figures are the TikZ PDFs in ../figs; `make figures` rebuilds them.
 %
 % Notation follows the lecture: the MDP tuple (S, A, R(s,a), T(s'|s,a), gamma),
 % available actions A_s, observed rewards r, the policy pi, value functions U_k,
 % U^*, action values Q_1(s,a), the tolerance epsilon, the iteration limit k_max,
 % and for random rollout the depth d, number of rollouts N, return G, visit
-% counts n(s), the estimate \hat{U}(s), and the bound r_max.
+% counts n(s), and the estimate \hat{U}(s).
 \documentclass[aspectratio=169,11pt]{beamer}
 \usepackage{vnslides}
 \renewcommand{\vnlecturecode}{L11c}
@@ -60,14 +60,11 @@
 
   \vspace{1.1em}
   \textbf{\ink{Example:}}
-  \href{\examplelink}{Value Iteration and Random Rollout in the Slippery Grid World}
+  \href{\examplelink}{Random Rollout in the Lava Grid World}
 
-  In this example, we solve the lecture's grid world with value iteration,
-  estimate its values with random rollouts, and compare the two answers.
-
-  \vspace{0.8em}
-  A rollout needs only a simulator; value iteration needs the full transition
-  model.
+  In this example, we estimate the value of every square in a lava grid world
+  by averaging random rollouts. We then read a policy from the estimates, draw
+  it, and follow it from a starting square to the charging station.
   \lecturesource{Introduction and Example.}
 \end{frame}
 
@@ -100,7 +97,8 @@
     \item \hilite{Action space} $\Aset$: all possible actions $a$; the actions
       available in state $s$ are $\Aset_s\subseteq\Aset$.
     \item \hilite{Reward function} $R(s,a)$: the expected immediate reward of
-      action $a$ in state $s$. One transition produces an observed reward $r$.
+      action $a$ in state $s$. When the outcome is random, $R(s,a)$ averages over
+      the outcomes; $r$ is the reward actually received on a single step.
     \item \hilite{Transition model}
       $T(s'\,|\,s,a)=P(s_{t+1}=s'\,|\,s_t=s,a_t=a)$: the probability that
       action $a$ in state $s$ leads to state $s'$.
@@ -111,27 +109,17 @@
   \lecturesource{MDP Components: the tuple and the five components.}
 \end{frame}
 
-\begin{frame}{Policies and Terminal States}
+\begin{frame}{The Agent's Goal: A Policy}
   The agent's goal is a \hilite{policy} $\pi:\Sset\to\Aset$, with $\pi(s)=a$,
-  that maximizes the expected cumulative discounted reward:
+  that maps states to actions while maximizing the expected cumulative
+  discounted reward:
   \[
     \mathbb E\left[\sum_{t=0}^{\infty}\gamma^{t}R(s_t,a_t)\right].
   \]
-  {\small Previously, $\pi$ denoted a state distribution; here it is a policy.}
-
-  \vspace{0.5em}
-  In an episodic problem, entering a \hilite{terminal state} ends reward
-  collection:
-  \begin{itemize}\setlength{\itemsep}{0.3em}
-    \item The reward for reaching the terminal state is collected on entry.
-    \item Value iteration treats it as absorbing: a dummy action keeps the agent
-      there and earns zero reward, so its value stays zero.
-  \end{itemize}
 
   \vspace{0.3em}
-  Today: \hilite{value iteration} solves for the optimal policy, and
-  \hilite{random rollout} estimates the value of a state by simulation.
-  \lecturesource{MDP Components: the goal, the terminal-state paragraph, and the two algorithms. The note on the symbol pi is added for the deck.}
+  {\small Previously, $\pi$ denoted a state distribution; here it is a policy.}
+  \lecturesource{MDP Components: the agent's goal. The note on the symbol pi is added for the deck.}
 \end{frame}
 
 \begin{frame}{Example: Grid World Navigation}
@@ -158,15 +146,36 @@
 
 \begin{frame}{Grid World: The Layout}
   \centering
-  \includegraphics[width=\textwidth,height=0.64\paperheight,keepaspectratio]{../figs/Fig-GridWorld-Backup/Fig-GridWorld-Backup.pdf}
+  \includegraphics[width=\textwidth,height=0.6\paperheight,keepaspectratio]{../figs/Fig-GridWorld/Fig-GridWorld.pdf}
 
   \vspace{0.3em}
   \raggedright
   Because moves are random, $R(s,a)$ averages over where the robot actually
   moves. A bump or a slip off the grid leaves it in place, and the goal is
-  terminal.
-  \lecturesource{MDP Components: the paragraph after the grid world components, the figure, and the closing sentence on pi^*.
-    Figure: ../figs/Fig-GridWorld-Backup/Fig-GridWorld-Backup.pdf (TikZ source).}
+  terminal, so it earns zero further reward after entry.
+  \lecturesource{MDP Components: the paragraph after the grid world components, and the figure.
+    Figure: ../figs/Fig-GridWorld/Fig-GridWorld.pdf (TikZ source).}
+\end{frame}
+
+\begin{frame}{Grid Worlds in Chemical Engineering}
+  Divide a process's operating window into a grid, with two operating
+  variables, such as temperature and feed flow rate, on the axes:
+
+  \vspace{0.3em}
+  \begin{itemize}\setlength{\itemsep}{0.3em}
+    \item \hilite{States}: operating points; we want to move the process to a
+      point that meets a new product specification.
+    \item \hilite{Actions}: raise or lower one operating variable by one step.
+    \item \hilite{Transitions}: each action moves to a neighboring point;
+      disturbances play the role of slips.
+    \item \hilite{Rewards}: a large reward for meeting the specification, large
+      negative rewards for violating a constraint, and a small cost per step
+      of off-spec product.
+  \end{itemize}
+
+  \vspace{0.3em}
+  The optimal policy says which variable to change at each operating point.
+  \lecturesource{MDP Components: Grid Worlds in Chemical Engineering.}
 \end{frame}
 
 \begin{frame}{Value Iteration}
@@ -188,23 +197,30 @@
 \end{frame}
 
 \begin{frame}{Worked Example: One Bellman Backup}
-  Update the corner $s=(3,1)$, whose available actions are up and left. Every
-  outcome of either action earns $-1$.
-
-  \vspace{0.3em}
-  Starting from $U_0=0$, the first sweep gives:
-  \[
-    U_1(3,2)=7.4,\qquad U_1(2,1)=-1.4,\qquad U_1(3,1)=-1.
-  \]
+  Update the corner $s=(3,1)$: only up and left keep the robot on the grid,
+  and every outcome of either action earns $-1$. Starting from $U_0=0$, one
+  sweep leaves these values:
 
   \vspace{0.2em}
-  For example, $7.4$ comes from moving up from $(3,2)$:
+  \centering
+  \includegraphics[width=\textwidth,height=0.55\paperheight,keepaspectratio]{../figs/Fig-GridWorld-Backup/Fig-GridWorld-Backup.pdf}
+  \lecturesource{Value Iteration: Example: One Bellman Backup, the setup and the figure.
+    Figure: ../figs/Fig-GridWorld-Backup/Fig-GridWorld-Backup.pdf (TikZ source).}
+\end{frame}
+
+\begin{frame}{Where Do $7.4$ and $0$ Come From?}
+  The $+10$ is earned on the move into the goal, so it counts toward the square
+  the robot moves from. From $(3,2)$, moving up gives
   \[
     0.8\,(+10)+0.1\,(-5)+0.1\,(-1)=7.4,
   \]
   reaching the goal with probability $0.8$, bumping the obstacle with
   probability $0.1$, and slipping off the grid with probability $0.1$.
-  \lecturesource{Value Iteration: Example: One Bellman Backup, the setup and the three U_1 values. The 7.4 sum is written out for the deck.}
+
+  \vspace{0.6em}
+  The goal itself is terminal: nothing is left to earn there, so its value
+  stays $0$.
+  \lecturesource{Value Iteration: Example: One Bellman Backup, the note on where 7.4 and 0 come from.}
 \end{frame}
 
 \begin{frame}{Worked Example: Comparing the Two Actions}
@@ -276,21 +292,20 @@
 \end{frame}
 
 \begin{frame}{Random Rollout}
-  Random rollout estimates the value of a state by simulating random
-  trajectories from it and averaging their cumulative discounted rewards.
+  Random rollout estimates $U(s)$ by simulation:
 
-  \vspace{0.5em}
-  \begin{itemize}\setlength{\itemsep}{0.6em}
-    \item \hilite{Value iteration} needs the transition model $T(s'\,|\,s,a)$
-      and computes the values of all states at once.
-    \item \hilite{Random rollout} is model-free: it needs only an environment
-      that can simulate an action and report the next state and reward.
+  \vspace{0.4em}
+  \begin{itemize}\setlength{\itemsep}{0.5em}
+    \item Start at $s$, choose actions at random, and add up the discounted
+      rewards.
+    \item Average over many rollouts to get $\Uh(s)$.
   \end{itemize}
 
   \vspace{0.6em}
-  Averaging the returns of many rollouts that start from $s$ gives an empirical
-  estimate $\Uh(s)$ of its value.
-  \lecturesource{Random Rollout Algorithm: the two opening paragraphs.}
+  Nothing in that loop reads $T(s'\,|\,s,a)$ or $R(s,a)$. The environment only
+  has to report a next state and a reward, so rollout runs where value
+  iteration cannot.
+  \lecturesource{Random Rollout Algorithm: opening paragraph.}
 \end{frame}
 
 \begin{frame}{Random Rollout Algorithm}
@@ -323,46 +338,18 @@
   \lecturesource{Random Rollout Algorithm: Algorithm. Preserve the terminated flag and the While loop; the bullets of each step are combined so the algorithm fits on one slide.}
 \end{frame}
 
-\begin{frame}{What Does a Rollout Estimate?}
-  As the number of rollouts from $s_0$ grows, the average return converges to
-  the expected discounted return of the \hilite{random policy}, which picks
-  each available action with equal probability, stopped after $d$ steps or at
-  a terminal state.
-
-  \vspace{0.3em}
-  \hilite{This is not the optimal value} $U^{*}(s_0)$ that value iteration
-  computes.
-
-  \vspace{0.4em}
-  For bounded rewards $|r|\le r_{\max}$, the depth limit omits at most
-  \[
-    \left|U^{\mathrm{random}}(s)-U_d^{\mathrm{random}}(s)\right|
-    \le\sum_{t=d}^{\infty}\gamma^t r_{\max}
-    =\frac{\gamma^d r_{\max}}{1-\gamma}.
-  \]
-  $U^{\mathrm{random}}$ and $U_d^{\mathrm{random}}$ are the random policy's
-  expected returns without and with the depth limit. Increasing $d$ reduces
-  this truncation error; increasing $N$ reduces the sampling uncertainty.
-  \lecturesource{Random Rollout Algorithm: Convergence Properties.}
-\end{frame}
-
 \begin{frame}{Random Rollout: Cost and Accuracy}
-  Random rollout takes $\mathcal O(N\cdot d)$ simulated steps, assuming that
-  choosing and simulating an action takes constant time.
+  Random rollout costs $\mathcal O(N\cdot d)$ simulated steps.
 
   \vspace{0.4em}
   \begin{itemize}\setlength{\itemsep}{0.6em}
-    \item Apart from storing one estimate per state, the cost does not depend on
-      $|\Sset|$, which makes rollout attractive for large or continuous state
+    \item Apart from one estimate per state, that cost does not grow with
+      $|\Sset|$, which makes rollout usable on large or continuous state
       spaces.
-    \item For independent rollouts from $s$, the variance of the sample mean
-      falls as $\mathcal O(1/n(s))$, so the standard error falls as
-      $\mathcal O(1/\sqrt{n(s)})$: accuracy improves slowly with more samples.
+    \item Accuracy comes slowly: the standard error of a sample mean falls as
+      $\mathcal O(1/\sqrt{n(s)})$, so ten times the rollouts buys about three
+      times the precision.
   \end{itemize}
-
-  \vspace{0.6em}
-  Even so, a few rollouts can give useful estimates, and the method scales to
-  high-dimensional problems where model-based approaches become intractable.
   \lecturesource{Random Rollout Algorithm: Computational Complexity.}
 \end{frame}
 
@@ -380,8 +367,8 @@
   \end{enumerate}
 
   \vspace{0.6em}
-  The policy reaches the station from most squares, but loops from some squares
-  whose way passes beside a lava pit.
+  The policy improves on random moves, but it is not the optimal policy that
+  value iteration computes.
   \slidenote{Example:}{\href{\examplelink}{Random rollout in the lava grid world}}
   \lecturesource{Example section. Companion example: Tasks 1--3 and the third key takeaway.}
 \end{frame}

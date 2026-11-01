@@ -66,4 +66,4 @@ using Test           # @test / @testset for the checks in the notebook
 using Plots          # figures
 #
 # This meeting's helpers (section 2):
-using .L11cRollout   # rbf, myrollout, follow_policy, square, and draw_path
+using .L11cRollout   # rbf, myrollout, follow_policy, square, arrow_shape, and draw_path

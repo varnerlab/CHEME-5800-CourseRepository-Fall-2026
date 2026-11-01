@@ -7,7 +7,8 @@
 #   myrollout(...)      computes the discounted return of one random walk
 #   follow_policy(...)  walks a policy from a start square
 #   square(...)         makes the outline of one grid square, for drawing
-#   draw_path(...)      draws the grid world and the roomba's path
+#   arrow_shape(...)    makes a small arrow that points one way, for drawing
+#   draw_path(...)      draws the grid world, the policy, and the roomba's path
 #
 # None of these functions reads a notebook variable; everything they need is
 # passed in as an argument. Include.jl loads this file only once, so restart
@@ -20,7 +21,7 @@ using VLDataScienceMachineLearningPackage: MyMDPProblemModel, MyRectangularGridW
 using VLDataScienceMachineLearningPackage: myrandpolicy, myrandstep
 using Plots # the figure drawn by draw_path
 
-export rbf, myrollout, follow_policy, square, draw_path
+export rbf, myrollout, follow_policy, square, arrow_shape, draw_path
 
 """
     rbf(x::Tuple{Int,Int}, y::Tuple{Int,Int}; σ::Float64 = 1.0) -> Float64
@@ -211,159 +212,210 @@ function follow_policy(policy::Array{Int64,1}, start::Tuple{Int,Int},
 end
 
 """
-    square(x::Int, y::Int) -> Shape
+    square(x::Int, y::Int; width::Float64 = 1.0) -> Shape
 
-Make the outline of the grid square centered at `(x, y)`, so we can draw it with `plot!(...)`.
+Make the outline of a square centered at `(x, y)`, so we can draw it with `plot!(...)`.
 
-Each square of the grid is one unit wide, so its corners are half a unit from its center.
-The corners are listed in order around the square: bottom left, bottom right, top right,
-and top left.
+Each square of the grid is one unit wide. A `width` of one gives a square that fills its
+grid square; a smaller `width` gives a smaller square inside it. The corners are half a
+`width` from the center, and they are listed in order around the square: bottom left,
+bottom right, top right, and top left.
 
 ### Arguments
 - `x::Int`: the `x` coordinate of the center of the square.
 - `y::Int`: the `y` coordinate of the center of the square.
+- `width::Float64 = 1.0`: the width of the square, as a fraction of one grid square.
 
 ### Returns
 - `Shape`: a `Plots` shape that `plot!(...)` draws as a filled square.
 """
-function square(x::Int, y::Int)::Shape
+function square(x::Int, y::Int; width::Float64 = 1.0)::Shape
+
+    # the corners are half a width from the center -
+    h = width/2;
 
     # the x and y coordinates of the four corners -
-    corner_x = [x - 0.5, x + 0.5, x + 0.5, x - 0.5];
-    corner_y = [y - 0.5, y - 0.5, y + 0.5, y + 0.5];
+    corner_x = [x - h, x + h, x + h, x - h];
+    corner_y = [y - h, y - h, y + h, y + h];
 
     # return -
     return Shape(corner_x, corner_y);
 end
 
 """
-    draw_path(path::Array{Tuple{Int,Int},1}, rewards::Dict{Tuple{Int,Int},Float64};
-        charging_reward::Float64, lava_reward::Float64,
-        number_of_rows::Int64, number_of_cols::Int64,
-        shading::Dict{Tuple{Int,Int},Float64} = Dict{Tuple{Int,Int},Float64}())
+    arrow_shape(x::Int, y::Int, Δ::Tuple{Int,Int}; arrow_length::Float64 = 0.5) -> Shape
 
-Draw the grid world and the roomba's path across it.
+Make a small arrow centered at `(x, y)` that points in the direction `Δ`, so we can draw it
+with `plot!(...)`.
+
+The arrow is one closed outline with seven corners: a thin shaft and a triangular head. Its
+size is given in grid squares, so the arrow stays the same size relative to its square for
+any grid size. The direction `Δ` is one of the moves of the grid world, e.g., up = `(0,1)`.
+
+### Arguments
+- `x::Int`: the `x` coordinate of the center of the arrow.
+- `y::Int`: the `y` coordinate of the center of the arrow.
+- `Δ::Tuple{Int,Int}`: the direction the arrow points, one square left, right, down, or up.
+- `arrow_length::Float64 = 0.5`: the length of the arrow, tail to tip, in grid squares.
+
+### Returns
+- `Shape`: a `Plots` shape that `plot!(...)` draws as a filled arrow.
+"""
+function arrow_shape(x::Int, y::Int, Δ::Tuple{Int,Int}; arrow_length::Float64 = 0.5)::Shape
+
+    # the sizes of the parts of the arrow, as fractions of its length -
+    shaft_half_width = 0.06*arrow_length; # half the width of the shaft
+    head_length = 0.45*arrow_length; # how far the head reaches back from the tip
+    head_half_width = 0.3*arrow_length; # half the width of the head at its base
+
+    # the direction the arrow points (dx, dy), and the direction across it (nx, ny) -
+    dx = Δ[1];
+    dy = Δ[2];
+    nx = -dy; # turning (dx, dy) a quarter turn gives the direction across the arrow
+    ny = dx;
+
+    # three points along the arrow: the tail, the tip, and the neck where the head starts -
+    tail_x = x - 0.5*arrow_length*dx;
+    tail_y = y - 0.5*arrow_length*dy;
+    tip_x = x + 0.5*arrow_length*dx;
+    tip_y = y + 0.5*arrow_length*dy;
+    neck_x = tip_x - head_length*dx;
+    neck_y = tip_y - head_length*dy;
+
+    # the seven corners of the outline, in order around the arrow -
+    corner_x = [
+        tail_x + shaft_half_width*nx, # tail, one side
+        neck_x + shaft_half_width*nx, # neck, same side
+        neck_x + head_half_width*nx,  # head, same side
+        tip_x,                        # tip
+        neck_x - head_half_width*nx,  # head, other side
+        neck_x - shaft_half_width*nx, # neck, other side
+        tail_x - shaft_half_width*nx, # tail, other side
+    ];
+    corner_y = [
+        tail_y + shaft_half_width*ny,
+        neck_y + shaft_half_width*ny,
+        neck_y + head_half_width*ny,
+        tip_y,
+        neck_y - head_half_width*ny,
+        neck_y - shaft_half_width*ny,
+        tail_y - shaft_half_width*ny,
+    ];
+
+    # return -
+    return Shape(corner_x, corner_y);
+end
+
+"""
+    draw_path(path::Array{Tuple{Int,Int},1}, policy::Array{Int64,1},
+        world::MyRectangularGridWorldModel, rewards::Dict{Tuple{Int,Int},Float64},
+        absorbing_state_set::Set{Tuple{Int,Int}};
+        charging_reward::Float64, lava_reward::Float64,
+        number_of_rows::Int64, number_of_cols::Int64)
+
+Draw the grid world, the policy in every square, and the roomba's path.
 
 Each square of the grid is drawn as a unit square, so the figure keeps its proportions for
-any grid size. The charging station is a green square, each lava pit is a red square, the
-start square has a blue outline, and the path is drawn in blue. On a small grid (15 squares
-or fewer on a side) the path has one arrow per move; on a larger grid, the path is one line
-with an arrow at its end, so it stays readable. The axis ticks also thin out as the grid
-grows, so the labels do not overlap.
-
-When the `shading` dictionary is not empty, each square is filled with green, from clear
-(weight zero) to solid green (weight one). This shows how far the shaped charging reward
-reaches.
+any grid size. The charging station is a green square, and each lava pit is a red square, each drawn a
+little smaller than its grid square.
+A small gray arrow in every other square points in the direction the policy moves from that
+square; `arrow_shape(...)` makes each one. The roomba's path is a thick blue line from the
+start square, marked with a blue dot, to where the walk ended.
 
 ### Arguments
 - `path::Array{Tuple{Int,Int},1}`: the squares the roomba visits, in order, as returned by
   `follow_policy(...)`.
+- `policy::Array{Int64,1}`: the action to take in each state, i.e., `policy[s]` is the action in state `s`.
+- `world::MyRectangularGridWorldModel`: the grid world; we use its `coordinates` dictionary,
+  which maps a state to its square, and its `moves` dictionary, which maps an action to a
+  change in position.
 - `rewards::Dict{Tuple{Int,Int},Float64}`: the reward of each square; we use it to find the
   charging station and the lava pits.
+- `absorbing_state_set::Set{Tuple{Int,Int}}`: the `(x, y)` squares that end an episode; we draw
+  no policy arrow in these squares.
 - `charging_reward::Float64`: the reward value of the charging station.
 - `lava_reward::Float64`: the reward value of a lava pit.
 - `number_of_rows::Int64`: the number of rows in the grid, which sets the `x` axis limits.
 - `number_of_cols::Int64`: the number of columns in the grid, which sets the `y` axis limits.
-- `shading::Dict{Tuple{Int,Int},Float64}`: an optional weight between zero and one for each
-  `(x, y)` square. Leave it empty to draw the grid without shading.
 
 ### Returns
 - A `Plots` figure. Display it by making it the last expression of a notebook cell.
 """
-function draw_path(path::Array{Tuple{Int,Int},1}, rewards::Dict{Tuple{Int,Int},Float64};
+function draw_path(path::Array{Tuple{Int,Int},1}, policy::Array{Int64,1},
+    world::MyRectangularGridWorldModel, rewards::Dict{Tuple{Int,Int},Float64},
+    absorbing_state_set::Set{Tuple{Int,Int}};
     charging_reward::Float64, lava_reward::Float64,
-    number_of_rows::Int64, number_of_cols::Int64,
-    shading::Dict{Tuple{Int,Int},Float64} = Dict{Tuple{Int,Int},Float64}())
+    number_of_rows::Int64, number_of_cols::Int64)
 
-    # sizes that depend on the grid -
+    # the axis ticks: every square on a small grid, otherwise every fifth square -
     n = max(number_of_rows, number_of_cols); # the longer side of the grid
-    tick_step = max(1, ceil(Int, n/10)); # the spacing between tick labels: about ten labels per axis
-    if (n ≤ 15)
-        path_width = 2.5; # a small grid: thick lines
+    if (n ≤ 10)
+        ticks = 1:n;
     else
-        path_width = 1.5; # a larger grid: thinner lines
+        ticks = [1; 5:5:n]; # 1, 5, 10, 15, ...
     end
 
-    # an empty canvas: one unit per square, with room for the legend on the right -
-    p = plot(framestyle = :box, aspect_ratio = :equal, legend = :outerright, size = (720, 560),
+    # an empty canvas: one unit per square, with the legend as a list to the right of the grid -
+    p = plot(framestyle = :box, aspect_ratio = :equal, size = (800, 620),
+        legend = :outerright, legendfontsize = 10, foreground_color_legend = nothing,
         xlims = (0.5, number_of_rows + 0.5), ylims = (0.5, number_of_cols + 0.5),
-        xticks = 1:tick_step:number_of_rows, yticks = 1:tick_step:number_of_cols,
-        xlabel = "x", ylabel = "y", grid = false,
+        xticks = ticks, yticks = ticks, xlabel = "x", ylabel = "y", grid = false,
         background_color = :transparent, background_color_inside = :transparent);
 
-    # shade the squares by weight, if we were given weights -
-    if (isempty(shading) == false)
-
-        # build the weight matrix: the row index is y, and the column index is x -
-        weights = zeros(number_of_cols, number_of_rows);
-        for x ∈ 1:number_of_rows
-            for y ∈ 1:number_of_cols
-                if (haskey(shading, (x,y)) == true)
-                    weights[y,x] = shading[(x,y)];
-                end
-            end
-        end
-
-        # draw the weights. RGBA(red, green, blue, opacity) is a color: the color scale runs
-        # from clear green (opacity 0) to solid green (opacity 1), so the unshaded squares show
-        # the background of either the light or the dark theme -
-        green_scale = cgrad([RGBA(0.0, 0.5, 0.0, 0.0), RGBA(0.0, 0.5, 0.0, 1.0)]);
-        heatmap!(p, 1:number_of_rows, 1:number_of_cols, weights, c = green_scale,
-            clims = (0, 1), colorbar = false, label = "");
-    end
-
-    # draw the borders between the squares, faint so the path stands out -
+    # draw the borders between the squares, faint so the arrows and the path stand out -
     for x ∈ 0:number_of_rows
-        plot!(p, [x + 0.5, x + 0.5], [0.5, number_of_cols + 0.5], c = :gray, lw = 0.5, alpha = 0.4, label = "");
+        plot!(p, [x + 0.5, x + 0.5], [0.5, number_of_cols + 0.5], c = :gray, lw = 0.5, alpha = 0.35, label = "");
     end
     for y ∈ 0:number_of_cols
-        plot!(p, [0.5, number_of_rows + 0.5], [y + 0.5, y + 0.5], c = :gray, lw = 0.5, alpha = 0.4, label = "");
+        plot!(p, [0.5, number_of_rows + 0.5], [y + 0.5, y + 0.5], c = :gray, lw = 0.5, alpha = 0.35, label = "");
     end
 
-    # fill the lava pits and the charging station -
-    # we only label the first square of each kind, so the legend shows each kind once.
-    lava_label = "lava pit";
-    station_label = "charging station";
+    # fill the lava pits and the charging station, each with a square 0.6 grid squares wide -
+    # label = "" keeps these out of the legend; we add the legend entries at the end.
+    marker_width = 0.6;
     for (coordinate, reward) ∈ rewards
         x = coordinate[1];
         y = coordinate[2];
         if (reward == lava_reward)
-            plot!(p, square(x, y), c = :red, lc = :red, label = lava_label);
-            lava_label = ""; # no label for the remaining lava pits
+            plot!(p, square(x, y, width = marker_width), c = :red, lc = :red, label = "");
         elseif (reward == charging_reward)
-            plot!(p, square(x, y), c = :green3, lc = :green3, label = station_label);
-            station_label = ""; # no label for any other charging station
+            plot!(p, square(x, y, width = marker_width), c = :green3, lc = :green3, label = "");
         end
     end
 
-    # outline the start square -
-    start = path[1];
-    plot!(p, square(start[1], start[2]), fillalpha = 0, lc = :dodgerblue, lw = path_width, label = "start");
-
-    # draw the path -
-    if (n ≤ 15)
-
-        # a small grid has room for one arrow per move. We only label the first arrow -
-        path_label = "path";
-        for i ∈ 1:(length(path) - 1)
-            x_values = [path[i][1], path[i+1][1]]; # x coordinates of this move: from, to
-            y_values = [path[i][2], path[i+1][2]]; # y coordinates of this move: from, to
-            plot!(p, x_values, y_values, arrow = arrow(:closed, :head), lw = path_width,
-                c = :dodgerblue, label = path_label);
-            path_label = ""; # no label for the remaining arrows
+    # build one policy arrow for every square that is not absorbing -
+    # each arrow is 0.5 grid squares long, so neighboring arrows do not touch.
+    arrows = Array{Shape,1}();
+    for (s, coordinate) ∈ world.coordinates
+        if (in(coordinate, absorbing_state_set) == false)
+            Δ = world.moves[policy[s]]; # the move the policy chooses in this square, e.g., up = (0,1)
+            push!(arrows, arrow_shape(coordinate[1], coordinate[2], Δ, arrow_length = 0.5));
         end
-    else
-
-        # a larger grid: draw one line through all the squares, with an arrow at its end -
-        x_values = Array{Int,1}();
-        y_values = Array{Int,1}();
-        for i ∈ 1:length(path)
-            push!(x_values, path[i][1]);
-            push!(y_values, path[i][2]);
-        end
-        plot!(p, x_values, y_values, arrow = arrow(:closed, :head), lw = path_width,
-            c = :dodgerblue, label = "path");
     end
+
+    # draw all the policy arrows at once -
+    plot!(p, arrows, c = :gray55, lc = :gray55, lw = 0, label = "");
+
+    # draw the path through the centers of the squares the roomba visits -
+    path_x = Array{Int,1}();
+    path_y = Array{Int,1}();
+    for i ∈ 1:length(path)
+        push!(path_x, path[i][1]);
+        push!(path_y, path[i][2]);
+    end
+    plot!(p, path_x, path_y, c = :dodgerblue, lw = 3, label = "");
+
+    # mark the start square with a dot -
+    scatter!(p, [path_x[1]], [path_y[1]], ms = 7, mc = :dodgerblue, msc = :white, label = "");
+
+    # the legend: one entry per kind of mark, in this order. Each entry is an empty series
+    # (its point is NaN, "not a number", so nothing is drawn on the grid); it only sets the
+    # symbol and the text that appear in the legend -
+    scatter!(p, [NaN], [NaN], marker = :square, ms = 7, mc = :green3, msc = :green3, label = "charging station");
+    scatter!(p, [NaN], [NaN], marker = :square, ms = 7, mc = :red, msc = :red, label = "lava pit");
+    scatter!(p, [NaN], [NaN], marker = :rtriangle, ms = 6, mc = :gray55, msc = :gray55, label = "policy");
+    plot!(p, [NaN], [NaN], c = :dodgerblue, lw = 3, label = "path");
+    scatter!(p, [NaN], [NaN], ms = 7, mc = :dodgerblue, msc = :white, label = "start");
 
     # return the figure -
     return p;

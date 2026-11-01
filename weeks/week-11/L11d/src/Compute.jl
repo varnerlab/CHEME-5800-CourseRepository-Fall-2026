@@ -3,7 +3,7 @@
 # =============================================================================
 # This is the file you edit in this lab. Complete mysolve(...) below by
 # filling in the lines marked TODO 1, TODO 2, and TODO 3; everything else is
-# already written. Each TODO is one step of the L11c value iteration algorithm.
+# already written. Each TODO is one step of the value iteration algorithm.
 #
 # After each edit: save this file, re-run the setup cell at the top of the
 # notebook to reload it, then re-run the solution cell and the check cell.
@@ -18,8 +18,7 @@ export mysolve
 """
     mysolve(model::MyValueIterationModel, problem::MyMDPProblemModel; ϵ::Float64 = 1e-6) -> NamedTuple
 
-Solve the MDP `problem` by value iteration with a convergence check, the algorithm from the
-L11c lecture.
+Solve the MDP `problem` by value iteration with a convergence check.
 
 Each pass over the states, a sweep, replaces the value of every state `s` with its Bellman
 backup, the largest value of `R(s,a) + γ⋅Σ T(s′|s,a)⋅U(s′)` over the actions `a`. The loop
@@ -38,7 +37,7 @@ sweeps, whichever comes first; in the second case it also logs a warning. The st
 A `NamedTuple` with the fields:
 - `U::Array{Float64,1}`: the value of each state after the last sweep, `|𝒮|` entries.
 - `iterations::Int64`: the number of sweeps, `k + 1` for the iteration counter `k` of the
-  L11c algorithm when the loop stops.
+  algorithm when the loop stops.
 - `converged::Bool`: `true` if the last sweep changed no value by more than `ϵ`; `false` if
   the loop stopped because it reached `k_max` sweeps without meeting the tolerance.
 
@@ -72,7 +71,7 @@ function mysolve(model::MyValueIterationModel, problem::MyMDPProblemModel; ϵ::F
 
         # Step 1: the Bellman backup of every state -
         for s ∈ problem.𝒮
-            # TODO 1: the Bellman backup of state s, step 1 of the L11c algorithm. Replace NaN
+            # TODO 1: the Bellman backup of state s, step 1 of the algorithm. Replace NaN
             # with the largest value of R(s,a) + γ⋅Σ T(s′|s,a)⋅U(s′) over the actions a in
             # problem.𝒜. Hint: lookahead(problem, U, s, a) returns R(s,a) + γ⋅Σ T(s′|s,a)⋅U(s′)
             # for one action a, and maximum(f(a) for a ∈ problem.𝒜) returns the largest f(a).
@@ -80,7 +79,7 @@ function mysolve(model::MyValueIterationModel, problem::MyMDPProblemModel; ϵ::F
         end
 
         # Step 2: check whether to stop -
-        # TODO 2: the largest change in any value during this sweep, step 2 of the L11c
+        # TODO 2: the largest change in any value during this sweep, step 2 of the
         # algorithm. Replace NaN with Δ = max |Uₖ₊₁(s) - Uₖ(s)| over the states s. In this
         # code, Uₖ₊₁ is U_new and Uₖ is U. Hint: abs.(x .- y) gives the absolute difference
         # of each pair of entries, and maximum(...) returns the largest entry.
