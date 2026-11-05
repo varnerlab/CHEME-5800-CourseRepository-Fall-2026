@@ -69,7 +69,15 @@ function mysolve(model::MyValueIterationModel, problem::MyMDPProblemModel; ϵ::F
         # Step 1: the Bellman backup of every state -
         for s ∈ problem.𝒮
             # TODO 1: the Bellman backup of state s -
-            U_new[s] = maximum(lookahead(problem, U, s, a) for a ∈ problem.𝒜);
+            values = zeros(length(problem.𝒜)); # the value of each action from state s
+            for a ∈ problem.𝒜
+                future = sum(problem.T[s, :, a] .* U); # Σ T(s′|s,a)⋅U(s′): the expected value of where we land
+                values[a] = problem.R[s, a] + problem.γ*future; # the reward now, plus the discounted future
+            end
+            U_new[s] = maximum(values); # keep the best action
+
+            # The Stanford version does the same thing in one line -
+            # U_new[s] = maximum(lookahead(problem, U, s, a) for a ∈ problem.𝒜);
         end
 
         # Step 2: check whether to stop -
