@@ -43,7 +43,7 @@ end
 # every run, with no guard, so re-running the setup cell picks up the student's
 # edits; the notebook calls it by qualified name (`L11dValueIteration.mysolve(...)`)
 # for the same reason.
-include(joinpath(CHEME5800_L11D_ROOT, "src", "Compute.jl"))
+include(joinpath(CHEME5800_L11D_ROOT, "src", "Compute-solution.jl"))
 
 # Supplied helpers, loaded once: walking a policy and drawing the resulting path.
 if !isdefined(@__MODULE__, :L11dUtility)
