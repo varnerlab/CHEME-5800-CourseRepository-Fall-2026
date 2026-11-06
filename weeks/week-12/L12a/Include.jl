@@ -39,12 +39,10 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `Week12Core` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week12Core)
-    include(joinpath(@__DIR__, "..", "src", "Week12Core.jl"))
+# The example's code, loaded once: the dosing environment, value iteration,
+# Q-learning, and the policy simulator.
+if !isdefined(@__MODULE__, :L12aDosing)
+    include(joinpath(CHEME5800_L12A_ROOT, "src", "Dosing.jl"))
 end
 
 
@@ -54,19 +52,17 @@ end
 #
 # Already imported by the root bootstrap above, listed so this block is the
 # whole picture rather than most of it:
-#   VLDataScienceMachineLearningPackage   the course package
+#   VLDataScienceMachineLearningPackage   the course package: the Q-learning
+#                                         agent type, build, solve, and policy
 #
 # Standard library:
-using LinearAlgebra  # factorizations, norms, and matrix operations
-using Random         # seeded random number generation
-using Statistics     # mean, std, and friends
 using Test           # @test / @testset for the checks in the notebook
 #
 # Packages:
-using DataFrames     # tabular records held as columns
 using Plots          # figures
-using PrettyTables   # formatted table output in the notebook
+using DataFrames     # tables of results
+using PrettyTables   # printing those tables
 #
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .Week12Core    # from the include in section 2
+# This meeting's code (section 2):
+using .L12aDosing    # MyAdaptiveDosingModel, stateindex, decode, isterminal,
+                     # world, and simulate; build and solve gain dosing methods
