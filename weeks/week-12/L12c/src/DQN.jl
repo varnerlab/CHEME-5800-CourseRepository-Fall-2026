@@ -234,12 +234,13 @@ Each episode starts the patient at a random state and treats the patient for at 
 experience in the replay buffer. Once the buffer holds `warmup` experiences, every cycle also
 takes one gradient step on a random mini-batch of `batchsize` stored experiences. The target of
 experience `i` is `yᵢ = rᵢ + γ⋅(1 - doneᵢ)⋅max over a′ of Q⁻(s′ᵢ, a′)`, computed with the
-target network `Q⁻`, a copy of the main network made every `C` cycles. The gradient step on the
-row of the action taken is
+target network `Q⁻`, a copy of the main network made every `C` cycles, counted over all
+episodes. Here `doneᵢ` is `true` only for a cure or a toxic death; an episode that stops at
+`maxcycles` leaves it `false`. The gradient step is
 
-    W[aᵢ,:] ← W[aᵢ,:] + (α/batchsize)⋅(yᵢ - W[aᵢ,:]⋅φ(sᵢ))⋅φ(sᵢ),
+    W[a,:] ← W[a,:] + (α/batchsize)⋅Σ over the experiences i with aᵢ = a of (yᵢ - W[a,:]⋅φ(sᵢ))⋅φ(sᵢ),
 
-summed over the mini-batch.
+with every error computed from the weights before the step.
 
 ### Arguments
 - `network::MyLinearQNetworkModel`: the untrained network; its weights are copied, not changed.
@@ -252,8 +253,9 @@ summed over the mini-batch.
 - `batchsize::Int64 = 32`: the number of experiences in a mini-batch.
 - `warmup::Int64 = 1000`: the number of experiences stored before training starts.
 - `C::Int64 = 500`: the number of cycles between copies of the main network to the target network.
-- `ϵ_start::Float64 = 1.0`, `ϵ_floor::Float64 = 0.05`: the exploration rate falls in a straight
-  line from `ϵ_start`, reaches `ϵ_floor` after 66.5 percent of the episodes, then stays there.
+- `ϵ_start::Float64 = 1.0`, `ϵ_floor::Float64 = 0.05`: the exploration rate in episode `i` is
+  `ϵ_start - i/(0.7⋅episodes)`, but never below `ϵ_floor`. With the defaults, it falls in a
+  straight line from 1, reaches 0.05 after 66.5 percent of the episodes, then stays there.
 - `seed::Int64 = 1234`: the seed of the random number generator, for a run we can repeat.
 
 ### Returns
@@ -373,6 +375,15 @@ function simulate(model::MyPatientModel, network::MyLinearQNetworkModel; B₀::F
     Z = Z₀;
     G = 0.0; # the discounted return
     discount = 1.0; # γ to the power of the number of cycles so far
+
+    # a start where the treatment has already ended gets no dose -
+    if (isterminal(model, B, Z) == true)
+        outcome = :dead;
+        if (iscured(model, B, Z) == true)
+            outcome = :cured;
+        end
+        return (B = B_values, Z = Z_values, dose = doses, outcome = outcome, cycles = 0, G = G);
+    end
 
     # main loop: one treatment cycle per pass -
     for t ∈ 1:maxcycles

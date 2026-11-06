@@ -38,7 +38,7 @@ and clears by a fixed fraction each cycle.
 - `k::Float64`: the fraction of the tumor killed per cycle at full dose.
 - `b::Float64`: the toxicity added per cycle at full dose.
 - `c::Float64`: the fraction of the toxicity cleared per cycle.
-- `Bcure::Float64`: the patient is cured when `B ≤ Bcure`.
+- `Bcure::Float64`: the patient is cured when `B ≤ Bcure` and the patient is alive.
 - `Zlethal::Float64`: the patient dies of toxicity when `Z ≥ Zlethal`.
 - `wB::Float64`, `wZ::Float64`, `wu::Float64`: the weights of the tumor burden, the toxicity,
   and the dose in the penalty of an ordinary cycle.
@@ -166,8 +166,15 @@ The dose is `u = doses[a]`. The tumor burden and the toxicity change by
 each clipped to lie between 0 and 1. These are the L12b equations, but the next state is not
 rounded to a grid. The reward is `rdead` for a toxic death, `rcure` for a cure, and otherwise
 the penalty `-(wB⋅B′ + wZ⋅Z′ + wu⋅u)` of the tumor, the toxicity, and the dose after the cycle.
+If the treatment has already ended at `(B, Z)`, the state does not change, the reward is 0, and
+`done` is `true`.
 """
 function treat(model::MyPatientModel, B::Float64, Z::Float64, a::Int64)::Tuple{Float64,Float64,Float64,Bool}
+
+    # a cure or a toxic death is absorbing: the treatment has ended -
+    if (isterminal(model, B, Z) == true)
+        return (B, Z, 0.0, true);
+    end
 
     # the dose of action a -
     u = model.doses[a];
@@ -240,8 +247,8 @@ end
 
 Compute an optimal dosing policy by value iteration on a grid of `nlevels` levels per axis. This
 is the L12b method: each cycle starts from a grid point, and the next state is rounded to the
-nearest grid point. With `nlevels = 41`, it is the L12b grid. A finer grid gives a policy closer
-to the best policy for the patient without a grid, at the price of a larger table.
+nearest grid point. With `nlevels = 41`, it is the L12b grid. A finer grid rounds the patient
+state less, at the price of a larger table.
 
 ### Arguments
 - `model::MyPatientModel`: the patient model.
@@ -385,7 +392,8 @@ A `NamedTuple` with the fields:
 - `dose::Array{Float64,1}`: the dose given in each cycle.
 - `outcome::Symbol`: `:cured`, `:dead`, or `:timeout` (the treatment has not ended after
   `maxcycles` cycles).
-- `cycles::Int64`: the number of cycles in which a dose was given.
+- `cycles::Int64`: the number of cycles in which a dose was given; 0 if the treatment had already
+  ended at the start.
 - `G::Float64`: the discounted return, `r₁ + γ⋅r₂ + γ²⋅r₃ + …`.
 """
 function simulate(model::MyPatientModel, policy::MyGridPolicyModel; B₀::Float64 = 0.9,
@@ -399,6 +407,15 @@ function simulate(model::MyPatientModel, policy::MyGridPolicyModel; B₀::Float6
     Z = Z₀;
     G = 0.0; # the discounted return
     discount = 1.0; # γ to the power of the number of cycles so far
+
+    # a start where the treatment has already ended gets no dose -
+    if (isterminal(model, B, Z) == true)
+        outcome = :dead;
+        if (iscured(model, B, Z) == true)
+            outcome = :cured;
+        end
+        return (B = B_values, Z = Z_values, dose = doses, outcome = outcome, cycles = 0, G = G);
+    end
 
     # main loop: one treatment cycle per pass -
     for t ∈ 1:maxcycles

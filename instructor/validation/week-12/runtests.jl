@@ -426,6 +426,13 @@ end
         (B′, Z′, r, done) = w.treat(patient, 0.90, 0.0, 4)
         @test (round(B′, digits = 4), Z′, round(r, digits = 4), done) == (0.5985, 0.5, -1.1985, false)
         @test round(B′ / 0.025) * 0.025 ≈ 0.6
+        # a start where the treatment has already ended is absorbing: no change, no reward, no dose -
+        @test w.treat(patient, 0.05, 0.95, 4) == (0.05, 0.95, 0.0, true)
+        @test w.treat(patient, 0.10, 0.0, 1) == (0.10, 0.0, 0.0, true)
+        dead = w.simulate(patient, w.trained; B₀ = 0.05, Z₀ = 0.95, γ = 0.95)
+        @test (dead.outcome, dead.cycles, dead.G, length(dead.dose)) == (:dead, 0, 0.0, 0)
+        cured = w.simulate(patient, w.grid_41; B₀ = 0.10, Z₀ = 0.0, γ = 0.95)
+        @test (cured.outcome, cured.cycles, cured.G, length(cured.dose)) == (:cured, 0, 0.0, 0)
 
         # Task 2: 37 features, 148 weights; the two nearest centers are 0.10 away, bumps ≈ 0.80 -
         @test (length(w.φ), length(w.network.W)) == (37, 148)
@@ -449,7 +456,7 @@ end
         # "201-level policy cures in 19 cycles, the linear DQN takes 23, the 41-level policy never cures" -
         @test (w.run_201.outcome, w.run_201.cycles, round(w.run_201.G, digits = 2)) == (:cured, 19, 10.96)
         @test (w.run_41.outcome, w.run_41.cycles, round(w.run_41.G, digits = 2)) == (:timeout, 100, -18.21)
-        # "then the tumor stays between 0.10 and 0.13"; the state (0.109, 0.816) is reached in cycle 21 -
+        # "then the tumor stays between 0.10 and 0.13"; the state (0.109, 0.816) is reached at the start of cycle 21, after 20 treatments (B[1] is the start) -
         @test all(0.10 < B < 0.13 for B in w.run_41.B[20:end])
         @test (round(w.run_41.B[21], digits = 3), round(w.run_41.Z[21], digits = 3)) == (0.109, 0.816)
         @test w.patient.doses[w.gridaction(w.grid_41, 0.109, 0.816)] == 0.0

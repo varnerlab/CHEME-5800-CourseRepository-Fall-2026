@@ -1,8 +1,9 @@
 # L12c deep Q-learning and L12d Double DQN: build notes and answer sheet
 
 Built 2026-11-06, replacing the value-iteration-versus-Q-learning lecture (L12c) and the
-bioreactor exploration lab (L12d). All numbers are for Julia 1.12.7 with the pinned Manifest and
-are pinned in the week-12 suite (`@meeting "L12c"` and `@meeting "L12d"`).
+bioreactor exploration lab (L12d). All numbers are for Julia 1.12.7 with the pinned Manifest.
+Unless a bullet says otherwise, they are pinned in the week-12 suite (`@meeting "L12c"` and
+`@meeting "L12d"`).
 
 ## Sources
 
@@ -21,19 +22,21 @@ are pinned in the week-12 suite (`@meeting "L12c"` and `@meeting "L12d"`).
 
 - **The network is linear, with a hand-written gradient step**, not a Flux layer. Flux was added
   to the environment on 2026-11-06 for the neural-network weeks; L12c does not use it.
-- **No reward scaling is needed.** With W starting at zero, a linear network trained on rewards
-  scaled by c gives exactly W/c at every step (the target's max is positively homogeneous), so
-  the greedy policy is the same.
+- **No reward scaling is needed.** With W starting at zero, dividing every reward by a positive
+  constant c divides the weights by c at every step, in exact arithmetic, because the max in the
+  target is positively homogeneous. Multiplying the rewards by c multiplies the weights by c. The
+  greedy policy is the same either way.
 - **The L12b 41-level policy fails on the patient without a grid** (timeout at 100 cycles,
   G = -18.21). It snaps B = 0.109 to the grid level 0.100, which the grid counts as cured, and a
   cured grid state stores action 1 (no dose). `solvegrid(...; nlevels = 41)` reproduces the
   L12b policy state for state (the suite checks this), because `snap` uses the L12b rounding
   `round(x/step)`; rounding `x*(n - 1)` instead changed 25 states.
-- **Double DQN does not help on the dosing problem** (mean overestimate of the start-state
-  return 1.92 for DQN, 1.81 for Double DQN, over 10 seeds and 12 starts), so L12d uses the
-  two-state problem instead.
-- **Double DQN is weaker than Double Q-learning** because the target network is a recent copy of
-  the Q-network. With C = 1 the two targets are identical.
+- **Double DQN changed little on the dosing problem in one scratch experiment** (mean
+  overestimate of the start-state return 1.92 for DQN, 1.81 for Double DQN, over 10 seeds and 12
+  starts, with no uncertainty estimate). The suite does not reproduce this, and `mydqn` has no
+  Double DQN option. L12d uses the two-state problem instead, where the effect is large.
+- **In the L12d experiment, Double DQN is weaker than Double Q-learning.** The target network is
+  a recent copy of the Q-network. With C = 1 the two targets are identical.
 
 ## L12d answers
 
