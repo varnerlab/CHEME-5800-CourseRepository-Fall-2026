@@ -45,8 +45,8 @@ end
 # for the same reason.
 include(joinpath(CHEME5800_L12B_ROOT, "src", "Compute.jl"))
 
-# Supplied helpers, loaded once: building and simulating the grid world, walking
-# a policy, and drawing the resulting path.
+# Supplied helpers, loaded once: the dosing model, value iteration, the policy
+# simulator, and the small problem of the check cell.
 if !isdefined(@__MODULE__, :L12bUtility)
     include(joinpath(CHEME5800_L12B_ROOT, "src", "Utility.jl"))
 end
@@ -58,20 +58,20 @@ end
 #
 # Already imported by the root bootstrap above, listed so this block is the
 # whole picture rather than most of it:
-#   VLDataScienceMachineLearningPackage   the course package: the grid world,
-#                                         MDP, and Q-learning agent models, and
-#                                         solve, Q, and policy for value iteration
+#   VLDataScienceMachineLearningPackage   the course package: the MDP and
+#                                         Q-learning agent models, build, and policy
 #
 # Standard library:
 using Test           # @test / @testset for the checks in the notebook
-using Random         # Xoshiro, a seeded random number generator
 #
 # Packages:
 using Plots          # figures
+using DataFrames     # tables of results
+using PrettyTables   # printing those tables
 #
 # This meeting's supplied helpers (section 2):
-using .L12bUtility  # build_mdp, lavaworld, count_optimal_moves,
-                    # follow_policy, square, arrow_shape, and draw_path
+using .L12bUtility   # MyAdaptiveDosingModel, stateindex, decode, isterminal,
+                     # world, simulate, and mdpworld; build and solve gain dosing methods
 #
 # There is deliberately no `using .L12bQLearning`. Re-running this file
 # replaces that module, and on Julia 1.12 a second `using` of the replacement

@@ -39,6 +39,15 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
+# The example's code, loaded once: the patient without a grid, then the DQN
+# agent, which uses the patient model.
+if !isdefined(@__MODULE__, :L12cPatient)
+    include(joinpath(CHEME5800_L12C_ROOT, "src", "Patient.jl"))
+end
+if !isdefined(@__MODULE__, :L12cDQN)
+    include(joinpath(CHEME5800_L12C_ROOT, "src", "DQN.jl"))
+end
+
 
 # --- 3. IMPORTS --------------------------------------------------------------
 # Everything this meeting brings into scope. One `using` per line so each can
@@ -50,11 +59,14 @@ end
 #
 # Standard library:
 using Random         # seeded random number generation
-using Statistics     # mean, std, and friends
-using Test           # @test / @testset for the checks in the notebook
+using Statistics     # mean, median, and friends
+using Test           # @test / @testset for the check in the example
 #
 # Packages:
 using DataFrames     # tabular records held as columns
-using Distributions  # probability distributions and sampling
 using Plots          # figures
 using PrettyTables   # formatted table output in the notebook
+#
+# This meeting's code (section 2):
+using .L12cPatient   # MyPatientModel, treat, isterminal, solvegrid, simulate, ...
+using .L12cDQN       # MyLinearQNetworkModel, features, qvalues, mydqn, ...

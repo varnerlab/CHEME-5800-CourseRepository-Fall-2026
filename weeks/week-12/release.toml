@@ -7,15 +7,17 @@ title = "Q-learning and model-free reinforcement learning"
 languages = ["Julia"]
 entry_notebooks = [
   "L12a/CHEME-5800-L12a-Lecture-QLearning-Fall-2026.ipynb",
-  "L12a/CHEME-5800-L12a-Example-AdaptiveDosing-QLearning-Fall-2026.ipynb",
-  "L12b/CHEME-5800-L12b-Lab-QLearningGridWorld-Fall-2026.ipynb",
-  "L12c/CHEME-5800-L12c-Lecture-ValueIterationVsQLearning-Fall-2026.ipynb",
-  "L12d/CHEME-5800-L12d-Lab-ExplorationAndReproducibility-Fall-2026.ipynb",
+  "L12a/CHEME-5800-L12a-Example-QLearningGridWorld-Fall-2026.ipynb",
+  "L12b/CHEME-5800-L12b-Lab-AdaptiveDosing-QLearning-Fall-2026.ipynb",
+  "L12c/CHEME-5800-L12c-Lecture-DeepQLearning-Fall-2026.ipynb",
+  "L12c/CHEME-5800-L12c-Example-LinearDQN-AdaptiveDosing-Fall-2026.ipynb",
+  "L12d/CHEME-5800-L12d-Lab-DoubleDQN-Fall-2026.ipynb",
 ]
 supporting_notebooks = []
 datasets = [
   "L12a/figs/Fig-Schematic-RL.svg",
   "L12a/figs/Fig-Q-Schematic.svg",
+  "L12c/figs/Fig-Q-Networks/Fig-Q-Networks.svg",
 ]
 student_paths = ["README.md", "L12a", "L12b", "L12c", "L12d"]
 instructor_only_paths = ["../../instructor/validation/week-12"]
