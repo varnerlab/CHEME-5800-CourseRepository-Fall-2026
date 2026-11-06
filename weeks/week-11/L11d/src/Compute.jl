@@ -6,8 +6,8 @@
 # already written. Each TODO is one step of the value iteration algorithm.
 #
 # After each edit: save this file, re-run the setup cell at the top of the
-# notebook to reload it, then re-run the solution cell and the check cell.
-# You are done when every test in the check cell passes.
+# notebook to reload it, then re-run the solution cell. You are done when it
+# converges and matches the Stanford version.
 # =============================================================================
 module L11dValueIteration
 
@@ -73,8 +73,9 @@ function mysolve(model::MyValueIterationModel, problem::MyMDPProblemModel; ϵ::F
         for s ∈ problem.𝒮
             # TODO 1: the Bellman backup of state s, step 1 of the algorithm. Replace NaN
             # with the largest value of R(s,a) + γ⋅Σ T(s′|s,a)⋅U(s′) over the actions a in
-            # problem.𝒜. Hint: lookahead(problem, U, s, a) returns R(s,a) + γ⋅Σ T(s′|s,a)⋅U(s′)
-            # for one action a, and maximum(f(a) for a ∈ problem.𝒜) returns the largest f(a).
+            # problem.𝒜. Hint: make a vector values = zeros(length(problem.𝒜)), and loop over
+            # the actions a ∈ problem.𝒜. For each action, set values[a] to R(s,a) + γ⋅Σ T(s′|s,a)⋅U(s′).
+            # The sum is sum(problem.T[s, :, a] .* U). Then U_new[s] is maximum(values).
             U_new[s] = NaN;
         end
 

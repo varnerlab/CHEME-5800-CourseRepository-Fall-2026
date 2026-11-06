@@ -380,9 +380,21 @@ end
             @test occursin("U_new[s] = NaN;", student_text) # the blank for TODO 1
             @test occursin("Δ = NaN;", student_text) # the blank for TODO 2
             @test occursin("U .= NaN;", student_text) # the blank for TODO 3
-            for answer in ("maximum(lookahead(problem, U, s, a) for a ∈ problem.𝒜)", "maximum(abs.(U_new .- U))", "U .= U_new")
+            for answer in ("U_new[s] = maximum(values)", "values[a] = problem.R[s, a]", "maximum(abs.(U_new .- U))", "U .= U_new")
                 @test !occursin(answer, student_text) # the solution's lines
             end
+            # TODO 1's answer is a short loop; swap it for the one-line blank so both files have the same shape -
+            todo1_answer = join([
+                "values = zeros(length(problem.𝒜)); # the value of each action from state s",
+                "            for a ∈ problem.𝒜",
+                "                future = sum(problem.T[s, :, a] .* U); # Σ T(s′|s,a)⋅U(s′): the expected value of where we land",
+                "                values[a] = problem.R[s, a] + problem.γ*future; # the reward now, plus the discounted future",
+                "            end",
+                "            U_new[s] = maximum(values); # keep the best action",
+                "",
+                "            # The Stanford version does the same thing in one line -",
+                "            # U_new[s] = maximum(lookahead(problem, U, s, a) for a ∈ problem.𝒜);"], '\n')
+            @test occursin(todo1_answer, reference_text)
             # remove each TODO comment block and the line after it (the blank or the answer); the rest must match -
             function skeleton(text)
                 kept = String[]
@@ -400,7 +412,7 @@ end
                 end
                 return join(kept, '\n')
             end
-            @test skeleton(student_text) == skeleton(reference_text)
+            @test skeleton(student_text) == skeleton(replace(reference_text, todo1_answer => "U_new[s] = NaN;"))
             student_module = Module(:L11dStudent)
             Base.include(student_module, joinpath(WEEK_ROOT, "L11d", "src", "Compute.jl"))
             # Compute.jl holds only the student work -
@@ -414,7 +426,7 @@ end
             end
             @test stub_error isa ErrorException && occursin("Oooops!", stub_error.msg)
             # each blank on its own trips the guard: TODO 1 and 2 at once, TODO 3 in the second sweep -
-            for (blank, answer) in (("U_new[s] = NaN;", "U_new[s] = maximum(lookahead(problem, U, s, a) for a ∈ problem.𝒜);"),
+            for (blank, answer) in (("U_new[s] = NaN;", todo1_answer),
                                     ("Δ = NaN;", "Δ = maximum(abs.(U_new .- U));"), ("U .= NaN;", "U .= U_new;"))
                 one_blank = Module(:L11dOneBlank)
                 Base.include_string(one_blank, replace(reference_text, answer => blank))
