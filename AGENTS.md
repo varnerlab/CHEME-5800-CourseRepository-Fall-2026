@@ -1,5 +1,21 @@
 # Repository Working Agreements
 
+## Prose density (standing rule, all courses) — November 6, 2026
+
+The instructor has asked for this many times. When writing, editing, or reviewing
+text in lecture or example notebooks:
+
+- Paragraphs: at most 3 sentences or about 60 words. Longer means split it.
+- One idea per sentence. No chains joined by "so", "and with it", "therefore",
+  or semicolons.
+- To shorten, reorganize: a lead sentence, then short paragraphs or bullets
+  with full sentences. Never compress several points into one sentence, and
+  avoid fragment-only bullets.
+- Plain, direct English. Cut restatements and qualifiers that add no
+  information.
+- Before showing any new prose, check every paragraph against these limits and
+  fix it. Reviews should flag any paragraph that breaks them.
+
 ## Course notebook voice and formatting
 
 Before authoring, editing, or reviewing course notebooks, read the shared guide:
