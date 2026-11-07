@@ -39,11 +39,8 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# The example's code, loaded once: our Q-learning, and the lava grid world with
-# the functions that walk and draw a policy.
-if !isdefined(@__MODULE__, :L12aQLearning)
-    include(joinpath(CHEME5800_L12A_ROOT, "src", "QLearning.jl"))
-end
+# The example's code, loaded once: the lava grid world and the functions that
+# walk and draw a policy.
 if !isdefined(@__MODULE__, :L12aGridWorld)
     include(joinpath(CHEME5800_L12A_ROOT, "src", "GridWorld.jl"))
 end
@@ -67,6 +64,5 @@ using Random         # Xoshiro, a seeded random number generator
 using Plots          # figures
 #
 # This meeting's code (section 2):
-using .L12aQLearning   # myqlearning
 using .L12aGridWorld   # lavaworld, count_optimal_moves,
                        # follow_policy, square, arrow_shape, and draw_path

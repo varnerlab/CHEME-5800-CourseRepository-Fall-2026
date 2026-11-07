@@ -3266,7 +3266,7 @@ uuid = "41fe7b60-77ed-43a1-b4f0-825fd5a5650d"
 version = "0.2.0"
 
 [[deps.VLDataScienceMachineLearningPackage]]
-deps = ["CSV", "ColorVectorSpace", "Colors", "DataFrames", "DataStructures", "Distances", "Distributions", "FileIO", "GLPK", "ImageIO", "Images", "JLD2", "JSON", "JuMP", "LinearAlgebra", "NNlib", "Optim", "Statistics"]
+deps = ["CSV", "ColorVectorSpace", "Colors", "DataFrames", "DataStructures", "Distances", "Distributions", "FileIO", "GLPK", "ImageIO", "Images", "JLD2", "JSON", "JuMP", "LinearAlgebra", "NNlib", "Optim", "Random", "Statistics"]
 path = "code"
 uuid = "24b76065-2c22-4f73-af85-7cb67476fb03"
 version = "1.0.0"

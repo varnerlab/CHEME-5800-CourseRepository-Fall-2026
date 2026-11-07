@@ -89,27 +89,27 @@ end
         other_agent() = build(MyQLearningAgentModel, (states = [1, 2, 3], actions = [1, 2],
             α = 0.25, γ = 0.5, Q = [6.0 4.0; 0.0 0.0; 0.0 0.0]))
 
-        @testset "Example Q-learning" begin
-            one_step = L12aQLearning.myqlearning(one_step_agent(), small; worldmodel = lavaworld,
+        @testset "Package Q-learning" begin
+            one_step = solve(one_step_agent(), small; worldmodel = lavaworld,
                 absorbing = Set([2, 3]), episodes = 1, maxsteps = 1, ϵ = 0.0)
             @test one_step.visits == [0 1; 0 0; 0 0]
             @test one_step.Q ≈ [0.0 2.0; 0.0 0.0; 0.0 0.0]
-            other_step = L12aQLearning.myqlearning(other_agent(), small; worldmodel = lavaworld,
+            other_step = solve(other_agent(), small; worldmodel = lavaworld,
                 absorbing = Set([2, 3]), episodes = 1, maxsteps = 1, ϵ = 0.0)
             @test other_step.visits == [1 0; 0 0; 0 0]
             @test other_step.Q ≈ [4.25 4.0; 0.0 0.0; 0.0 0.0]
             # absorbing rows are set to zero even when the starting table is not zero -
             hundreds = build(MyQLearningAgentModel, (states = [1, 2, 3], actions = [1, 2], α = 1.0, γ = 0.9, Q = fill(100.0, 3, 2)))
-            from_hundreds = L12aQLearning.myqlearning(hundreds, small; worldmodel = lavaworld,
+            from_hundreds = solve(hundreds, small; worldmodel = lavaworld,
                 absorbing = Set([3]), episodes = 500, maxsteps = 50, ϵ = 1.0)
             @test from_hundreds.Q ≈ [8.0 5.2; 10.0 6.2; 0.0 0.0]
             agent = build(MyQLearningAgentModel, (states = [1, 2, 3], actions = [1, 2], α = 1.0, γ = 0.9, Q = zeros(3, 2)))
-            exact = L12aQLearning.myqlearning(agent, small; worldmodel = lavaworld,
+            exact = solve(agent, small; worldmodel = lavaworld,
                 absorbing = Set([3]), episodes = 500, maxsteps = 50, ϵ = 1.0)
             @test exact.Q ≈ [8.0 5.2; 10.0 6.2; 0.0 0.0]
             @test agent.Q == zeros(3, 2) # the agent's own table is not changed
             # the same seed gives the same table -
-            again = L12aQLearning.myqlearning(agent, small; worldmodel = lavaworld,
+            again = solve(agent, small; worldmodel = lavaworld,
                 absorbing = Set([3]), episodes = 500, maxsteps = 50, ϵ = 1.0)
             @test again.Q == exact.Q && again.visits == exact.visits
             # the example's code is complete -
@@ -161,7 +161,7 @@ end
             # the 200-episode cell: the policy walks in a loop, and the reward has not spread -
             function train(episodes, ϵ)
                 agent = build(MyQLearningAgentModel, (states = w.𝒮, actions = w.𝒜, α = w.α, γ = w.γ, Q = zeros(400, 4)))
-                result = L12aQLearning.myqlearning(agent, w.m; worldmodel = w.lavaworld, absorbing = w.absorbing_states,
+                result = solve(agent, w.m; worldmodel = w.lavaworld, absorbing = w.absorbing_states,
                     episodes = episodes, maxsteps = w.maxsteps, ϵ = ϵ, seed = 5800)
                 π = policy(result.Q)
                 (path, outcome) = w.follow_policy(π, w.startstate, w.world, w.rewards, w.absorbing_state_set;
@@ -230,6 +230,13 @@ end
             again = L12bQLearning.myqlearning(explorer, small; worldmodel = L12bUtility.mdpworld,
                 absorbing = Set([3]), episodes = 20_000, maxsteps = 50, ϵ_start = 1.0, ϵ_floor = 1.0)
             @test again.Q == long_run.Q && again.visits == long_run.visits
+            # the package's Q-learning, with 1/n and the same falling ϵ, gives the same table -
+            schedule(i) = max(0.05, 1.0 - i/(0.7*400))
+            reference = L12bQLearning.myqlearning(explorer, small; worldmodel = L12bUtility.mdpworld,
+                absorbing = Set([3]), episodes = 400, maxsteps = 20, seed = 1234)
+            package = solve(explorer, small; worldmodel = (p, s, a, rng) -> L12bUtility.mdpworld(p, s, a),
+                absorbing = Set([3]), episodes = 400, maxsteps = 20, ϵ = schedule, learningrate = :visits, seed = 1234)
+            @test package.Q == reference.Q && package.visits == reference.visits
         end
 
         @testset "Student stub" begin
