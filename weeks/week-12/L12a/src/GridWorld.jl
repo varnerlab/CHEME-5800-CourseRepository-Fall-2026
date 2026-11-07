@@ -10,7 +10,7 @@
 #   follow_policy(...)  walks a policy from a start square
 #   square(...)         makes the outline of one grid square, for drawing
 #   arrow_shape(...)    makes a small arrow that points one way, for drawing
-#   draw_path(...)      draws the grid world, the policy, and the robot's path
+#   draw_path(...)      draws the grid world, the policy, and the roomba's path
 #
 # None of them reads a notebook variable; everything they need is passed in as
 # an argument. Include.jl loads this file only once, so restart the kernel if
@@ -35,8 +35,8 @@ rules we used for value iteration.
 
 Every move is certain. A move onto a square of the grid lands there and collects that square's
 reward: the charging station or lava pit reward from `rewards`, or `step_reward` for an ordinary
-square. A move that would leave the grid keeps the robot where it is and costs
-`off_grid_reward`. In an absorbing state, every action keeps the robot where it is and earns
+square. A move that would leave the grid keeps the roomba where it is and costs
+`off_grid_reward`. In an absorbing state, every action keeps the roomba where it is and earns
 nothing, because the episode has ended.
 
 ### Arguments
@@ -81,7 +81,7 @@ function build_mdp(world::MyRectangularGridWorldModel, rewards::Dict{Tuple{Int,I
                 end
             else
                 T[s, s, a] = 1.0; # off the grid: we stay put
-                R[s, a] = off_grid_reward; # so costly that the robot learns never to do it
+                R[s, a] = off_grid_reward; # so costly that the roomba learns never to do it
             end
         end
     end
@@ -95,7 +95,7 @@ end
 """
     lavaworld(problem::MyMDPProblemModel, s::Int64, a::Int64, rng::AbstractRNG) -> Tuple{Int64,Float64}
 
-Simulate one move of the robot: return the next state `s′` and the reward `r` of taking action
+Simulate one move of the roomba: return the next state `s′` and the reward `r` of taking action
 `a` in state `s`. This is the only way the Q-learning agent touches the world.
 
 The function draws the next state from the transition probabilities `T(s′|s,a)` of `problem`:
@@ -183,7 +183,7 @@ end
 Walk a policy from a starting square, and report the squares visited and how the walk ended.
 
 Starting at `start`, the function looks up the action the policy chooses in the current
-square and moves the robot one square. It repeats this until the robot enters an absorbing
+square and moves the roomba one square. It repeats this until the roomba enters an absorbing
 square, tries to leave the grid, or returns to a square it already visited. A return to a
 visited square means the policy would walk in a loop forever.
 
@@ -200,7 +200,7 @@ visited square means the policy would walk in a loop forever.
 ### Returns
 - `Tuple{Array{Tuple{Int,Int},1}, String}`: the squares visited in order, starting with
   `start`, and a phrase describing how the walk ended. When the walk ends in a loop, the last
-  square is the visited square the robot returned to. The number of moves is one less than
+  square is the visited square the roomba returned to. The number of moves is one less than
   the number of squares in the path.
 """
 function follow_policy(policy::Array{Int64,1}, start::Tuple{Int,Int},
@@ -209,13 +209,13 @@ function follow_policy(policy::Array{Int64,1}, start::Tuple{Int,Int},
     charging_reward::Float64)::Tuple{Array{Tuple{Int,Int},1}, String}
 
     # initialize -
-    path = Array{Tuple{Int,Int},1}(); # the squares the robot visits, in order
+    path = Array{Tuple{Int,Int},1}(); # the squares the roomba visits, in order
     push!(path, start);
-    position = start; # where the robot is now
+    position = start; # where the roomba is now
     outcome = ""; # a phrase describing how the walk ended
     is_ok_to_stop = false; # we set this to true when the walk should end
 
-    # a robot that starts in an absorbing square never moves -
+    # a roomba that starts in an absorbing square never moves -
     if (in(start, absorbing_state_set) == true)
         if (rewards[start] == charging_reward)
             outcome = "is already at the charging station";
@@ -366,17 +366,17 @@ end
         charging_reward::Float64, lava_reward::Float64,
         number_of_rows::Int64, number_of_cols::Int64)
 
-Draw the grid world, the policy in every square, and the robot's path.
+Draw the grid world, the policy in every square, and the roomba's path.
 
 Each square of the grid is drawn as a unit square, so the figure keeps its proportions for
 any grid size. The charging station is a green square, and each lava pit is a red square, each drawn a
 little smaller than its grid square.
 A small gray arrow in every other square points in the direction the policy moves from that
-square; `arrow_shape(...)` makes each one. The robot's path is a thick blue line from the
+square; `arrow_shape(...)` makes each one. The roomba's path is a thick blue line from the
 start square, marked with a blue dot, to where the walk ended.
 
 ### Arguments
-- `path::Array{Tuple{Int,Int},1}`: the squares the robot visits, in order, as returned by
+- `path::Array{Tuple{Int,Int},1}`: the squares the roomba visits, in order, as returned by
   `follow_policy(...)`.
 - `policy::Array{Int64,1}`: the action to take in each state, i.e., `policy[s]` is the action in state `s`.
 - `world::MyRectangularGridWorldModel`: the grid world; we use its `coordinates` dictionary,
@@ -449,7 +449,7 @@ function draw_path(path::Array{Tuple{Int,Int},1}, policy::Array{Int64,1},
     # draw all the policy arrows at once -
     plot!(p, arrows, c = :gray55, lc = :gray55, lw = 0, label = "");
 
-    # draw the path through the centers of the squares the robot visits -
+    # draw the path through the centers of the squares the roomba visits -
     path_x = Array{Int,1}();
     path_y = Array{Int,1}();
     for i ∈ 1:length(path)

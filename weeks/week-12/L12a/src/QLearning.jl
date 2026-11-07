@@ -22,7 +22,7 @@ Learn the action values of a world by episodic Q-learning.
 
 The agent never reads the rewards or the transition probabilities stored in `environment`. It
 only calls `worldmodel(environment, s, a, rng)`, which returns the next state `s′` and the reward
-`r` of taking action `a` in state `s`, as if the robot had tried the move.
+`r` of taking action `a` in state `s`, as if the roomba had tried the move.
 
 Each episode starts in a random state that is not absorbing, and runs until the agent enters an
 absorbing state or has taken `maxsteps` steps. Each step chooses an action with the
