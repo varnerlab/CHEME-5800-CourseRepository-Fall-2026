@@ -1,95 +1,139 @@
-# PRIVATE METHODS BELOW HERE ================================================================================= #
+import Random: Xoshiro # a seeded random number generator, so a run can be repeated exactly
+
+# PUBLIC METHODS BELOW HERE ================================================================================== #
 """
-    _world(model::MyRectangularGridWorldModel, s::Int, a::Int)::Tuple{Int,Float64}
+    solve(agent::MyQLearningAgentModel, problem::MyMDPProblemModel; worldmodel::Function,
+        absorbing::Set{Int64}, episodes::Int64 = 2000, maxsteps::Int64 = 500,
+        ϵ::Union{Float64,Function} = 0.1, learningrate::Symbol = :constant,
+        seed::Int64 = 5800) -> NamedTuple
 
-Default `worldmodel` for [`solve(agent::MyQLearningAgentModel, environment::MyRectangularGridWorldModel; ...)`](@ref).
-This is a teaching stub, not a real environment: it throws instead of silently doing nothing so that a caller who
-forgets to supply `worldmodel` gets an immediate, loud error rather than an agent that never moves and never earns
-reward. Callers (e.g. course notebooks) are expected to pass their own environment-dynamics function via the
-`worldmodel` keyword.
-"""
-function _world(model::MyRectangularGridWorldModel, s::Int, a::Int)::Tuple{Int,Float64}
-    throw(ArgumentError("No world model supplied. A `MyRectangularGridWorldModel` transition function must be " *
-        "supplied via the `worldmodel` keyword argument to `solve`; the package does not ship a default " *
-        "environment implementation."));
-end
+Learn the action values of a Markov decision process by episodic Q-learning.
 
+The agent never reads the rewards `R` or the transition probabilities `T` stored in `problem`. It
+only calls `worldmodel(problem, s, a, rng)`, which returns the next state `s′` and the reward `r`
+of taking action `a` in state `s`, as if the agent had tried the move. The function draws any
+random outcome from `rng`, the random number generator of the run.
 
-# PRIVATE METHODS ABOVE HERE ================================================================================= #
-
-# PUBLIC METHODS BELOW HERE ================================================================================== #``
-# Cool hack: What is going on with these?
-# (model::MyRectangularGridWorldModel)(s::Int, a::Int) = _world(model, s, a);
-# (model::MyQLearningAgentModel)(data::NamedTuple) = _update(model, data);
-
-"""
-    function solve(model::MyQLearningModel, environment::T, startstate::Int, maxsteps::Int;
-        ϵ::Float64 = 0.2) -> MyQLearningModel where T <: AbstractWorldModel
-
-Simulate the Q-Learning agent in the given environment starting from the given state for a maximum number of steps.
+Each episode starts in a random state that is not absorbing, and runs until the agent enters an
+absorbing state or has taken `maxsteps` steps. Each step chooses an action with the
+epsilon-greedy rule: with probability `ϵ` a random action, and otherwise the action with the
+largest value in the current row of `Q`. The agent takes the action, observes `(s′, r)`, and moves
+`Q[s,a]` a fraction `α` of the way toward the temporal difference target `r + γ⋅max Q[s′,:]`.
+The rows of absorbing states are set to zero at the start and never updated, because an episode
+ends there and earns nothing more.
 
 ### Arguments
-- `agent::MyQLearningAgentModel`: The Q-Learning agent model.
-- `environment::MyRectangularGridWorldModel`: The environment model.
-- `maxsteps::Int`: The maximum number of steps to simulate.
-- `δ::Float64 = 0.02`: The convergence threshold. Default is 0.02.
-- `worldmodel::Function = _world`: The world model function. Default is the private `_world` function, which throws
-   unless overridden; callers must supply their own environment-dynamics function.
+- `agent::MyQLearningAgentModel`: the agent. We use its learning rate `α`, its discount factor
+  `γ`, and its table `Q`, one row per state and one column per action, as the starting table.
+  The agent's own table is not changed.
+- `problem::MyMDPProblemModel`: the world. We only pass it to `worldmodel`. Its states are
+  numbered `1, 2, …, |𝒮|` and its actions `1, 2, …, |𝒜|`.
+- `worldmodel::Function`: the function `worldmodel(problem, s, a, rng)` that returns the next
+  state and the reward, `(s′, r)`.
+- `absorbing::Set{Int64}`: the states that end an episode.
+- `episodes::Int64 = 2000`: the number of episodes.
+- `maxsteps::Int64 = 500`: the most steps in one episode.
+- `ϵ::Union{Float64,Function} = 0.1`: the exploration probability, between 0 and 1. Pass a number
+  to keep it constant, or a function `ϵ(i)` that returns the exploration probability of episode `i`.
+- `learningrate::Symbol = :constant`: how the learning rate is set. `:constant` uses the agent's
+  `α` for every update. `:visits` uses `α = 1/n` on the `n`-th update of a pair `(s,a)`, which
+  makes `Q[s,a]` the running average of the targets that pair has seen.
+- `seed::Int64 = 5800`: the seed of the random number generator.
 
 ### Returns
-- `MyQLearningAgentModel`: The updated Q-Learning agent model after simulation.
+A `NamedTuple` with the fields:
+- `Q::Array{Float64,2}`: the learned action values, one row per state and one column per action.
+- `visits::Array{Int64,2}`: the number of times the agent took each action in each state.
+
+### Example
+```julia
+agent = build(MyQLearningAgentModel, (states = 𝒮, actions = 𝒜, α = 0.5, γ = 0.95,
+    Q = zeros(length(𝒮), length(𝒜))));
+result = solve(agent, m; worldmodel = lavaworld, absorbing = absorbing_states);
+result.Q, result.visits
+```
 """
-function solve(agent::MyQLearningAgentModel, environment::MyRectangularGridWorldModel;
-    maxsteps::Int = 100, δ::Float64 = 0.02, worldmodel::Function = _world)::MyQLearningAgentModel
+function solve(agent::MyQLearningAgentModel, problem::MyMDPProblemModel; worldmodel::Function,
+    absorbing::Set{Int64}, episodes::Int64 = 2000, maxsteps::Int64 = 500,
+    ϵ::Union{Float64,Function} = 0.1, learningrate::Symbol = :constant,
+    seed::Int64 = 5800)::NamedTuple
+
+    # check the learning rate rule -
+    if (learningrate != :constant && learningrate != :visits)
+        throw(ArgumentError("learningrate must be :constant or :visits, not :$(learningrate)"));
+    end
 
     # initialize -
-    actions = agent.actions;
-    K = length(actions); # number of actions
-    states = agent.states;
-    Q₁ = agent.Q;
-    γ = agent.γ;
+    rng = Xoshiro(seed); # our own random number generator, so a run can be repeated exactly
+    γ = agent.γ; # the discount factor
+    Q = copy(agent.Q); # the table we update: a copy, so the agent's own table is not changed
+    number_of_states = size(Q, 1); # one row per state
+    number_of_actions = size(Q, 2); # one column per action
+    visits = zeros(Int64, number_of_states, number_of_actions); # visits[s,a]: how many times we took action a in state s
 
-    # simulation loop -
-    for s ∈ states
-
-        # initialize t -
-        t = 1;
-        has_converged = false;
-        αₜ = copy(agent.α);
-        while (has_converged == false)
-
-            # compute the ϵ -
-            ϵₜ = (1.0/(t^(1/3)))*(log(K*t))^(1/3); # compute the epsilon value -
-            p = rand();
-
-            aₜ = nothing;
-            if p ≤ ϵₜ
-                aₜ = rand(1:K); # generate a random action
-            elseif p > ϵₜ
-                aₜ = argmax(Q₁[s,:]); # select the greedy action, given state s
-            end
-
-            # compute new state and reward -
-            s′, r = worldmodel(environment, s, aₜ);
-
-            # use the update rule to update Q -
-            Q₂ = copy(Q₁); # this seems really inefficient, but it is what it is ...
-            Q₁[s,aₜ] += αₜ*(r+γ*maximum(Q₁[s′,:]) - Q₁[s,aₜ])
-
-            # update stuff
-            s = s′; # state update
-            t += 1; # time update
-            αₜ = 0.99*αₜ; # update the learning rate
-
-            # check if we have converged -
-            if ((t > maxsteps) || norm(Q₂ - Q₁) < δ)
-                has_converged = true;
+    # The states an episode may start from: every state that is not absorbing. The row of an
+    # absorbing state is set to zero, because an episode ends there -
+    starts = Array{Int64,1}();
+    for s ∈ 1:number_of_states
+        if (in(s, absorbing) == false)
+            push!(starts, s);
+        else
+            for a ∈ 1:number_of_actions
+                Q[s,a] = 0.0;
             end
         end
     end
 
-    agent.Q = Q₁; # update the model
+    # main loop: one episode each pass -
+    for episode ∈ 1:episodes
 
-    # return -
-    return agent
+        # the exploration probability of this episode: a constant, or the value of a schedule -
+        ϵ_episode = 0.0;
+        if (isa(ϵ, Function) == true)
+            ϵ_episode = ϵ(episode);
+        else
+            ϵ_episode = ϵ;
+        end
+
+        # start in a random state that is not absorbing -
+        s = starts[rand(rng, 1:length(starts))];
+        t = 0; # the step counter
+
+        # one step each pass, until we enter an absorbing state or run out of steps -
+        while (in(s, absorbing) == false && t < maxsteps)
+
+            # choose the action with the epsilon-greedy rule -
+            p = rand(rng); # a random number between 0 and 1
+            a = 0; # the action, chosen below
+            if (p ≤ ϵ_episode)
+                a = rand(rng, 1:number_of_actions); # exploration: a random action
+            else
+                a = argmax(Q[s,:]); # exploitation: the greedy action
+            end
+
+            # take action a, and observe the next state and the reward -
+            (s′, r) = worldmodel(problem, s, a, rng);
+            visits[s,a] = visits[s,a] + 1; # count this visit to the pair (s,a)
+
+            # the learning rate of this update -
+            α = agent.α;
+            if (learningrate == :visits)
+                α = 1.0/visits[s,a]; # 1/n on the n-th update of the pair (s,a)
+            end
+
+            # the temporal difference target -
+            target = r + γ*maximum(Q[s′,:]);
+
+            # the update: move Q[s,a] a fraction α of the way toward the target -
+            Q[s,a] = Q[s,a] + α*(target - Q[s,a]);
+
+            # move to the next state -
+            s = s′;
+            t = t + 1;
+        end
+    end
+
+    # return the learned table and the visit counts -
+    return (Q = Q, visits = visits);
 end
+# PUBLIC METHODS ABOVE HERE ================================================================================== #

@@ -39,13 +39,11 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# The lab's code, loaded once: the bioreactor environment, value iteration,
-# Q-learning, and the policy simulator.
-if !isdefined(@__MODULE__, :L12dBioreactor)
-    include(joinpath(CHEME5800_L12D_ROOT, "src", "Bioreactor.jl"))
+# The lab's code, loaded once: the two-state problem with its four learners,
+# and the figure.
+if !isdefined(@__MODULE__, :L12dTwoState)
+    include(joinpath(CHEME5800_L12D_ROOT, "src", "TwoState.jl"))
 end
-
-# The lab's figure, loaded once after the bioreactor code it uses.
 if !isdefined(@__MODULE__, :L12dVisualize)
     include(joinpath(CHEME5800_L12D_ROOT, "src", "Visualize.jl"))
 end
@@ -69,7 +67,5 @@ using DataFrames     # tables of results
 using PrettyTables   # printing those tables
 #
 # This meeting's code (section 2):
-using .L12dBioreactor # MyFedBatchBioreactorModel, stateindex, decode, isterminal,
-                      # world, simulate, and count_untried_pairs; build and solve
-                      # gain bioreactor methods
-using .L12dVisualize  # plot_batch
+using .L12dTwoState    # maxbias, greedyaction, twostate_qlearning, twostate_dqn
+using .L12dVisualize   # plot_left

@@ -39,10 +39,10 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# The example's code, loaded once: the dosing environment, value iteration,
-# Q-learning, and the policy simulator.
-if !isdefined(@__MODULE__, :L12aDosing)
-    include(joinpath(CHEME5800_L12A_ROOT, "src", "Dosing.jl"))
+# The example's code, loaded once: the lava grid world and the functions that
+# walk and draw a policy.
+if !isdefined(@__MODULE__, :L12aGridWorld)
+    include(joinpath(CHEME5800_L12A_ROOT, "src", "GridWorld.jl"))
 end
 
 
@@ -52,17 +52,16 @@ end
 #
 # Already imported by the root bootstrap above, listed so this block is the
 # whole picture rather than most of it:
-#   VLDataScienceMachineLearningPackage   the course package: the Q-learning
-#                                         agent type, build, solve, and policy
+#   VLDataScienceMachineLearningPackage   the course package: the grid world,
+#                                         MDP, and Q-learning agent models, and
+#                                         solve, Q, and policy for value iteration
 #
 # Standard library:
-using Test           # @test / @testset for the checks in the notebook
+using Random         # Xoshiro, a seeded random number generator
 #
 # Packages:
 using Plots          # figures
-using DataFrames     # tables of results
-using PrettyTables   # printing those tables
 #
 # This meeting's code (section 2):
-using .L12aDosing    # MyAdaptiveDosingModel, stateindex, decode, isterminal,
-                     # world, and simulate; build and solve gain dosing methods
+using .L12aGridWorld   # lavaworld, follow_policy, square,
+                       # arrow_shape, and draw_paths

@@ -1,0 +1,407 @@
+% L12a lecture companion. Notebook hashes and coverage are recorded in README.md.
+% Style files and Cornell seal are copied unchanged from the L11c deck (identical
+% to L10c, L10a, L9c, and L9a, which match the approved L6a deck). The two figures
+% are the lecture's SVGs in ../figs, converted to light PDFs by `make figures`.
+%
+% Notation follows the lecture: the MDP tuple (S, A, R(s,a), T(s'|s,a), gamma),
+% value functions U_k and U^*, the action values Q(s,a) and Q^*(s,a), the observed
+% reward r and next state s', the learning rate alpha (alpha_n for the n-th update
+% of a pair), the exploration probability epsilon, the TD error delta, the policy
+% pi, the number of episodes N, the step limit d, and the step counter t.
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{vnslides}
+\renewcommand{\vnlecturecode}{L12a}
+\newcommand{\lecturelink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-12/L12a/CHEME-5800-L12a-Lecture-QLearning-Fall-2026.ipynb}
+\newcommand{\examplelink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-12/L12a/CHEME-5800-L12a-Example-QLearningGridWorld-Fall-2026.ipynb}
+\newcommand{\lablink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-12/L12b/CHEME-5800-L12b-Lab-AdaptiveDosing-QLearning-Fall-2026.ipynb}
+\newcommand{\lecturesource}[1]{\note{[Sources]\par
+  \href{\lecturelink}{L12a lecture: Model-Free Reinforcement Learning and Q-Learning.}\par
+  #1\par[/Sources]}}
+\newcommand{\Sset}{\mathcal S}
+\newcommand{\Aset}{\mathcal A}
+
+\title{\texorpdfstring{{\vnheavy L12a}: Model-Free Reinforcement Learning}{L12a: Model-Free Reinforcement Learning}}
+\subtitle{\texorpdfstring{Q-learning\\[3pt]CHEME 5800 Cornell University}{Q-learning; CHEME 5800 Cornell University}}
+\author{Copyright Jeffrey Varner 2026. All Rights Reserved}
+
+\begin{document}
+\special{pdf:minorversion 7}
+\vntitlepage
+
+\begin{frame}{Objectives for Today}
+  How can an agent learn to act well when it has no model of its environment?
+
+  \vspace{0.4em}
+  {\large\textbf{\ink{Today's concepts}}}
+  \vspace{0.2em}
+  \begin{itemize}\setlength{\itemsep}{0.4em}
+    \item \hilite{Describe the reinforcement learning problem}: an agent takes
+      an action, then sees a reward and a new state, without knowing the rules.
+    \item \hilite{Update action values with temporal differences}: after each
+      step, Q-learning corrects one action value toward what the agent observed.
+    \item \hilite{Explain when Q-learning converges}: Q-learning needs every
+      action tried again and again, and a learning rate that shrinks at the
+      right pace.
+  \end{itemize}
+  \slidenote{Lecture:}{\href{\lecturelink}{Model-Free Reinforcement Learning and Q-Learning}}
+  \lecturesource{Introduction and three Learning Objectives.}
+\end{frame}
+
+\begin{frame}{Lecture and Example}
+  \textbf{\ink{Lecture:}}
+  \href{\lecturelink}{Model-Free Reinforcement Learning and Q-Learning}
+
+  In this lecture, we build the Q-learning update from the Bellman equation for
+  the action values, and we state when Q-learning converges.
+
+  \vspace{1.1em}
+  \textbf{\ink{Example:}}
+  \href{\examplelink}{Q-Learning in the Lava Grid World}
+
+  In this example, a roomba that has finished cleaning the kitchen learns to
+  return to its charging station without falling into a lava pit. We train the
+  roomba with Q-learning, then compare its policy with the optimal policy from
+  value iteration.
+  \lecturesource{Examples section.}
+\end{frame}
+
+\begin{frame}{The Reinforcement Learning Problem}
+  How does an agent learn the best action in each state when it does not know
+  the rules of its world?
+
+  \vspace{0.2em}
+  \centering
+  \includegraphics[width=\textwidth,height=0.52\paperheight,keepaspectratio]{assets/Fig-Schematic-RL.pdf}
+
+  \vspace{0.2em}
+  \raggedright
+  The agent observes its current state $s$ and selects an action $a$. The
+  environment answers with a reward $r$ and the next state $s'$.
+  \lecturesource{Reinforcement Learning Problem: opening paragraph and the agent-environment figure.
+    Figure: ../figs/Fig-Schematic-RL.svg, converted to a light PDF.}
+\end{frame}
+
+\begin{frame}{Learning from Interaction}
+  We have seen two approaches to learning from interaction:
+
+  \vspace{0.3em}
+  \begin{itemize}\setlength{\itemsep}{0.5em}
+    \item \hilite{Multiplicative weights} adjusts the probability of each
+      action from its past performance. It does nearly as well as the best
+      fixed action in hindsight.
+    \item \hilite{Bandit algorithms} work without states. In each round, they
+      estimate the reward of each action and adapt how they choose.
+    \item \hilite{Q-learning} adds the state. It estimates the long-term value
+      of each state-action pair, which lets the agent learn when its actions
+      change what happens next.
+  \end{itemize}
+
+  \vspace{0.5em}
+  All three balance exploring new actions to gather information against
+  exploiting known actions to collect reward.
+  \lecturesource{Reinforcement Learning Problem: the two earlier approaches and the Q-learning paragraph.}
+\end{frame}
+
+\begin{frame}{From Value Iteration to Action Values}
+  A Markov decision process (MDP) is the tuple
+  $\left(\Sset,\Aset,R(s,a),T(s'\,|\,s,a),\gamma\right)$ of states, actions,
+  rewards, transition probabilities, and a discount factor. Value iteration
+  repeats the \hilite{Bellman backup} in sweeps $k$:
+  \[
+    U_{k+1}(s)=\max_{a\in\Aset}\Bigl(\underbrace{R(s,a)}_{\text{now}}+
+    \gamma\overbrace{\sum_{s'\in\Sset}T(s'\,|\,s,a)\,U_k(s')}^{\text{future}}\Bigr)
+  \]
+
+  With $U^{*}$ in place of $U_k$, the quantity inside the maximum scores one
+  action. It is the \hilite{action-value function}, also called the Q-function:
+  \[
+    Q^{*}(s,a)=R(s,a)+\gamma\sum_{s'\in\Sset}T(s'\,|\,s,a)\,U^{*}(s')
+  \]
+
+  $Q^{*}(s,a)$ is the expected cumulative discounted reward of taking action
+  $a$ in state $s$ and following the optimal policy afterward.
+  \lecturesource{From Value Iteration to Action Values: the Bellman backup and the action-value function.}
+\end{frame}
+
+\begin{frame}{The Bellman Equation for Action Values}
+  The best action value in a state is that state's value, and the optimal
+  policy picks the action that achieves it:
+  \[
+    U^{*}(s)=\max_{a\in\Aset}Q^{*}(s,a),\qquad
+    \pi^{*}(s)=\arg\max_{a\in\Aset}Q^{*}(s,a)
+  \]
+
+  Substituting the first relation into $Q^{*}(s,a)$ gives the
+  \hilite{Bellman equation} for the action values:
+  \[
+    Q^{*}(s,a)=R(s,a)+\gamma\sum_{s'\in\Sset}T(s'\,|\,s,a)\,\max_{a'\in\Aset}Q^{*}(s',a')
+  \]
+
+  With $R(s,a)$ and $T(s'\,|\,s,a)$, value iteration costs
+  $\mathcal O(|\Sset|^{2}\,|\Aset|)$ operations per sweep. Without $R$ and $T$,
+  the usual case for a real robot, a reactor, or a patient, we cannot evaluate
+  the sum over the next states at all.
+  \lecturesource{From Value Iteration to Action Values: U* and pi* from Q*, the Bellman equation for the action values, and the closing paragraph.}
+\end{frame}
+
+\begin{frame}{The Q-Table}
+  We store the action values in a table, the \hilite{Q-table}, with one row per
+  state and one column per action.
+
+  \vspace{0.2em}
+  \centering
+  \includegraphics[width=\textwidth,height=0.46\paperheight,keepaspectratio]{assets/Fig-Q-Schematic.pdf}
+
+  \vspace{0.2em}
+  \raggedright
+  The policy picks the largest entry in each row. The Q-table is the agent's
+  memory, updated after each step without $T$ or $R$.
+  \lecturesource{The Q-table caption and the memory paragraph.
+    Figure: ../figs/Fig-Q-Schematic.svg, converted to a light PDF.}
+\end{frame}
+
+\begin{frame}{The Q-Learning Update}
+  Q-learning (\href{https://www.cs.rhul.ac.uk/~chrisw/new_thesis.pdf}{Watkins,
+  1989}) estimates $Q(s,a)$ from repeated experiments. In each experiment, the
+  agent in state $s$ takes action $a$, receives a reward $r$, and moves to a
+  state $s'$.
+
+  \vspace{0.3em}
+  After each experiment, the agent updates one entry of the Q-table:
+  \[
+    Q(s,a)\gets\underbrace{Q(s,a)}_{\text{old value}}+\alpha\cdot
+    \underbrace{\left(r+\gamma\cdot\max_{a'\in\Aset}Q(s',a')-Q(s,a)\right)}_{\text{new information}}
+  \]
+
+  where $0<\alpha\le1$ is the learning rate and $0\le\gamma<1$ is the discount
+  factor. Every other entry keeps its value.
+  \lecturesource{Q-Learning: opening paragraphs and the update rule.}
+\end{frame}
+
+\begin{frame}{Why Does This Update Make Sense?}
+  Compare $r+\gamma\max_{a'}Q(s',a')$ with the right side of the Bellman
+  equation. The agent cannot compute the sum over the next states. Instead, it
+  uses the one next state $s'$ and the one reward $r$ that it observed.
+
+  \vspace{0.3em}
+  \begin{itemize}\setlength{\itemsep}{0.4em}
+    \item This one-sample estimate is the \hilite{temporal difference (TD)
+      target}.
+    \item The gap between the target and the old value is the
+      \hilite{temporal difference error}:
+      \[
+        \delta=r+\gamma\cdot\max_{a'\in\Aset}Q(s',a')-Q(s,a)
+      \]
+    \item The update moves the old value a fraction $\alpha$ of the way toward
+      the target.
+  \end{itemize}
+  \lecturesource{Q-Learning: Why does this update make sense?, the TD target, and the TD error.}
+\end{frame}
+
+\begin{frame}{What the Update Does}
+  \begin{itemize}\setlength{\itemsep}{0.6em}
+    \item \hilite{A single outcome}: if each action has a single outcome and
+      $\alpha=1$, the update replaces $Q(s,a)$ with the target. This is a
+      Bellman backup of one state-action pair, with the observed next state in
+      place of the sum.
+    \item \hilite{A random outcome}: the target changes from visit to visit,
+      and the update averages the targets. With $\alpha=1/n$ on the $n$-th
+      visit, this average approaches the expected value that the sum over
+      $T(s'\,|\,s,a)$ would have computed.
+  \end{itemize}
+
+  \vspace{0.5em}
+  The policy picks the action with the largest value in each state:
+  \[
+    \pi(s)=\arg\max_{a\in\Aset}Q(s,a)
+  \]
+  \lecturesource{Q-Learning: the two cases and the policy.}
+\end{frame}
+
+\begin{frame}{Episodes and Epsilon-Greedy Actions}
+  Q-learning runs in \hilite{episodes}. Each episode starts the agent in some
+  state and lets it act until it enters an absorbing state, such as the
+  charging station or a lava pit of a grid world, or until a step limit.
+
+  \vspace{0.4em}
+  Each step chooses an action with the \hilite{epsilon-greedy} rule:
+  \begin{itemize}\setlength{\itemsep}{0.3em}
+    \item With probability $\epsilon$, the agent explores with a random action.
+    \item Otherwise, the agent exploits the action with the largest current
+      value.
+  \end{itemize}
+
+  \vspace{0.4em}
+  The rows of absorbing states stay at zero. The target of a move into an
+  absorbing state is just its reward $r$, with no future to add.
+  \lecturesource{Algorithm: episodes, the epsilon-greedy rule, and the closing paragraph on absorbing states.}
+\end{frame}
+
+\begin{frame}{Q-Learning Algorithm}
+  \small
+  \textbf{Initialize}: Given $\Sset$, $\Aset$, the absorbing states,
+  $0\le\gamma<1$, $0<\alpha\le1$, $0\le\epsilon\le1$, a number of episodes
+  $N\ge1$, and a step limit $d\ge1$, set $Q(s,a)\gets0$ for all $s$ and $a$.
+
+  \vspace{0.2em}
+  For $i=1$ to $N$ \textbf{do}:
+  \begin{enumerate}\setlength{\itemsep}{0.1em}
+    \item Choose a starting state $s$ that is not absorbing, and set $t\gets0$.
+    \item While $s$ is not absorbing and $t<d$ \textbf{do}:
+      \begin{itemize}\setlength{\itemsep}{0.05em}
+        \item Choose the action $a$: roll a random number $p\in[0,1]$.
+          \begin{itemize}\setlength{\itemsep}{0em}
+            \item If $p\le\epsilon$ \textbf{then} choose $a\in\Aset$ uniformly
+              at random (exploration).
+            \item Otherwise, choose $a\gets\arg\max_{a'\in\Aset}Q(s,a')$
+              (exploitation).
+          \end{itemize}
+        \item Take action $a$, and observe $r$ and $s'$ from the world.
+        \item Update
+          $Q(s,a)\gets Q(s,a)+\alpha\left(r+\gamma\max_{a'\in\Aset}Q(s',a')-Q(s,a)\right)$.
+        \item Update $s\gets s'$ and $t\gets t+1$.
+      \end{itemize}
+  \end{enumerate}
+
+  \vspace{0.1em}
+  \textbf{Extract Policy}: for each $s\in\Sset$, compute
+  $\pi(s)\gets\arg\max_{a\in\Aset}Q(s,a)$.
+  \lecturesource{Algorithm: the Initialize/For/While pseudocode and Extract Policy. The Given list is shortened to symbols defined on earlier slides.}
+\end{frame}
+
+\begin{frame}{When Does Q-Learning Converge?}
+  Q-learning converges to the optimal action values, $Q(s,a)\to Q^{*}(s,a)$,
+  with probability one
+  (\href{https://doi.org/10.1007/BF00992698}{Watkins and Dayan, 1992}). The
+  environment must have the Markov property, and three conditions must hold:
+
+  \vspace{0.3em}
+  \begin{itemize}\setlength{\itemsep}{0.45em}
+    \item \hilite{Finite, fixed MDP and discounting}: the states and actions
+      are finite, the rewards are bounded, the rewards and transition
+      probabilities do not change, and $0\le\gamma<1$.
+    \item \hilite{Learning rate decay}: the learning rate $\alpha_n(s,a)$ of
+      the $n$-th update of each pair satisfies
+      $\sum_{n=1}^{\infty}\alpha_n(s,a)=\infty$ and
+      $\sum_{n=1}^{\infty}\alpha_n^{2}(s,a)<\infty$.
+    \item \hilite{Infinite exploration}: every state-action pair of a state
+      that is not absorbing is visited, and updated, infinitely often.
+  \end{itemize}
+  \lecturesource{Convergence: the three conditions.}
+\end{frame}
+
+\begin{frame}{Meeting the Conditions}
+  \begin{itemize}\setlength{\itemsep}{0.6em}
+    \item The first sum lets the updates carry $Q(s,a)$ as far from its
+      starting value as it needs to go. The second sum makes the noise of the
+      individual targets average out.
+    \item The choice $\alpha_n(s,a)=1/n$ satisfies both sums. With this choice,
+      $Q(s,a)$ is the running average of the targets the pair has seen.
+    \item Epsilon-greedy selection with a fixed $\epsilon>0$, together with
+      episodes that start at random in any state that is not absorbing, meets
+      the exploration condition. Every episode has a chance to start in $s$ and
+      try $a$ first.
+  \end{itemize}
+  \lecturesource{Convergence: the paragraphs under the learning rate decay and infinite exploration bullets.}
+\end{frame}
+
+\begin{frame}{A Constant Learning Rate}
+  A constant learning rate violates the decay condition. Its effect depends on
+  whether the targets are random:
+
+  \vspace{0.3em}
+  \begin{itemize}\setlength{\itemsep}{0.5em}
+    \item \hilite{Random rewards or next states}: the estimates fluctuate
+      around $Q^{*}(s,a)$ instead of settling on it. A smaller $\alpha$ gives
+      smaller fluctuations.
+    \item \hilite{A single outcome per action}: the targets carry no noise, and
+      a constant learning rate also settles on $Q^{*}(s,a)$. This is the case in
+      the lava grid world.
+  \end{itemize}
+
+  \vspace{0.5em}
+  Either way, the greedy policy is already correct once the best action in each
+  state has the largest estimate.
+  \lecturesource{Convergence: the constant learning rate paragraph and its two bullets.}
+\end{frame}
+
+\begin{frame}{Caveats and Practical Notes}
+  Of the convergence conditions, infinite exploration is the hardest to meet in
+  practice:
+
+  \vspace{0.3em}
+  \begin{itemize}\setlength{\itemsep}{0.45em}
+    \item \hilite{Exploration schedule}: if $\epsilon$ is too small, or shrinks
+      too quickly, the agent can settle on a poor action. If $\epsilon$ stays
+      large, the agent wastes many steps on random actions.
+    \item \hilite{Sparse and delayed rewards}: when few pairs earn a nonzero
+      reward, a new agent may take many steps before its first reward. Later
+      visits can carry that reward back one step at a time. Reward shaping adds
+      small rewards that guide the agent toward the goal.
+    \item \hilite{Rate of convergence}: every state-action pair needs many
+      visits, and the number of experiments grows with the size of the table.
+      When $R$ and $T$ are known, value iteration is usually faster.
+  \end{itemize}
+  \lecturesource{Caveats \& Practical Notes: the three issues.}
+\end{frame}
+
+\begin{frame}{Example: Q-Learning in the Lava Grid World}
+  In this example, a roomba that has finished cleaning the kitchen must return
+  to its charging station without falling into a lava pit:
+
+  \vspace{0.5em}
+  \begin{enumerate}\setlength{\itemsep}{0.5em}
+    \item Build the lava grid world, and a function that returns the next square
+      and the reward of one move.
+    \item Train the roomba with Q-learning.
+    \item Compare the learned policy with the optimal policy from value
+      iteration, and follow both from a starting square.
+  \end{enumerate}
+
+  \vspace{0.5em}
+  After 2000 episodes, both policies reach the station from $(20,20)$ in 33
+  moves, by different routes.
+  \slidenote{Example:}{\href{\examplelink}{Q-learning in the lava grid world}}
+  \lecturesource{Caveats \& Practical Notes: the example box. Companion example: Tasks 1--3 and the second key takeaway.}
+\end{frame}
+
+\begin{frame}{Lab: Adaptive Drug Dosing with Q-Learning}
+  In the \href{\lablink}{lab}, we treat a course of chemotherapy as a Markov
+  decision process in which we choose a drug dose each treatment cycle:
+
+  \vspace{0.5em}
+  \begin{itemize}\setlength{\itemsep}{0.5em}
+    \item The state is the size of the tumor and the level of toxicity, the
+      damage the drug does to healthy tissue. Each action is a drug dose.
+    \item Value iteration computes the optimal dosing policy, which serves as
+      the benchmark.
+    \item You will write the Q-learning update, train an agent on simulated
+      treatment cycles, and compare its doses with the optimal ones.
+  \end{itemize}
+  \slidenote{Lab:}{\href{\lablink}{Adaptive drug dosing with Q-learning}}
+  \lecturesource{Lab section. Lab notebook: introduction and Learning Objectives.}
+\end{frame}
+
+\begin{frame}{Summary}
+  We developed model-free reinforcement learning, in which an agent learns how
+  to act from the rewards it receives.
+
+  \vspace{0.5em}
+  {\large\textbf{\ink{Key takeaways}}}
+  \vspace{0.3em}
+  \begin{itemize}\setlength{\itemsep}{0.6em}
+    \item \textbf{\ink{Model-free learning.}} The agent learns from the states,
+      actions, and rewards it observes, without a model.
+    \item \textbf{\ink{Q-learning.}} Each step moves one action value toward a
+      target sampled from the Bellman equation.
+    \item \textbf{\ink{Convergence.}} Every pair needs visits again and again,
+      and a learning rate that shrinks at the right pace.
+  \end{itemize}
+
+  \vspace{0.5em}
+  Reinforcement learning lets an agent learn good behavior through trial and
+  error, even when no one can write down the rules of its environment.
+  \lecturesource{Summary: three key takeaways and the closing sentence.}
+\end{frame}
+
+\end{document}
