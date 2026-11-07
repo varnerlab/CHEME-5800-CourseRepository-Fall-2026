@@ -75,7 +75,7 @@ end
     @testset "L12a lecture and example" begin
         @test check_local_links("L12a", "CHEME-5800-L12a-Lecture-QLearning-Fall-2026.ipynb") ≥ 4
 
-        # the three-state problem of the example's check cell -
+        # a three-state problem whose action values we know by hand -
         T_small = zeros(3, 3, 2)
         R_small = zeros(3, 2)
         T_small[1, 2, 1] = 1.0; R_small[1, 1] = -1.0
@@ -124,7 +124,7 @@ end
 
             # The example ships with outputs, none of them errors -
             shipped = [cell for cell in JSON.parsefile(joinpath(WEEK_ROOT, "L12a", example))["cells"] if cell["cell_type"] == "code"]
-            @test count(cell -> !isempty(cell["outputs"]), shipped) ≥ 6
+            @test count(cell -> !isempty(cell["outputs"]), shipped) ≥ 5
             @test all(output["output_type"] != "error" for cell in shipped for output in cell["outputs"])
 
             # Run the example's cells -
@@ -141,43 +141,45 @@ end
             # the one-move demonstration: left from (20,20) enters the lava pit at (19,20) -
             @test w.lavaworld(w.m, w.world.states[(20, 20)], 1, w.Xoshiro(1)) == (w.world.states[(19, 20)], -1000.0)
 
-            # Task 2: the check cell's expectations match the ones tested above -
-            check_source = join(cells[findfirst(c -> occursin("@testset \"Q-learning by hand\"", join(c["source"])), cells)]["source"])
-            @test occursin("[0.0 2.0; 0.0 0.0; 0.0 0.0]", check_source) && occursin("[4.25 4.0; 0.0 0.0; 0.0 0.0]", check_source)
-            # the absorbing rows of the grid world run are never visited or updated -
+            # Task 2: the absorbing rows of the grid world run are never visited or updated -
             @test all(w.result.Q[s, :] == zeros(4) && w.result.visits[s, :] == zeros(Int64, 4) for s in w.absorbing_states)
 
-            # Task 3: the learned move is optimal in most squares but not all, and the value of (20,20) lags -
-            (number_optimal, number_of_squares) = w.count_optimal_moves(w.Qstar, w.π_q, w.absorbing_states)
-            @test (number_optimal, number_of_squares) == (337, 394)
-            @test maximum(w.result.Q[w.s_start, :]) < w.solution.U[w.s_start] - 1
-            # the printed values of (20,20): learned -2.35, optimal 3.25 -
-            @test round(maximum(w.result.Q[w.s_start, :]), digits = 2) == -2.35
-            @test round(w.solution.U[w.s_start], digits = 2) == 3.25
-            # both policies reach the station from (20,20) in 33 moves -
+            # Task 3: both policies reach the station from (20,20) in 33 moves, by different routes -
             @test (w.outcome, length(w.path) - 1) == ("reached the charging station", 33)
             @test (w.outcome_star, length(w.path_star) - 1) == ("reached the charging station", 33)
-
-            # the 200-episode cell: the policy walks in a loop, and the reward has not spread -
-            function train(episodes, ϵ)
-                agent = build(MyQLearningAgentModel, (states = w.𝒮, actions = w.𝒜, α = w.α, γ = w.γ, Q = zeros(400, 4)))
-                result = solve(agent, w.m; worldmodel = w.lavaworld, absorbing = w.absorbing_states,
-                    episodes = episodes, maxsteps = w.maxsteps, ϵ = ϵ, seed = 5800)
-                π = policy(result.Q)
-                (path, outcome) = w.follow_policy(π, w.startstate, w.world, w.rewards, w.absorbing_state_set;
-                    charging_reward = w.charging_reward)
-                optimal = w.count_optimal_moves(w.Qstar, π, w.absorbing_states)[1]
-                positive = count(s -> !(s in w.absorbing_states) && maximum(result.Q[s, :]) > 0, w.𝒮)
-                return (outcome = outcome, moves = length(path) - 1, optimal = optimal, steps = sum(result.visits), positive = positive)
+            @test w.path != w.path_star
+            # the Task 3 figure draws the two paths -
+            @test count(c -> occursin("draw_paths(", join(c["source"])) && occursin("path_star", join(c["source"])), cells) == 1
+            # the scores cell: both policies earn the optimal value of (20,20), 3.25, and the learned
+            # estimate is -2.35. Recompute the scores here rather than trusting the saved printout -
+            s0 = w.world.states[(20, 20)]
+            function score_of(π)
+                total = 0.0
+                s = s0
+                for t in 1:w.maxsteps
+                    s in w.absorbing_states && break
+                    (s′, r) = w.lavaworld(w.m, s, π[s], w.Xoshiro(1))
+                    total += w.γ^(t - 1) * r
+                    s = s′
+                end
+                return total
             end
-            short = train(200, 0.1)
-            @test short.outcome == "walks in a loop" && short.optimal == 269
-            # the path includes the move that closes the loop: (20,20) to (20,19) and back -
-            @test short.moves == 2
-            # "the reward has spread only to the squares near the station" -
-            @test short.positive < train(2000, 0.1).positive
-            # "Longer training spread the reward over more of the grid" -
-            @test number_optimal > short.optimal
+            @test score_of(w.π_q) ≈ score_of(w.π_star) ≈ w.solution.U[s0]
+            @test round(score_of(w.π_q), digits = 2) == 3.25
+            @test round(maximum(w.result.Q[s0, :]), digits = 2) == -2.35
+            score_cell = cells[findfirst(c -> occursin("println(\"score of the learned policy", join(c["source"])), cells)]
+            score_text = join([join(o["text"]) for o in score_cell["outputs"] if o["output_type"] == "stream"])
+            @test occursin("score of the learned policy from (20, 20): 3.25 (the learned estimate: -2.35)", score_text)
+            @test occursin("score of the optimal policy from (20, 20): 3.25", score_text)
+            # "Along the whole path, the move with the highest estimate is also a best move" -
+            for k in 1:(length(w.path) - 1)
+                s = w.world.states[w.path[k]]
+                @test w.Qstar[s, w.π_q[s]] ≥ maximum(w.Qstar[s, :]) - 1e-6
+            end
+            # "the reward has not fully reached the far corner": the estimate is below the optimal value -
+            @test maximum(w.result.Q[s0, :]) < w.solution.U[s0]
+            # Key Takeaway 3: "more than 50,000 moves of trial and error" -
+            @test sum(w.result.visits) > 50000
         end
     end
 end

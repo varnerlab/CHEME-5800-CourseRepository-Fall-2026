@@ -353,15 +353,14 @@
   \begin{enumerate}\setlength{\itemsep}{0.5em}
     \item Build the lava grid world, and a function that returns the next square
       and the reward of one move.
-    \item Train the roomba with Q-learning, and check the update on a small
-      problem whose answers we know.
+    \item Train the roomba with Q-learning.
     \item Compare the learned policy with the optimal policy from value
       iteration, and follow both from a starting square.
   \end{enumerate}
 
   \vspace{0.5em}
   After 2000 episodes, both policies reach the station from $(20,20)$ in 33
-  moves. The learned value of $(20,20)$ is still well below its optimal value.
+  moves, by different routes.
   \slidenote{Example:}{\href{\examplelink}{Q-learning in the lava grid world}}
   \lecturesource{Caveats \& Practical Notes: the example box. Companion example: Tasks 1--3 and the second key takeaway.}
 \end{frame}

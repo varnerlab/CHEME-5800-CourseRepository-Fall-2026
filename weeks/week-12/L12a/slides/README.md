@@ -51,5 +51,5 @@ Source notebook snapshots (SHA-256):
 | Notebook | SHA-256 |
 |---|---|
 | CHEME-5800-L12a-Lecture-QLearning-Fall-2026.ipynb | `0d475cfae48a9aaf8b6ff0c01245e6e9f87b1eb277738d031daadab6ff2089d4` |
-| CHEME-5800-L12a-Example-QLearningGridWorld-Fall-2026.ipynb | `5462823e034ce94a967d39c330b2231bb74f8c63314923deee1745479209e203` |
+| CHEME-5800-L12a-Example-QLearningGridWorld-Fall-2026.ipynb | `fe99c46bc304268038922b2f8a389d49dc6675548cc4ac6b1c1a33edf8d265c5` |
 | CHEME-5800-L12b-Lab-AdaptiveDosing-QLearning-Fall-2026.ipynb | `7695c4f1945f85ae1e89453dcc3d326b2d8588b78c8266a4a57b783b2b9fcbea` |

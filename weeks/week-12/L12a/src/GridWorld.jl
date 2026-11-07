@@ -1,15 +1,14 @@
 # =============================================================================
-# CHEME 5800 | L12a example code: the lava grid world, and drawing a policy
+# CHEME 5800 | L12a example code: the lava grid world, and comparing two policies
 # =============================================================================
-# This file holds the functions the example uses to simulate a move and to look at
-# a policy:
+# This file holds the functions the example uses to simulate a move and to compare
+# the learned policy with the optimal policy:
 #
 #   lavaworld(...)      simulates one move: the next state and the reward
-#   count_optimal_moves(...)  counts the states where a policy chooses an optimal action
 #   follow_policy(...)  walks a policy from a start square
 #   square(...)         makes the outline of one grid square, for drawing
 #   arrow_shape(...)    makes a small arrow that points one way, for drawing
-#   draw_path(...)      draws the grid world, the policy, and the roomba's path
+#   draw_paths(...)     draws the grid world, the learned policy, and the paths of two policies
 #
 # None of them reads a notebook variable; everything they need is passed in as
 # an argument. Include.jl loads this file only once, so restart the kernel if
@@ -19,9 +18,9 @@ module L12aGridWorld
 
 using VLDataScienceMachineLearningPackage: MyRectangularGridWorldModel, MyMDPProblemModel # the grid world and MDP types
 using Random # AbstractRNG, the type of a random number generator
-using Plots # the figure drawn by draw_path
+using Plots # the figure drawn by draw_paths
 
-export lavaworld, count_optimal_moves, follow_policy, square, arrow_shape, draw_path
+export lavaworld, follow_policy, square, arrow_shape, draw_paths
 
 """
     lavaworld(problem::MyMDPProblemModel, s::Int64, a::Int64, rng::AbstractRNG) -> Tuple{Int64,Float64}
@@ -61,48 +60,6 @@ function lavaworld(problem::MyMDPProblemModel, s::Int64, a::Int64, rng::Abstract
 
     # return -
     return (s′, r);
-end
-
-"""
-    count_optimal_moves(Qstar::Array{Float64,2}, policy::Array{Int64,1},
-        absorbing::Set{Int64}; tolerance::Float64 = 1e-6) -> Tuple{Int64,Int64}
-
-Count the states, other than the absorbing ones, in which `policy` chooses an optimal action.
-
-When several actions tie for the best value, any of them is optimal. So we count the action
-`policy[s]` as optimal when its optimal action value `Qstar[s, policy[s]]` is within
-`tolerance` of the best value in the row, `maximum(Qstar[s,:])`.
-
-### Arguments
-- `Qstar::Array{Float64,2}`: the optimal action values, one row per state and one column per action.
-- `policy::Array{Int64,1}`: the action to take in each state, i.e., `policy[s]` is the action in state `s`.
-- `absorbing::Set{Int64}`: the states that end an episode; we skip them.
-- `tolerance::Float64 = 1e-6`: how close to the best value counts as a tie.
-
-### Returns
-- `Tuple{Int64,Int64}`: the number of states where the action is optimal, and the number of
-  states we checked.
-"""
-function count_optimal_moves(Qstar::Array{Float64,2}, policy::Array{Int64,1},
-    absorbing::Set{Int64}; tolerance::Float64 = 1e-6)::Tuple{Int64,Int64}
-
-    # initialize -
-    number_optimal = 0; # states where the policy's action is optimal
-    number_checked = 0; # states that are not absorbing
-
-    # main loop: check each state that is not absorbing -
-    for s ∈ 1:size(Qstar, 1)
-        if (in(s, absorbing) == false)
-            number_checked = number_checked + 1;
-            best = maximum(Qstar[s, :]); # the best value in state s
-            if (Qstar[s, policy[s]] ≥ best - tolerance)
-                number_optimal = number_optimal + 1;
-            end
-        end
-    end
-
-    # return -
-    return (number_optimal, number_checked);
 end
 
 """
@@ -291,25 +248,33 @@ function arrow_shape(x::Int, y::Int, Δ::Tuple{Int,Int}; arrow_length::Float64 =
 end
 
 """
-    draw_path(path::Array{Tuple{Int,Int},1}, policy::Array{Int64,1},
-        world::MyRectangularGridWorldModel, rewards::Dict{Tuple{Int,Int},Float64},
-        absorbing_state_set::Set{Tuple{Int,Int}};
+    draw_paths(path::Array{Tuple{Int,Int},1}, path_star::Array{Tuple{Int,Int},1},
+        policy::Array{Int64,1}, world::MyRectangularGridWorldModel,
+        rewards::Dict{Tuple{Int,Int},Float64}, absorbing_state_set::Set{Tuple{Int,Int}};
         charging_reward::Float64, lava_reward::Float64,
         number_of_rows::Int64, number_of_cols::Int64)
 
-Draw the grid world, the policy in every square, and the roomba's path.
+Draw the grid world, the learned policy in every square, and two paths from the same start
+square: the path of the learned policy and the path of the optimal policy.
 
-Each square of the grid is drawn as a unit square, so the figure keeps its proportions for
-any grid size. The charging station is a green square, and each lava pit is a red square, each drawn a
-little smaller than its grid square.
-A small gray arrow in every other square points in the direction the policy moves from that
-square; `arrow_shape(...)` makes each one. The roomba's path is a thick blue line from the
-start square, marked with a blue dot, to where the walk ended.
+Each square of the grid is drawn as a unit square. This keeps the proportions of the figure
+the same for any grid size. The charging station is a green square, and each lava pit is a red
+square, both drawn a little smaller than a grid square.
+
+The figure is drawn in layers, from the bottom up:
+1. the optimal path, as a wide orange band.
+2. a small gray arrow in each square that does not end an episode. The arrow points in the
+   direction the learned policy moves from that square. `arrow_shape(...)` makes each arrow.
+3. the learned path, as a thin blue line. A stretch where the two paths agree shows blue
+   inside orange.
+4. a blue dot on the start square.
 
 ### Arguments
-- `path::Array{Tuple{Int,Int},1}`: the squares the roomba visits, in order, as returned by
-  `follow_policy(...)`.
-- `policy::Array{Int64,1}`: the action to take in each state, i.e., `policy[s]` is the action in state `s`.
+- `path::Array{Tuple{Int,Int},1}`: the squares the roomba visits under the learned policy, in
+  order, as returned by `follow_policy(...)`.
+- `path_star::Array{Tuple{Int,Int},1}`: the squares the roomba visits under the optimal policy,
+  in order, as returned by `follow_policy(...)`.
+- `policy::Array{Int64,1}`: the learned policy, i.e., `policy[s]` is the action in state `s`.
 - `world::MyRectangularGridWorldModel`: the grid world; we use its `coordinates` dictionary,
   which maps a state to its square, and its `moves` dictionary, which maps an action to a
   change in position.
@@ -325,9 +290,9 @@ start square, marked with a blue dot, to where the walk ended.
 ### Returns
 - A `Plots` figure. Display it by making it the last expression of a notebook cell.
 """
-function draw_path(path::Array{Tuple{Int,Int},1}, policy::Array{Int64,1},
-    world::MyRectangularGridWorldModel, rewards::Dict{Tuple{Int,Int},Float64},
-    absorbing_state_set::Set{Tuple{Int,Int}};
+function draw_paths(path::Array{Tuple{Int,Int},1}, path_star::Array{Tuple{Int,Int},1},
+    policy::Array{Int64,1}, world::MyRectangularGridWorldModel,
+    rewards::Dict{Tuple{Int,Int},Float64}, absorbing_state_set::Set{Tuple{Int,Int}};
     charging_reward::Float64, lava_reward::Float64,
     number_of_rows::Int64, number_of_cols::Int64)
 
@@ -346,7 +311,7 @@ function draw_path(path::Array{Tuple{Int,Int},1}, policy::Array{Int64,1},
         xticks = ticks, yticks = ticks, xlabel = "x", ylabel = "y", grid = false,
         background_color = :transparent, background_color_inside = :transparent);
 
-    # draw the borders between the squares, faint so the arrows and the path stand out -
+    # draw the borders between the squares, faint so the arrows and the paths stand out -
     for x ∈ 0:number_of_rows
         plot!(p, [x + 0.5, x + 0.5], [0.5, number_of_cols + 0.5], c = :gray, lw = 0.5, alpha = 0.35, label = "");
     end
@@ -367,26 +332,39 @@ function draw_path(path::Array{Tuple{Int,Int},1}, policy::Array{Int64,1},
         end
     end
 
-    # build one policy arrow for every square that is not absorbing -
-    # each arrow is 0.5 grid squares long, so neighboring arrows do not touch.
-    arrows = Array{Shape,1}();
-    for (s, coordinate) ∈ world.coordinates
-        if (in(coordinate, absorbing_state_set) == false)
-            Δ = world.moves[policy[s]]; # the move the policy chooses in this square, e.g., up = (0,1)
-            push!(arrows, arrow_shape(coordinate[1], coordinate[2], Δ, arrow_length = 0.5));
-        end
-    end
-
-    # draw all the policy arrows at once -
-    plot!(p, arrows, c = :gray55, lc = :gray55, lw = 0, label = "");
-
-    # draw the path through the centers of the squares the roomba visits -
+    # the x and y coordinates of the centers of the squares on the learned path -
     path_x = Array{Int,1}();
     path_y = Array{Int,1}();
     for i ∈ 1:length(path)
         push!(path_x, path[i][1]);
         push!(path_y, path[i][2]);
     end
+
+    # the x and y coordinates of the centers of the squares on the optimal path -
+    star_x = Array{Int,1}();
+    star_y = Array{Int,1}();
+    for i ∈ 1:length(path_star)
+        push!(star_x, path_star[i][1]);
+        push!(star_y, path_star[i][2]);
+    end
+
+    # draw the optimal path first, as a wide orange band -
+    plot!(p, star_x, star_y, c = :orange, lw = 9, label = "");
+
+    # build one policy arrow for every square that is not absorbing -
+    # each arrow is 0.5 grid squares long, so neighboring arrows do not touch.
+    arrows = Array{Shape,1}();
+    for (s, coordinate) ∈ world.coordinates
+        if (in(coordinate, absorbing_state_set) == false)
+            Δ = world.moves[policy[s]]; # the move the learned policy chooses in this square, e.g., up = (0,1)
+            push!(arrows, arrow_shape(coordinate[1], coordinate[2], Δ, arrow_length = 0.5));
+        end
+    end
+
+    # draw all the policy arrows at once, on top of the band -
+    plot!(p, arrows, c = :gray55, lc = :gray55, lw = 0, label = "");
+
+    # draw the learned path on top of the arrows -
     plot!(p, path_x, path_y, c = :dodgerblue, lw = 3, label = "");
 
     # mark the start square with a dot -
@@ -397,8 +375,9 @@ function draw_path(path::Array{Tuple{Int,Int},1}, policy::Array{Int64,1},
     # symbol and the text that appear in the legend -
     scatter!(p, [NaN], [NaN], marker = :square, ms = 7, mc = :green3, msc = :green3, label = "charging station");
     scatter!(p, [NaN], [NaN], marker = :square, ms = 7, mc = :red, msc = :red, label = "lava pit");
-    scatter!(p, [NaN], [NaN], marker = :rtriangle, ms = 6, mc = :gray55, msc = :gray55, label = "policy");
-    plot!(p, [NaN], [NaN], c = :dodgerblue, lw = 3, label = "path");
+    scatter!(p, [NaN], [NaN], marker = :rtriangle, ms = 6, mc = :gray55, msc = :gray55, label = "learned policy");
+    plot!(p, [NaN], [NaN], c = :orange, lw = 9, label = "optimal path");
+    plot!(p, [NaN], [NaN], c = :dodgerblue, lw = 3, label = "learned path");
     scatter!(p, [NaN], [NaN], ms = 7, mc = :dodgerblue, msc = :white, label = "start");
 
     # return the figure -

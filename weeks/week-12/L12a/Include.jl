@@ -57,12 +57,11 @@ end
 #                                         solve, Q, and policy for value iteration
 #
 # Standard library:
-using Test           # @test / @testset for the check in the notebook
 using Random         # Xoshiro, a seeded random number generator
 #
 # Packages:
 using Plots          # figures
 #
 # This meeting's code (section 2):
-using .L12aGridWorld   # lavaworld, count_optimal_moves,
-                       # follow_policy, square, arrow_shape, and draw_path
+using .L12aGridWorld   # lavaworld, follow_policy, square,
+                       # arrow_shape, and draw_paths
