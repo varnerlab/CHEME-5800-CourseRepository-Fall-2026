@@ -68,5 +68,5 @@ using Plots          # figures
 #
 # This meeting's code (section 2):
 using .L12aQLearning   # myqlearning
-using .L12aGridWorld   # build_mdp, lavaworld, count_optimal_moves,
+using .L12aGridWorld   # lavaworld, count_optimal_moves,
                        # follow_policy, square, arrow_shape, and draw_path

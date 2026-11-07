@@ -1,10 +1,9 @@
 # =============================================================================
 # CHEME 5800 | L12a example code: the lava grid world, and drawing a policy
 # =============================================================================
-# This file holds the functions the example uses to build the world and to look at
+# This file holds the functions the example uses to simulate a move and to look at
 # a policy:
 #
-#   build_mdp(...)      builds the rewards and the transition probabilities of the grid world
 #   lavaworld(...)      simulates one move: the next state and the reward
 #   count_optimal_moves(...)  counts the states where a policy chooses an optimal action
 #   follow_policy(...)  walks a policy from a start square
@@ -18,79 +17,11 @@
 # =============================================================================
 module L12aGridWorld
 
-using VLDataScienceMachineLearningPackage: MyRectangularGridWorldModel, MyMDPProblemModel, build # the grid world and MDP types, and build
+using VLDataScienceMachineLearningPackage: MyRectangularGridWorldModel, MyMDPProblemModel # the grid world and MDP types
 using Random # AbstractRNG, the type of a random number generator
 using Plots # the figure drawn by draw_path
 
-export build_mdp, lavaworld, count_optimal_moves, follow_policy, square, arrow_shape, draw_path
-
-"""
-    build_mdp(world::MyRectangularGridWorldModel, rewards::Dict{Tuple{Int,Int},Float64},
-        absorbing_state_set::Set{Tuple{Int,Int}}; γ::Float64, step_reward::Float64 = -1.0,
-        off_grid_reward::Float64 = -50000.0) -> MyMDPProblemModel
-
-Build the Markov decision process of the grid world: the reward matrix `R`, the transition
-array `T`, and the discount factor `γ`, packaged as a `MyMDPProblemModel`. These are the same
-rules we used for value iteration.
-
-Every move is certain. A move onto a square of the grid lands there and collects that square's
-reward: the charging station or lava pit reward from `rewards`, or `step_reward` for an ordinary
-square. A move that would leave the grid keeps the roomba where it is and costs
-`off_grid_reward`. In an absorbing state, every action keeps the roomba where it is and earns
-nothing, because the episode has ended.
-
-### Arguments
-- `world::MyRectangularGridWorldModel`: the grid world; we use its `coordinates`, `states`, and
-  `moves` dictionaries.
-- `rewards::Dict{Tuple{Int,Int},Float64}`: the reward of the charging station and each lava pit.
-- `absorbing_state_set::Set{Tuple{Int,Int}}`: the `(x, y)` squares that end an episode.
-- `γ::Float64`: the discount factor, `0 ≤ γ < 1`.
-- `step_reward::Float64 = -1.0`: the reward of an ordinary move.
-- `off_grid_reward::Float64 = -50000.0`: the reward of a move off the grid.
-
-### Returns
-- `MyMDPProblemModel`: the MDP, with states `1, 2, …, |𝒮|`, actions `1, 2, 3, 4`, the transition
-  array `T` of size `|𝒮| × |𝒮| × |𝒜|`, the reward matrix `R` of size `|𝒮| × |𝒜|`, and `γ`.
-"""
-function build_mdp(world::MyRectangularGridWorldModel, rewards::Dict{Tuple{Int,Int},Float64},
-    absorbing_state_set::Set{Tuple{Int,Int}}; γ::Float64, step_reward::Float64 = -1.0,
-    off_grid_reward::Float64 = -50000.0)::MyMDPProblemModel
-
-    # initialize -
-    number_of_states = length(world.coordinates); # one state per square
-    number_of_actions = length(world.moves); # left, right, down, up
-    R = zeros(number_of_states, number_of_actions);
-    T = zeros(number_of_states, number_of_states, number_of_actions);
-
-    # main loop: where each state-action pair lands, and what it earns -
-    for s ∈ 1:number_of_states
-        current_position = world.coordinates[s]; # the (x,y) square of state s
-        for a ∈ 1:number_of_actions
-            Δ = world.moves[a]; # the move for action a, e.g., up = (0,1)
-            new_position = (current_position[1] + Δ[1], current_position[2] + Δ[2]); # where action a takes us
-
-            if (in(current_position, absorbing_state_set) == true)
-                T[s, s, a] = 1.0; # the episode has ended: we stay put
-                R[s, a] = 0.0; # and earn nothing more
-            elseif (haskey(world.states, new_position) == true)
-                T[s, world.states[new_position], a] = 1.0; # a legal move lands on the new square
-                if (haskey(rewards, new_position) == true)
-                    R[s, a] = rewards[new_position]; # the charging station or a lava pit
-                else
-                    R[s, a] = step_reward; # an ordinary move
-                end
-            else
-                T[s, s, a] = 1.0; # off the grid: we stay put
-                R[s, a] = off_grid_reward; # so costly that the roomba learns never to do it
-            end
-        end
-    end
-
-    # package the MDP -
-    𝒮 = range(1, stop = number_of_states, step = 1) |> collect; # states
-    𝒜 = range(1, stop = number_of_actions, step = 1) |> collect; # actions
-    return build(MyMDPProblemModel, (𝒮 = 𝒮, 𝒜 = 𝒜, T = T, R = R, γ = γ));
-end
+export lavaworld, count_optimal_moves, follow_policy, square, arrow_shape, draw_path
 
 """
     lavaworld(problem::MyMDPProblemModel, s::Int64, a::Int64, rng::AbstractRNG) -> Tuple{Int64,Float64}
@@ -103,7 +34,7 @@ it draws a random number `u` between 0 and 1, then adds up `T(1|s,a), T(2|s,a), 
 running sum first exceeds `u`. The reward is `R[s,a]`.
 
 ### Arguments
-- `problem::MyMDPProblemModel`: the MDP, built by `build_mdp(...)`.
+- `problem::MyMDPProblemModel`: the MDP, built in the example notebook.
 - `s::Int64`: the current state.
 - `a::Int64`: the action.
 - `rng::AbstractRNG`: the random number generator to draw from.
