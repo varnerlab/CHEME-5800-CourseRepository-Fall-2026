@@ -28,11 +28,12 @@ Requirements: XeLaTeX and `latexmk`. The style uses Helvetica Neue when availabl
 |---|---|
 | 1–3 | Title, three learning objectives, and the lecture and example |
 | 4–5 | The reinforcement learning problem, its agent and environment figure, and the earlier approaches to learning from interaction |
-| 6–7 | From value iteration to action values: the Bellman backup, $Q^{*}(s,a)$ written in terms of $U^{*}(s)$, and what value iteration needs |
-| 8 | The Q-table figure and the agent's memory |
+| 6 | From value iteration to action values: the Bellman backup and $Q^{*}(s,a)$ written in terms of $U^{*}(s)$ |
+| 7 | The Q-table figure |
+| 8 | What value iteration needs, and the Q-table as the agent's memory |
 | 9–10 | The Q-learning update with its target, the weighted-average form, and the greedy policy |
-| 11–12 | Episodes and the epsilon-greedy rule; the Q-learning algorithm |
-| 13–15 | The convergence conditions, how to meet them, and a constant learning rate |
+| 11–13 | Episodes, the epsilon-greedy rule, and the link to bandits; the Q-learning algorithm; absorbing states |
+| 14–15 | The convergence conditions and how to meet them |
 | 16 | Caveats and practical notes |
 | 17 | Example: Q-learning in the lava grid world |
 | 18 | Lab: adaptive drug dosing with Q-learning |

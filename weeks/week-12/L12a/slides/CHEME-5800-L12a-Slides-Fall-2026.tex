@@ -124,20 +124,6 @@
   \lecturesource{From Value Iteration to Action Values: the Bellman backup and the action-value function.}
 \end{frame}
 
-\begin{frame}{What Value Iteration Needs}
-  Each of these equations needs the reward function $R(s,a)$ and the transition
-  model $T(s'\,|\,s,a)$:
-
-  \vspace{0.3em}
-  \begin{itemize}\setlength{\itemsep}{0.5em}
-    \item With $R$ and $T$, value iteration requires
-      $\mathcal O(|\Sset|^{2}\,|\Aset|)$ operations per sweep.
-    \item Without $R$ and $T$, the usual case for a real robot, a reactor, or a
-      patient, we cannot evaluate the sum over the next states at all.
-  \end{itemize}
-  \lecturesource{From Value Iteration to Action Values: the closing paragraph.}
-\end{frame}
-
 \begin{frame}{The Q-Table}
   We store the action values in a table, the \hilite{Q-table}, with one row per
   state and one column per action.
@@ -148,10 +134,28 @@
 
   \vspace{0.2em}
   \raggedright
-  The policy picks the largest entry in each row. The Q-table is the agent's
-  memory, updated after each step without $T$ or $R$.
-  \lecturesource{The Q-table caption and the memory paragraph.
+  The policy reads each row and picks the column with the largest entry.
+  \lecturesource{The Q-table caption.
     Figure: ../figs/Fig-Q-Schematic.svg, converted to a light PDF.}
+\end{frame}
+
+\begin{frame}{What Value Iteration Needs}
+  Value iteration uses the reward function $R(s,a)$ and the transition model
+  $T(s'\,|\,s,a)$:
+
+  \vspace{0.3em}
+  \begin{itemize}\setlength{\itemsep}{0.5em}
+    \item With $R$ and $T$, value iteration requires
+      $\mathcal O(|\Sset|^{2}\,|\Aset|)$ operations per sweep.
+    \item Without $R$ and $T$, the usual case for a real robot, a reactor, or a
+      patient, what can we do?
+  \end{itemize}
+
+  \vspace{0.5em}
+  Let's think of the Q-table as the agent's \hilite{memory}. The agent can then
+  learn to act optimally by updating its memory after each step from the
+  outcomes of its actions, without $T$ or $R$.
+  \lecturesource{From Value Iteration to Action Values: the paragraph on what value iteration uses and the memory paragraph.}
 \end{frame}
 
 \begin{frame}{The Q-Learning Update}
@@ -189,9 +193,8 @@
 \end{frame}
 
 \begin{frame}{Episodes and Epsilon-Greedy Actions}
-  Q-learning runs in \hilite{episodes}. Each episode starts the agent in some
-  state and lets it act until it enters an absorbing state, such as the
-  charging station or a lava pit of a grid world, or until a step limit.
+  Q-learning runs in \hilite{episodes}. Each episode runs until the agent enters
+  an absorbing state or reaches a step limit.
 
   \vspace{0.4em}
   Each step chooses an action with the \hilite{epsilon-greedy} rule:
@@ -202,9 +205,10 @@
   \end{itemize}
 
   \vspace{0.4em}
-  The rows of absorbing states stay at zero. The target of a move into an
-  absorbing state is just its reward $r$, with no future to add.
-  \lecturesource{Algorithm: episodes, the epsilon-greedy rule, and the closing paragraph on absorbing states.}
+  \emph{Related to bandits?} Each row of the Q-table acts like its own bandit,
+  and epsilon-greedy is a bandit rule. Other bandit rules, such as UCB1, can
+  replace it, as long as every action in every state keeps being tried.
+  \lecturesource{Algorithm: episodes, the epsilon-greedy rule, and the note on bandits.}
 \end{frame}
 
 \begin{frame}{Q-Learning Algorithm}
@@ -239,6 +243,19 @@
   \lecturesource{Algorithm: the Initialize/For/While pseudocode and Extract Policy. The Given list is shortened to symbols defined on earlier slides.}
 \end{frame}
 
+\begin{frame}{Absorbing States}
+  An episode ends as soon as the agent enters an absorbing state:
+
+  \vspace{0.3em}
+  \begin{itemize}\setlength{\itemsep}{0.5em}
+    \item The agent never updates the rows of $Q$ that belong to absorbing
+      states. Those rows stay at zero.
+    \item The target of a move into an absorbing state is just its reward $r$,
+      with no future to add.
+  \end{itemize}
+  \lecturesource{Algorithm: the closing paragraph on absorbing states.}
+\end{frame}
+
 \begin{frame}{When Does Q-Learning Converge?}
   Q-learning converges to the optimal action values, $Q(s,a)\to Q^{*}(s,a)$,
   with probability one
@@ -269,30 +286,13 @@
       $Q(s,a)$ is the running average of the targets the pair has seen.
     \item Epsilon-greedy selection with a fixed $\epsilon>0$, together with
       episodes that start at random in any state that is not absorbing, meets
-      the exploration condition. Every episode has a chance to start in $s$ and
-      try $a$ first.
-  \end{itemize}
-  \lecturesource{Convergence: the paragraphs under the learning rate decay and infinite exploration bullets.}
-\end{frame}
-
-\begin{frame}{A Constant Learning Rate}
-  A constant learning rate violates the decay condition. Its effect depends on
-  whether the targets are random:
-
-  \vspace{0.3em}
-  \begin{itemize}\setlength{\itemsep}{0.5em}
-    \item \hilite{Random rewards or next states}: the estimates fluctuate
-      around $Q^{*}(s,a)$ instead of settling on it. A smaller $\alpha$ gives
-      smaller fluctuations.
-    \item \hilite{A single outcome per action}: the targets carry no noise, and
-      a constant learning rate also settles on $Q^{*}(s,a)$. This is the case in
-      the lava grid world.
+      the exploration condition.
   \end{itemize}
 
   \vspace{0.5em}
-  Either way, the greedy policy is already correct once the best action in each
-  state has the largest estimate.
-  \lecturesource{Convergence: the constant learning rate paragraph and its two bullets.}
+  The greedy policy is already correct once the best action in each state has
+  the largest estimate.
+  \lecturesource{Convergence: the paragraphs under the learning rate decay and infinite exploration bullets, and the closing sentence on the greedy policy.}
 \end{frame}
 
 \begin{frame}{Caveats and Practical Notes}
