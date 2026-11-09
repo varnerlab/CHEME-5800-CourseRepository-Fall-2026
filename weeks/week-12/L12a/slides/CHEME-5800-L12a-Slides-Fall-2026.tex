@@ -6,8 +6,8 @@
 % Notation follows the lecture: the MDP tuple (S, A, R(s,a), T(s'|s,a), gamma),
 % value functions U_k and U^*, the action values Q(s,a) and Q^*(s,a), the observed
 % reward r and next state s', the learning rate alpha (alpha_n for the n-th update
-% of a pair), the exploration probability epsilon, the TD error delta, the policy
-% pi, the number of episodes N, the step limit d, and the step counter t.
+% of a pair), the exploration probability epsilon, the policy pi, the number of
+% episodes N, the step limit d, and the step counter t.
 \documentclass[aspectratio=169,11pt]{beamer}
 \usepackage{vnslides}
 \renewcommand{\vnlecturecode}{L12a}
@@ -37,7 +37,7 @@
   \begin{itemize}\setlength{\itemsep}{0.4em}
     \item \hilite{Describe the reinforcement learning problem}: an agent takes
       an action, then sees a reward and a new state, without knowing the rules.
-    \item \hilite{Update action values with temporal differences}: after each
+    \item \hilite{Update action values from experience}: after each
       step, Q-learning corrects one action value toward what the agent observed.
     \item \hilite{Explain when Q-learning converges}: Q-learning needs every
       action tried again and again, and a learning rate that shrinks at the
@@ -51,8 +51,8 @@
   \textbf{\ink{Lecture:}}
   \href{\lecturelink}{Model-Free Reinforcement Learning and Q-Learning}
 
-  In this lecture, we build the Q-learning update from the Bellman equation for
-  the action values, and we state when Q-learning converges.
+  In this lecture, we write the Q-learning update rule, assemble it into the
+  Q-learning algorithm, and state when Q-learning converges.
 
   \vspace{1.1em}
   \textbf{\ink{Example:}}
@@ -106,42 +106,36 @@
   A Markov decision process (MDP) is the tuple
   $\left(\Sset,\Aset,R(s,a),T(s'\,|\,s,a),\gamma\right)$ of states, actions,
   rewards, transition probabilities, and a discount factor. Value iteration
-  repeats the \hilite{Bellman backup} in sweeps $k$:
+  computes the optimal value function $U^{*}(s)$ by repeating the
+  \hilite{Bellman backup} in sweeps $k$:
   \[
     U_{k+1}(s)=\max_{a\in\Aset}\Bigl(\underbrace{R(s,a)}_{\text{now}}+
     \gamma\overbrace{\sum_{s'\in\Sset}T(s'\,|\,s,a)\,U_k(s')}^{\text{future}}\Bigr)
   \]
 
-  With $U^{*}$ in place of $U_k$, the quantity inside the maximum scores one
-  action. It is the \hilite{action-value function}, also called the Q-function:
+  We write the \hilite{action-value function}, also called the Q-function, in
+  terms of $U^{*}$:
   \[
-    Q^{*}(s,a)=R(s,a)+\gamma\sum_{s'\in\Sset}T(s'\,|\,s,a)\,U^{*}(s')
+    Q^{*}(s,a)=R(s,a)+\gamma\sum_{s'\in\Sset}T(s'\,|\,s,a)\,\underbrace{U^{*}(s')}_{=\,\max_{a'\in\Aset}Q^{*}(s',a')}
   \]
 
-  $Q^{*}(s,a)$ is the expected cumulative discounted reward of taking action
-  $a$ in state $s$ and following the optimal policy afterward.
+  $Q^{*}(s,a)$ is the value of taking action $a$ in state $s$: the reward now
+  plus the discounted expected value of the next state.
   \lecturesource{From Value Iteration to Action Values: the Bellman backup and the action-value function.}
 \end{frame}
 
-\begin{frame}{The Bellman Equation for Action Values}
-  The best action value in a state is that state's value, and the optimal
-  policy picks the action that achieves it:
-  \[
-    U^{*}(s)=\max_{a\in\Aset}Q^{*}(s,a),\qquad
-    \pi^{*}(s)=\arg\max_{a\in\Aset}Q^{*}(s,a)
-  \]
+\begin{frame}{What Value Iteration Needs}
+  Each of these equations needs the reward function $R(s,a)$ and the transition
+  model $T(s'\,|\,s,a)$:
 
-  Substituting the first relation into $Q^{*}(s,a)$ gives the
-  \hilite{Bellman equation} for the action values:
-  \[
-    Q^{*}(s,a)=R(s,a)+\gamma\sum_{s'\in\Sset}T(s'\,|\,s,a)\,\max_{a'\in\Aset}Q^{*}(s',a')
-  \]
-
-  With $R(s,a)$ and $T(s'\,|\,s,a)$, value iteration costs
-  $\mathcal O(|\Sset|^{2}\,|\Aset|)$ operations per sweep. Without $R$ and $T$,
-  the usual case for a real robot, a reactor, or a patient, we cannot evaluate
-  the sum over the next states at all.
-  \lecturesource{From Value Iteration to Action Values: U* and pi* from Q*, the Bellman equation for the action values, and the closing paragraph.}
+  \vspace{0.3em}
+  \begin{itemize}\setlength{\itemsep}{0.5em}
+    \item With $R$ and $T$, value iteration requires
+      $\mathcal O(|\Sset|^{2}\,|\Aset|)$ operations per sweep.
+    \item Without $R$ and $T$, the usual case for a real robot, a reactor, or a
+      patient, we cannot evaluate the sum over the next states at all.
+  \end{itemize}
+  \lecturesource{From Value Iteration to Action Values: the closing paragraph.}
 \end{frame}
 
 \begin{frame}{The Q-Table}
@@ -170,7 +164,7 @@
   After each experiment, the agent updates one entry of the Q-table:
   \[
     Q(s,a)\gets\underbrace{Q(s,a)}_{\text{old value}}+\alpha\cdot
-    \underbrace{\left(r+\gamma\cdot\max_{a'\in\Aset}Q(s',a')-Q(s,a)\right)}_{\text{new information}}
+    \underbrace{\left(\overbrace{r+\gamma\cdot\max_{a'\in\Aset}Q(s',a')}^{\text{target}}-Q(s,a)\right)}_{\text{net new information}}
   \]
 
   where $0<\alpha\le1$ is the learning rate and $0\le\gamma<1$ is the discount
@@ -178,44 +172,20 @@
   \lecturesource{Q-Learning: opening paragraphs and the update rule.}
 \end{frame}
 
-\begin{frame}{Why Does This Update Make Sense?}
-  Compare $r+\gamma\max_{a'}Q(s',a')$ with the right side of the Bellman
-  equation. The agent cannot compute the sum over the next states. Instead, it
-  uses the one next state $s'$ and the one reward $r$ that it observed.
-
-  \vspace{0.3em}
-  \begin{itemize}\setlength{\itemsep}{0.4em}
-    \item This one-sample estimate is the \hilite{temporal difference (TD)
-      target}.
-    \item The gap between the target and the old value is the
-      \hilite{temporal difference error}:
-      \[
-        \delta=r+\gamma\cdot\max_{a'\in\Aset}Q(s',a')-Q(s,a)
-      \]
-    \item The update moves the old value a fraction $\alpha$ of the way toward
-      the target.
-  \end{itemize}
-  \lecturesource{Q-Learning: Why does this update make sense?, the TD target, and the TD error.}
-\end{frame}
-
-\begin{frame}{What the Update Does}
-  \begin{itemize}\setlength{\itemsep}{0.6em}
-    \item \hilite{A single outcome}: if each action has a single outcome and
-      $\alpha=1$, the update replaces $Q(s,a)$ with the target. This is a
-      Bellman backup of one state-action pair, with the observed next state in
-      place of the sum.
-    \item \hilite{A random outcome}: the target changes from visit to visit,
-      and the update averages the targets. With $\alpha=1/n$ on the $n$-th
-      visit, this average approaches the expected value that the sum over
-      $T(s'\,|\,s,a)$ would have computed.
-  \end{itemize}
+\begin{frame}{The Update as a Weighted Average}
+  The update is also a weighted average of the old value and the target:
+  \[
+    Q(s,a)\gets(1-\alpha)\cdot\underbrace{Q(s,a)}_{\text{old value}}+\alpha\cdot
+    \underbrace{\left(r+\gamma\cdot\max_{a'\in\Aset}Q(s',a')\right)}_{\text{target}}
+  \]
 
   \vspace{0.5em}
-  The policy picks the action with the largest value in each state:
+  We estimate the policy $\pi:\Sset\to\Aset$ by selecting the action that
+  maximizes $Q(s,a)$ in each state $s$:
   \[
     \pi(s)=\arg\max_{a\in\Aset}Q(s,a)
   \]
-  \lecturesource{Q-Learning: the two cases and the policy.}
+  \lecturesource{Q-Learning: the weighted-average form of the update and the policy.}
 \end{frame}
 
 \begin{frame}{Episodes and Epsilon-Greedy Actions}
@@ -393,7 +363,7 @@
     \item \textbf{\ink{Model-free learning.}} The agent learns from the states,
       actions, and rewards it observes, without a model.
     \item \textbf{\ink{Q-learning.}} Each step moves one action value toward a
-      target sampled from the Bellman equation.
+      target built from the observed reward and next state.
     \item \textbf{\ink{Convergence.}} Every pair needs visits again and again,
       and a learning rate that shrinks at the right pace.
   \end{itemize}

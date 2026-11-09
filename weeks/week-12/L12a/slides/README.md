@@ -2,7 +2,7 @@
 
 [PDF deck](CHEME-5800-L12a-Slides-Fall-2026.pdf) · [Editable LaTeX source](CHEME-5800-L12a-Slides-Fall-2026.tex)
 
-The 20-slide deck follows the [Model-Free Reinforcement Learning and Q-Learning lecture](../CHEME-5800-L12a-Lecture-QLearning-Fall-2026.ipynb) in its order. It opens with the reinforcement learning problem and moves from value iteration to the action values and the Q-table. It then covers the Q-learning update, the temporal difference error, the algorithm, the convergence conditions, and the practical caveats. It closes with the example, the lab, and the Summary. Its three learning objectives align with its three closing takeaways.
+The 19-slide deck follows the [Model-Free Reinforcement Learning and Q-Learning lecture](../CHEME-5800-L12a-Lecture-QLearning-Fall-2026.ipynb) in its order. It opens with the reinforcement learning problem and moves from value iteration to the action values and the Q-table. It then covers the Q-learning update, its weighted-average form, the algorithm, the convergence conditions, and the practical caveats. It closes with the example, the lab, and the Summary. Its three learning objectives align with its three closing takeaways.
 
 **Review status:** Built November 7, 2026; not yet reviewed by the instructor. A read-only codex review scored the first build 8.5/10 and checked the pseudocode line by line against the lecture. Its fixes were applied: the MDP tuple is now defined before the Bellman backup, $Q^{*}$ is introduced with $U^{*}$ rather than $U_k$, the objectives and the first takeaway no longer suggest that the agent learns without rewards, the example slide states its result for the start square $(20,20)$, and the sparse-reward bullet keeps its condition and reward shaping. The single-outcome bullet now names the lava grid world, because the L12d problem has random rewards. The lecture sentence was corrected the same way. Its suggestion to qualify "fluctuate around $Q^{*}$" for a possible bias was declined, because the deck states the lecture's claim. The deck was not re-scored after these fixes. The build has no overfull or underfull boxes.
 
@@ -28,21 +28,21 @@ Requirements: XeLaTeX and `latexmk`. The style uses Helvetica Neue when availabl
 |---|---|
 | 1–3 | Title, three learning objectives, and the lecture and example |
 | 4–5 | The reinforcement learning problem, its agent and environment figure, and the earlier approaches to learning from interaction |
-| 6–7 | From value iteration to action values: the Bellman backup, $Q^{*}(s,a)$, and the Bellman equation for the action values |
+| 6–7 | From value iteration to action values: the Bellman backup, $Q^{*}(s,a)$ written in terms of $U^{*}(s)$, and what value iteration needs |
 | 8 | The Q-table figure and the agent's memory |
-| 9–11 | The Q-learning update, the temporal difference target and error, the two cases, and the greedy policy |
-| 12–13 | Episodes and the epsilon-greedy rule; the Q-learning algorithm |
-| 14–16 | The convergence conditions, how to meet them, and a constant learning rate |
-| 17 | Caveats and practical notes |
-| 18 | Example: Q-learning in the lava grid world |
-| 19 | Lab: adaptive drug dosing with Q-learning |
-| 20 | Summary with three key takeaways |
+| 9–10 | The Q-learning update with its target, the weighted-average form, and the greedy policy |
+| 11–12 | Episodes and the epsilon-greedy rule; the Q-learning algorithm |
+| 13–15 | The convergence conditions, how to meet them, and a constant learning rate |
+| 16 | Caveats and practical notes |
+| 17 | Example: Q-learning in the lava grid world |
+| 18 | Lab: adaptive drug dosing with Q-learning |
+| 19 | Summary with three key takeaways |
 
 ## Sources and scope
 
 Notebook-section mappings appear in Beamer source notes, omitted from the projected PDF. Notebook hyperlinks point to their repository locations on the main branch.
 
-The deck follows the lecture's notation: the tuple $(\mathcal S,\mathcal A,R(s,a),T(s'\,|\,s,a),\gamma)$, the values $U_k$ and $U^{*}$, the action values $Q(s,a)$ and $Q^{*}(s,a)$, the observed reward $r$ and next state $s'$, the learning rate $\alpha$ and $\alpha_n(s,a)$, the exploration probability $\epsilon$, the temporal difference error $\delta$, the policy $\pi$, the number of episodes $N$, the step limit $d$, and the step counter $t$.
+The deck follows the lecture's notation: the tuple $(\mathcal S,\mathcal A,R(s,a),T(s'\,|\,s,a),\gamma)$, the values $U_k$ and $U^{*}$, the action values $Q(s,a)$ and $Q^{*}(s,a)$, the observed reward $r$ and next state $s'$, the learning rate $\alpha$ and $\alpha_n(s,a)$, the exploration probability $\epsilon$, the policy $\pi$, the number of episodes $N$, the step limit $d$, and the step counter $t$.
 
 The algorithm slide shortens the Given list to symbols defined on earlier slides so the algorithm fits on one slide. The objectives and takeaways are shortened from the lecture's to fit the slide format; they make the same claims.
 
@@ -50,6 +50,6 @@ Source notebook snapshots (SHA-256):
 
 | Notebook | SHA-256 |
 |---|---|
-| CHEME-5800-L12a-Lecture-QLearning-Fall-2026.ipynb | `0d475cfae48a9aaf8b6ff0c01245e6e9f87b1eb277738d031daadab6ff2089d4` |
+| CHEME-5800-L12a-Lecture-QLearning-Fall-2026.ipynb | `6a1987ef3c22ce535afb0eb826f4dc3d6c6e18eabade8725c69fc139d2b600d0` |
 | CHEME-5800-L12a-Example-QLearningGridWorld-Fall-2026.ipynb | `fe99c46bc304268038922b2f8a389d49dc6675548cc4ac6b1c1a33edf8d265c5` |
 | CHEME-5800-L12b-Lab-AdaptiveDosing-QLearning-Fall-2026.ipynb | `7695c4f1945f85ae1e89453dcc3d326b2d8588b78c8266a4a57b783b2b9fcbea` |
