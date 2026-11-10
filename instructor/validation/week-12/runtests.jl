@@ -247,7 +247,8 @@ end
             reference_text = read(joinpath(WEEK_ROOT, "L12b", "src", "Compute-solution.jl"), String)
             @test all(occursin("# TODO $i:", student_text) for i in 1:3)
             @test occursin("target = NaN;", student_text) && occursin("Q[s,a] = NaN;", student_text)
-            for answer in ("argmax(Q[s,:])", "r + γ*maximum(Q[s′,:])", "Q[s,a] + α*(target - Q[s,a])")
+            # the third answer is the whole line, because the TODO 3 hint spells out its right-hand side -
+            for answer in ("argmax(Q[s,:])", "r + γ*maximum(Q[s′,:])", "Q[s,a] = Q[s,a] + α*(target - Q[s,a])")
                 @test !occursin(answer, student_text) # the solution's lines
                 @test occursin(answer, reference_text)
             end

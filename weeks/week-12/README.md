@@ -26,7 +26,7 @@ In week 12, we learn a policy from experience instead of computing it from a mod
 The L12a lecture and its figures are ported from the Fall 2025 CHEME 5800 Q-learning lecture.
 The L12b lab is adapted from the CHEME 153 adaptive dosing activity, and the L12a example extends
 the week 11 grid world lab. The L12c lecture draws on the CHEME 5820 deep Q-learning lecture. The L12d two-state problem is Example 6.7 of Sutton and
-Barto (2018). The slide deck for L12a is in the lecture's `slides` folder.
+Barto (2018). The L12a and L12c lectures have slide decks in their `slides` folders.
 
 ```bash
 julia --startup-file=no --project=. instructor/validation/week-12/runtests.jl

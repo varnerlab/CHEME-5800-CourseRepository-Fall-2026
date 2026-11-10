@@ -43,7 +43,7 @@ end
 # every run, with no guard, so re-running the setup cell picks up the student's
 # edits; the notebook calls it by qualified name (`L12bQLearning.myqlearning(...)`)
 # for the same reason.
-include(joinpath(CHEME5800_L12B_ROOT, "src", "Compute-solution.jl"))
+include(joinpath(CHEME5800_L12B_ROOT, "src", "Compute.jl"))
 
 # Supplied helpers, loaded once: the dosing model, value iteration, and the policy
 # simulator.
