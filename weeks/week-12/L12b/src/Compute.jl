@@ -143,7 +143,7 @@ function myqlearning(agent::MyQLearningAgentModel, environment; worldmodel::Func
             target = NaN;
 
             # TODO 3: the update. Replace NaN with the new value of Q[s,a], which moves the old
-            # value a fraction α of the way toward the target: Q[s,a] + α⋅(target - Q[s,a]).
+            # value a fraction α of the way toward the target: Q[s,a] + α*(target - Q[s,a]).
             # Hint: target - Q[s,a] is the temporal difference error. The first update of a
             # pair has α = 1, which makes the new value the target itself.
             Q[s,a] = NaN;
