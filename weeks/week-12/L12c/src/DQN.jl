@@ -3,7 +3,7 @@
 # =============================================================================
 # This file holds the DQN agent of the example:
 #
-#   MyLinearQNetworkModel   the linear Q-network: the bump centers, the width, and the weights
+#   MyLinearQNetworkModel   the linear Q-network: the centers, the width, and the weights
 #   build(...)              builds a MyLinearQNetworkModel with all weights zero
 #   features(...)           the feature vector φ(s) of a patient state
 #   qvalues(...)            the Q-values of every action in a patient state
@@ -33,14 +33,14 @@ A linear Q-network for the patient. The network computes the Q-value of action `
 patient state `s = (B, Z)` as the weighted sum `Q(s, a) = W[a,:]⋅φ(s)`, where `φ(s)` is the
 feature vector of the state.
 
-The features are radial basis functions: smooth bumps placed on an `m × m` grid of centers that
-covers the square `0 ≤ B ≤ 1`, `0 ≤ Z ≤ 1`. Bump `j` equals 1 at its center and falls toward 0
+The features are radial basis functions with centers on an `m × m` grid that covers the square
+`0 ≤ B ≤ 1`, `0 ≤ Z ≤ 1`. Basis function `j` equals 1 at its center and falls toward 0
 with the distance from it. A last feature is the constant 1.
 
 ### Fields
 - `W::Array{Float64,2}`: the weights, one row per action and one column per feature.
-- `centers::Array{Float64,2}`: the bump centers, one row per bump; column 1 is `B` and column 2 is `Z`.
-- `σ::Float64`: the width of every bump.
+- `centers::Array{Float64,2}`: the centers of the basis functions, one row per basis function; column 1 is `B` and column 2 is `Z`.
+- `σ::Float64`: the width of every basis function.
 """
 mutable struct MyLinearQNetworkModel
     W::Array{Float64,2}
@@ -58,8 +58,8 @@ Build a linear Q-network whose weights are all zero.
 
 ### Arguments
 - `modeltype::Type{MyLinearQNetworkModel}`: the type to build.
-- `data::NamedTuple`: the fields `nactions` (the number of actions), `m` (the number of bump
-  centers on each axis), and `σ` (the width of every bump).
+- `data::NamedTuple`: the fields `nactions` (the number of actions), `m` (the number of
+  centers on each axis), and `σ` (the width of every basis function).
 
 ### Returns
 - `MyLinearQNetworkModel`: the network, with `m^2 + 1` features and a zero weight matrix of size
@@ -75,7 +75,7 @@ function build(modeltype::Type{MyLinearQNetworkModel}, data::NamedTuple)::MyLine
     # initialize an empty model -
     network = modeltype();
 
-    # place the bump centers on an m × m grid over the square -
+    # place the centers on an m × m grid over the square -
     m = data.m;
     levels = range(0.0, 1.0, length = m); # m evenly spaced values from 0 to 1
     centers = zeros(m*m, 2);
@@ -90,7 +90,7 @@ function build(modeltype::Type{MyLinearQNetworkModel}, data::NamedTuple)::MyLine
     network.centers = centers;
     network.σ = data.σ;
 
-    # all weights start at zero: one row per action, one column per feature (m^2 bumps + 1 constant) -
+    # all weights start at zero: one row per action, one column per feature (m^2 basis functions + 1 constant) -
     network.W = zeros(data.nactions, m*m + 1);
 
     # return -
@@ -101,23 +101,23 @@ end
     features(network::MyLinearQNetworkModel, B::Float64, Z::Float64) -> Array{Float64,1}
 
 Return the feature vector `φ(s)` of the patient state `s = (B, Z)`. Entry `j` of the vector is the
-bump `exp(-d²/(2σ²))`, where `d` is the distance from `(B, Z)` to center `j`. The last entry is
+basis function `exp(-d²/(2σ²))`, where `d` is the distance from `(B, Z)` to center `j`. The last entry is
 the constant 1.
 """
 function features(network::MyLinearQNetworkModel, B::Float64, Z::Float64)::Array{Float64,1}
 
     # initialize -
-    number_of_bumps = size(network.centers, 1);
-    φ = zeros(number_of_bumps + 1);
+    number_of_basis_functions = size(network.centers, 1);
+    φ = zeros(number_of_basis_functions + 1);
 
-    # one bump per center -
-    for j ∈ 1:number_of_bumps
+    # one basis function per center -
+    for j ∈ 1:number_of_basis_functions
         d² = (B - network.centers[j, 1])^2 + (Z - network.centers[j, 2])^2; # squared distance to center j
         φ[j] = exp(-d²/(2*network.σ^2));
     end
 
     # the constant feature -
-    φ[number_of_bumps + 1] = 1.0;
+    φ[number_of_basis_functions + 1] = 1.0;
 
     # return -
     return φ;
@@ -330,7 +330,7 @@ function mydqn(network::MyLinearQNetworkModel, model::MyPatientModel; episodes::
                     δ = y - sum(W[e.a, :].*e.φ);
                     gradient[e.a, :] = gradient[e.a, :] .+ δ.*e.φ;
                 end
-                W .= W .+ (α/batchsize).*gradient; # one gradient step on the mean squared error
+                W .= W .+ (α/batchsize).*gradient; # one gradient step on half the mean squared error
                 updates = updates + 1;
             end
 

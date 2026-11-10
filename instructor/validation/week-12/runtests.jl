@@ -443,7 +443,7 @@ end
         cured = w.simulate(patient, w.grid_41; B₀ = 0.10, Z₀ = 0.0, γ = 0.95)
         @test (cured.outcome, cured.cycles, cured.G, length(cured.dose)) == (:cured, 0, 0.0, 0)
 
-        # Task 2: 37 features, 148 weights; the two nearest centers are 0.10 away, bumps ≈ 0.80 -
+        # Task 2: 37 features, 148 weights; the two nearest centers are 0.10 away, basis functions ≈ 0.80 -
         @test (length(w.φ), length(w.network.W)) == (37, 148)
         @test round(maximum(w.φ[1:end-1]), digits = 2) == 0.80
         @test count(x -> x ≈ maximum(w.φ[1:end-1]), w.φ[1:end-1]) == 2
