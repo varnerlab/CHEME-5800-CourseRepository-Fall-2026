@@ -45,8 +45,8 @@ end
 # for the same reason.
 include(joinpath(CHEME5800_L12B_ROOT, "src", "Compute.jl"))
 
-# Supplied helpers, loaded once: the dosing model, value iteration, the policy
-# simulator, and the small problem of the check cell.
+# Supplied helpers, loaded once: the dosing model, value iteration, and the policy
+# simulator.
 if !isdefined(@__MODULE__, :L12bUtility)
     include(joinpath(CHEME5800_L12B_ROOT, "src", "Utility.jl"))
 end
@@ -60,9 +60,6 @@ end
 # whole picture rather than most of it:
 #   VLDataScienceMachineLearningPackage   the course package: the MDP and
 #                                         Q-learning agent models, build, and policy
-#
-# Standard library:
-using Test           # @test / @testset for the checks in the notebook
 #
 # Packages:
 using Plots          # figures

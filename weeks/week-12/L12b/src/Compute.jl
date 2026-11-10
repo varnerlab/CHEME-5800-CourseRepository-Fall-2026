@@ -6,8 +6,8 @@
 # already written. Each TODO is one line of the Q-learning algorithm.
 #
 # After each edit: save this file, re-run the setup cell at the top of the
-# notebook to reload it, then re-run the training cell and the check cell.
-# You are done when every test in the check cell passes.
+# notebook to reload it, then re-run the training cell and the cells after it.
+# You are done when the learned policy cures the patient in the notebook.
 # =============================================================================
 module L12bQLearning
 

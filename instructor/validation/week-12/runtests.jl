@@ -186,7 +186,7 @@ end
 
 @meeting "L12b" begin
     @testset "L12b adaptive dosing lab" begin
-        # the three-state problem of the notebook's check cell -
+        # a three-state problem with answers worked out by hand -
         T_small = zeros(3, 3, 2)
         R_small = zeros(3, 2)
         T_small[1, 2, 1] = 1.0; R_small[1, 1] = -1.0
@@ -199,7 +199,7 @@ end
             α = 0.1, γ = 0.5, Q = [6.0 4.0; 0.0 0.0; 0.0 0.0]))
         average_agent() = build(MyQLearningAgentModel, (states = [1, 2, 3], actions = [1, 2],
             α = 0.1, γ = 0.5, Q = [0.0 10.0; 0.0 0.0; 0.0 0.0]))
-        # the expectations of the notebook's check cell; true when a myqlearning(...) passes both -
+        # the expected tables of that problem; true when a myqlearning(...) passes both -
         function passes_check(f)
             greedy_step = Base.invokelatest(f, greedy_agent(), small; worldmodel = L12bUtility.mdpworld,
                 absorbing = Set([2, 3]), episodes = 1, maxsteps = 1, ϵ_start = 0.0, ϵ_floor = 0.0)
@@ -300,7 +300,7 @@ end
                 end
                 @test caught isa ErrorException && occursin("Oooops!", caught.msg)
             end
-            # wrong solutions fail the check cell: a fixed or the worst action, the wrong row or the
+            # wrong solutions fail these expectations: a fixed or the worst action, the wrong row or the
             # model's γ in the target, a fixed learning rate, and no averaging at all -
             for (answer, wrong) in (("a = argmax(Q[s,:]);", "a = 2;"),
                                     ("a = argmax(Q[s,:]);", "a = argmin(Q[s,:]);"),
@@ -339,6 +339,9 @@ end
             @test (at_limit.outcome, at_limit.steps) == (:cured, 13) && at_limit.B == w.optimal.B && at_limit.dose == w.optimal.dose
             short_run = w.simulate(env, w.π_star, w.s₀; maxsteps = 3)
             @test (short_run.outcome, length(short_run.B), length(short_run.dose)) == (:timeout, 4, 4)
+            # after the last dose: the equations of Task 1 with no dose, for 40 more cycles -
+            @test length(w.B_after) == length(w.Z_after) == 41 && w.B_after[1] == w.optimal.B[end] && w.Z_after[1] == w.optimal.Z[end]
+            @test all(w.Z_after[2:end] .< w.Z_after[1:end-1]) && all(w.B_after[2:end] .> w.B_after[1:end-1])
             # running out of sweeps prints a warning -
             @test_logs (:warn, r"k_max") w.solve(env; γ = 0.95, k_max = 1)
             @test round.(w.optimal.dose, digits = 2) == [1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.67, 0.33, 0.67, 0.67, 0.67, 0.0]
@@ -355,9 +358,6 @@ end
 
             # Task 3: the absorbing states are the cures and the toxic deaths -
             @test w.absorbing_states == Set(s for s in 1:w.nstates if w.isterminal(env, s)) && length(w.absorbing_states) == 385
-            # the check cell's expectations match the ones tested above -
-            check_source = join(cells[findfirst(c -> occursin("@testset \"My Q-learning\"", join(c["source"])), cells)]["source"])
-            @test occursin("[-1.0 4.0; 0.0 0.0; 0.0 0.0]", check_source) && occursin("[0.0 1.25; 0.0 0.0; 0.0 0.0]", check_source)
             # the learned policy gives the same doses from the start -
             @test w.learned.outcome == :cured && w.learned.dose == w.optimal.dose
             @test all(w.result.Q[s, :] == zeros(4) for s in w.absorbing_states) # absorbing rows stay zero

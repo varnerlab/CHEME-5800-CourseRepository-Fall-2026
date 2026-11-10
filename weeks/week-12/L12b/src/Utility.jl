@@ -11,7 +11,7 @@
 #   world(...)              one treatment cycle: the next state and the reward
 #   solve(...)              value iteration: the optimal action values, from the known dynamics
 #   simulate(...)           roll a dosing policy out from a starting state
-#   mdpworld(...)           one step of a small problem whose moves are certain, for the check cell
+#   mdpworld(...)           one step of a small problem whose moves are certain
 #
 # These functions are complete; your work for this meeting is in Compute.jl.
 # Include.jl loads this file only once, so restart the kernel if you edit it.
@@ -466,8 +466,7 @@ end
 
 Simulate one step of a Markov decision process whose moves are certain. Given the state `s` and
 the action `a`, return the next state `s′`, the one state with `T[s,s′,a] = 1`, and the reward
-`R[s,a]`. The check cell of the notebook uses it on a small problem whose answers we work out
-by hand.
+`R[s,a]`.
 
 ### Arguments
 - `problem::MyMDPProblemModel`: the problem; we use its transition array `T` and its reward
