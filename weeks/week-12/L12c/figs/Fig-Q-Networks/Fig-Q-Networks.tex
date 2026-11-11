@@ -4,7 +4,7 @@
 % phi_p(s) are fixed functions of the state (radial basis functions in the example),
 % and only the weights W from the features to the Q-values are learned.
 % Bottom: a deep Q-network, adapted from the DQN schematic of the eCornell AI in
-% finance session 3 lecture (May 2026). Its hidden layers are learned as well.
+% finance session 3 lecture (May 2026). The weights of every layer are learned.
 %
 % Drawn on November 6, 2026 with the palette and build of the L10c figures.
 % The notebook SVG carries a dark palette added by theme_svg.py; keep new
@@ -46,7 +46,7 @@
 
 \node[io] (s1) at (0, -1.35) {State $s$};
 
-\node[feature] (f1) at (3.9,  0.00) {$\phi_{1}$};
+\node[feature] (f1) at (3.9,  0.15) {$\phi_{1}$};
 \node[feature] (f2) at (3.9, -0.90) {$\phi_{2}$};
 \node[text=vnink] (fd) at (3.9, -1.80) {$\vdots$};
 \node[feature] (fp) at (3.9, -2.70) {$\phi_{p}$};
@@ -56,10 +56,10 @@
   \draw[fixed] (s1.east) -- (\f.west);
 }
 
-\node[io] (q1a) at (10.8,  0.00) {$Q(s, a_{1})$};
-\node[io] (q2a) at (10.8, -0.90) {$Q(s, a_{2})$};
+\node[io] (q1a) at (10.8,  0.00) {$Q_{\mathbf{W}}(s, a_{1})$};
+\node[io] (q2a) at (10.8, -0.90) {$Q_{\mathbf{W}}(s, a_{2})$};
 \node[text=vnink] (qda) at (10.8, -1.80) {$\vdots$};
-\node[io] (qna) at (10.8, -2.70) {$Q(s, a_{n})$};
+\node[io] (qna) at (10.8, -2.70) {$Q_{\mathbf{W}}(s, a_{n})$};
 
 \foreach \f in {f1, f2, fp} {
   \foreach \q in {q1a, q2a, qna} {
@@ -88,14 +88,14 @@
   \node[draw=vnink, rounded corners=4pt, line width=0.7pt, fill=netfill,
     fit=(h1-1)(h1-4)(h3-1)(h3-4), inner sep=12pt] (network) {};
 \end{scope}
-\node[label, align=center] at (5.4, -9.95) {hidden layers, parameters $\theta$\\(learned)};
+\node[label, align=center] at (5.4, -9.95) {hidden layers, weights $\theta$\\(learned)};
 
 \draw[arrow] (s2.east) -- (s2.east -| network.west);
 
-\node[io] (q1b) at (10.8, -5.85) {$Q(s, a_{1})$};
-\node[io] (q2b) at (10.8, -6.75) {$Q(s, a_{2})$};
+\node[io] (q1b) at (10.8, -5.85) {$Q_{\theta}(s, a_{1})$};
+\node[io] (q2b) at (10.8, -6.75) {$Q_{\theta}(s, a_{2})$};
 \node[text=vnink] (qdb) at (10.8, -7.65) {$\vdots$};
-\node[io] (qnb) at (10.8, -8.55) {$Q(s, a_{n})$};
+\node[io] (qnb) at (10.8, -8.55) {$Q_{\theta}(s, a_{n})$};
 
 \coordinate (fan) at ($(network.east |- s2.east) + (0.7, 0)$);
 \draw[line width=0.8pt, draw=vnink] (network.east |- s2.east) -- (fan);
