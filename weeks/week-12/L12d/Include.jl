@@ -39,13 +39,10 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# The lab's code, loaded once: the two-state problem with its four learners,
-# and the figure.
-if !isdefined(@__MODULE__, :L12dTwoState)
-    include(joinpath(CHEME5800_L12D_ROOT, "src", "TwoState.jl"))
-end
-if !isdefined(@__MODULE__, :L12dVisualize)
-    include(joinpath(CHEME5800_L12D_ROOT, "src", "Visualize.jl"))
+# The lab's code, loaded once: one module that reads src/Types.jl, src/Factory.jl,
+# src/Helper.jl, and src/Compute.jl, in that order.
+if !isdefined(@__MODULE__, :L12dLab)
+    include(joinpath(CHEME5800_L12D_ROOT, "src", "L12dLab.jl"))
 end
 
 
@@ -55,17 +52,17 @@ end
 #
 # Already imported by the root bootstrap above, listed so this block is the
 # whole picture rather than most of it:
-#   VLDataScienceMachineLearningPackage   the course package: the Q-learning
-#                                         agent type, build, solve, and policy
+#   VLDataScienceMachineLearningPackage   the course package
 #
 # Standard library:
-using Test           # @test / @testset for the checks in the notebook
+using Random         # seeded random number generation
+using Statistics     # mean, median, and friends
+using Test           # @test / @testset for the check in the lab
 #
 # Packages:
+using DataFrames     # tabular records held as columns
 using Plots          # figures
-using DataFrames     # tables of results
-using PrettyTables   # printing those tables
+using PrettyTables   # formatted table output in the notebook
 #
 # This meeting's code (section 2):
-using .L12dTwoState    # maxbias, greedyaction, twostate_qlearning, twostate_dqn
-using .L12dVisualize   # plot_left
+using .L12dLab       # MyPatientModel, MyLinearQNetworkModel, treat, mydqn, solvegrid, simulate, ...

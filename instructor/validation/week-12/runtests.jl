@@ -482,44 +482,100 @@ end
 end
 
 @meeting "L12d" begin
-    @testset "L12d Double DQN lab" begin
-        notebook = "CHEME-5800-L12d-Lab-DoubleDQN-Fall-2026.ipynb"
-        @test check_local_links("L12d", notebook; markdown_only = false) ≥ 4
-        # the walkthrough's code is complete -
+    @testset "L12d linear DQN lab" begin
+        example = "CHEME-5800-L12d-Lab-LinearDQN-AdaptiveDosing-Fall-2026.ipynb"
+        @test check_local_links("L12d", example; markdown_only = false) ≥ 10
+        # the lab's code is complete -
         for file in readdir(joinpath(WEEK_ROOT, "L12d", "src"))
             @test !occursin("TODO", read(joinpath(WEEK_ROOT, "L12d", "src", file), String))
         end
-        (w, cells) = run_notebook("L12d", notebook, :L12dNotebookValidation)
+
+        (w, cells) = run_notebook("L12d", example, :L12dLabValidation)
         @test all(isempty(cell["outputs"]) for cell in cells) # the lab ships without outputs
-        pct(x) = round(Int, 100 * x)
+        patient = w.patient
 
-        # Task 1: "about 0.39", "-0.10"; 100 actions: "about 0.69" -
-        @test round(w.estimates.single, digits = 2) == 0.39 && round(w.estimates.double, digits = 2) == -0.10
-        hundred = maxbias(nactions = 100, nsamples = 10, μ = -0.1, trials = 10_000, seed = 1234)
-        @test round(hundred.single, digits = 2) == 0.69 && round(hundred.double, digits = 2) == -0.10
-        # the question: one action shows no bias; 100 rewards per action leave a small one -
-        one = maxbias(nactions = 1, nsamples = 10, μ = -0.1, trials = 10_000, seed = 1234)
-        many = maxbias(nactions = 10, nsamples = 100, μ = -0.1, trials = 10_000, seed = 1234)
-        @test abs(one.single + 0.1) < 0.01 && round(many.single, digits = 2) == 0.05
+        # Task 1: one full dose from (0.90, 0) gives (0.5985, 0.5), "rounded to (0.600, 0.500)" on the lab grid -
+        (B′, Z′, r, done) = w.treat(patient, 0.90, 0.0, 4)
+        @test (round(B′, digits = 4), Z′, round(r, digits = 4), done) == (0.5985, 0.5, -1.1985, false)
+        @test round(B′ / 0.025) * 0.025 ≈ 0.6
+        # a start where the treatment has already ended is absorbing: no change, no reward, no dose -
+        @test w.treat(patient, 0.05, 0.95, 4) == (0.05, 0.95, 0.0, true)
+        @test w.treat(patient, 0.10, 0.0, 1) == (0.10, 0.0, 0.0, true)
+        dead = w.simulate(patient, w.trained; B₀ = 0.05, Z₀ = 0.95, γ = 0.95)
+        @test (dead.outcome, dead.cycles, dead.G, length(dead.dose)) == (:dead, 0, 0.0, 0)
+        cured = w.simulate(patient, w.grid_41; B₀ = 0.10, Z₀ = 0.0, γ = 0.95)
+        @test (cured.outcome, cured.cycles, cured.G, length(cured.dose)) == (:cured, 0, 0.0, 0)
 
-        # Task 2: Q-learning peaks at 94% in episode 20 and ends near 12%; Double Q stays ≤ 51% and is below 10% by episode 82 -
-        @test (pct(maximum(w.left_q)), argmax(w.left_q), pct(w.left_q[300])) == (94, 20, 12)
-        @test pct(maximum(w.left_double)) == 51 && findfirst(<(0.1), w.left_double) == 82
-        @test w.left_q == twostate_qlearning(double = false, seed = 1234) # the defaults are the cell's settings
-        hundred_B = (twostate_qlearning(nB = 100, seed = 1234), twostate_qlearning(double = true, nB = 100, seed = 1234))
-        @test (pct(hundred_B[1][300]), pct(hundred_B[2][300])) == (95, 7)
-        # the question: with one action in B, Q-learning never rises above the first episodes' coin flip -
-        one_B = twostate_qlearning(nB = 1, seed = 1234)
-        @test pct(maximum(one_B)) == 51 && argmax(one_B) ≤ 3
+        # Task 2: 37 features, 148 weights; the two nearest centers are 0.10 away, basis functions ≈ 0.80 -
+        @test (length(w.φ), length(w.network.W)) == (37, 148)
+        @test round(maximum(w.φ[1:end-1]), digits = 2) == 0.80
+        @test count(x -> x ≈ maximum(w.φ[1:end-1]), w.φ[1:end-1]) == 2
+        @test w.network.centers[31, :] == [1.0, 0.0] && w.network.centers[25, :] == [0.8, 0.0]
+        @test (w.result.cycles, w.result.updates) == (43609, 42610)
+        # "cures the patient in 23 cycles ... the full dose only twice and never two cycles in a row" -
+        @test (w.run_dqn.outcome, w.run_dqn.cycles, round(w.run_dqn.G, digits = 2)) == (:cured, 23, 5.12)
+        full = findall(==(1.0), w.run_dqn.dose)
+        @test length(full) == 2 && all(diff(full) .> 1)
+        @test all(Z < patient.Zlethal for Z in w.run_dqn.Z)
 
-        # Task 3: DQN peaks at 94% and Double DQN at 86%; at episode 300, 69% and 54% -
-        @test (pct(maximum(w.left_dqn)), pct(maximum(w.left_ddqn))) == (94, 86)
-        @test (pct(w.left_dqn[300]), pct(w.left_ddqn[300])) == (69, 54)
-        # C = 1: the two curves are the same -
-        @test twostate_dqn(double = false, C = 1, seed = 1234) == twostate_dqn(double = true, C = 1, seed = 1234)
-        # the question: C = 100 widens the gap, and the first 60 episodes stay near 50% -
-        slow = (twostate_dqn(double = false, C = 100, seed = 1234), twostate_dqn(double = true, C = 100, seed = 1234))
-        @test (pct(slow[1][300]), pct(slow[2][300])) == (68, 44)
-        @test all(0.4 < x < 0.6 for x in slow[1][1:60])
+        # Task 3: the 41-level policy is the lab's optimal policy -
+        if released("L12b")
+            env = build(MyAdaptiveDosingModel, (nlevels = 41, doses = [0.0, 1/3, 2/3, 1.0], g = 0.15, k = 0.35,
+                b = 0.50, c = 0.35, Bcure = 0.10, Zlethal = 0.90, wB = 1.0, wZ = 1.0, wu = 0.10, rcure = 60.0, rdead = -60.0))
+            Qlab = solve(env; γ = 0.95)
+            @test all(argmax(Qlab[s, :]) == w.grid_41.π[env.coordinates[s]...] for s in 1:41^2 if !L12bUtility.isterminal(env, s))
+        end
+        # "201-level policy cures in 19 cycles, the linear DQN takes 23, the 41-level policy never cures" -
+        @test (w.run_201.outcome, w.run_201.cycles, round(w.run_201.G, digits = 2)) == (:cured, 19, 10.96)
+        @test (w.run_41.outcome, w.run_41.cycles, round(w.run_41.G, digits = 2)) == (:timeout, 100, -18.21)
+        # "then the tumor stays between 0.10 and 0.13"; the state (0.109, 0.816) is reached at the start of cycle 21, after 20 treatments (B[1] is the start) -
+        @test all(0.10 < B < 0.13 for B in w.run_41.B[20:end])
+        @test (round(w.run_41.B[21], digits = 3), round(w.run_41.Z[21], digits = 3)) == (0.109, 0.816)
+        @test w.patient.doses[w.gridaction(w.grid_41, 0.109, 0.816)] == 0.0
+        @test round(0.109 / 0.025) * 0.025 ≈ 0.100
+        # the eight starts: the DQN cures from all, with 0 to 4 more cycles than the 201-level grid -
+        @test all(w.comparison.dqn_outcome .== :cured) && all(w.comparison.grid_outcome .== :cured)
+        @test w.comparison.dqn_cycles == [12, 13, 20, 21, 20, 22, 23, 24]
+        @test w.comparison.grid_cycles == [10, 13, 16, 17, 19, 19, 19, 20]
+        @test extrema(w.comparison.dqn_cycles .- w.comparison.grid_cycles) == (0, 4)
+        # "161604 entries, about a thousand times the 148 weights" -
+        @test 201^2 * 4 == 161604 && round(161604 / 148, sigdigits = 1) == 1000
+
+        # --- the answers to the lab's questions ---
+        # Task 1: from (0.90, 0), no dose earns the largest one-cycle reward; from Z = 0.7, only the full dose ends the treatment, in a toxic death -
+        one_cycle = [w.treat(patient, 0.90, 0.0, a) for a in 1:4]
+        @test argmax([c[3] for c in one_cycle]) == 1 && !any(c[4] for c in one_cycle)
+        high_Z = [w.treat(patient, 0.90, 0.7, a) for a in 1:4]
+        @test [c[4] for c in high_Z] == [false, false, false, true] && high_Z[4][3] == patient.rdead
+        # Task 2, the replay buffer: slots 1-3 hold cycles 4, 5, and 3; the next transition replaces slot 3 (cycle 3) -
+        @test [e.a for e in w.small_buffer.memory] == [1, 2, 3] && w.small_buffer.oldest == 3
+        cycle_rewards = Float64[]; (B, Z) = (0.90, 0.0)
+        for a in [4, 1, 3, 1, 2]
+            (B, Z, r, _) = w.treat(patient, B, Z, a); push!(cycle_rewards, r)
+        end
+        @test [e.r for e in w.small_buffer.memory] == cycle_rewards[[4, 5, 3]]
+        # Task 2, fewer episodes: 100 episodes never cure; 1,000 episodes cure in more cycles than 3,000 -
+        settings = (maxcycles = 80, γ = 0.95, α = 0.05, capacity = 20_000, batchsize = 32, warmup = 1000, C = 500, seed = 1234)
+        follow(net) = w.simulate(patient, net; B₀ = 0.90, Z₀ = 0.0, maxcycles = 100, γ = 0.95)
+        @test follow(w.mydqn(w.network, patient; episodes = 100, settings...).network).outcome == :timeout
+        thousand = follow(w.mydqn(w.network, patient; episodes = 1000, settings...).network)
+        @test thousand.outcome == :cured && thousand.cycles > w.run_dqn.cycles
+        # Task 2, the width: σ = 0.05 never cures, σ = 0.5 lets the patient die -
+        narrow = w.build(w.MyLinearQNetworkModel, (nactions = 4, m = 6, σ = 0.05))
+        wide = w.build(w.MyLinearQNetworkModel, (nactions = 4, m = 6, σ = 0.5))
+        @test follow(w.mydqn(narrow, patient; episodes = 3000, settings...).network).outcome == :timeout
+        @test follow(w.mydqn(wide, patient; episodes = 3000, settings...).network).outcome == :dead
+        @test round(maximum(w.features(narrow, 0.90, 0.0)[1:end-1]), digits = 2) == 0.14
+        @test maximum(w.features(wide, 0.90, 0.0)[1:end-1]) > 0.95 # wide: many centers count as near
+        # Task 3, inside the grid policy: rows 1-5 (B ≤ 0.10) are cured grid points with action 1; row 6 doses -
+        @test size(w.grid_41.π) == (41, 41) && all(w.grid_41.π[1:5, :] .== 1) && all(w.grid_41.π[6, 1:8] .!= 1)
+        @test round(0.109 / 0.025) + 1 == 5 # 0.109 snaps to row 5
+        # Task 3, near the lethal toxicity: both policies cure from every start, the DQN in at least as many cycles -
+        for Z₀ in (0.8, 0.85)
+            dqn = [w.simulate(patient, w.trained; B₀ = B₀, Z₀ = Z₀, γ = 0.95) for B₀ in (0.3, 0.5, 0.7, 0.9)]
+            grid = [w.simulate(patient, w.grid_201; B₀ = B₀, Z₀ = Z₀, γ = 0.95) for B₀ in (0.3, 0.5, 0.7, 0.9)]
+            @test all(r.outcome == :cured for r in dqn) && all(r.outcome == :cured for r in grid)
+            @test all(dqn[i].cycles ≥ grid[i].cycles for i in 1:4)
+        end
     end
 end

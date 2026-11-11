@@ -11,7 +11,7 @@ entry_notebooks = [
   "L12b/CHEME-5800-L12b-Lab-AdaptiveDosing-QLearning-Fall-2026.ipynb",
   "L12c/CHEME-5800-L12c-Lecture-DeepQLearning-Fall-2026.ipynb",
   "L12c/CHEME-5800-L12c-Example-LinearDQN-AdaptiveDosing-Fall-2026.ipynb",
-  "L12d/CHEME-5800-L12d-Lab-DoubleDQN-Fall-2026.ipynb",
+  "L12d/CHEME-5800-L12d-Lab-LinearDQN-AdaptiveDosing-Fall-2026.ipynb",
 ]
 supporting_notebooks = []
 datasets = [
