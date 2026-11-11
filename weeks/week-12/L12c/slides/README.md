@@ -2,9 +2,9 @@
 
 [PDF deck](CHEME-5800-L12c-Slides-Fall-2026.pdf) · [Editable LaTeX source](CHEME-5800-L12c-Slides-Fall-2026.tex)
 
-The 23-slide deck follows the [Deep Q-Learning lecture](../CHEME-5800-L12c-Lecture-DeepQLearning-Fall-2026.ipynb) in its order. It opens with the Q-table and its three problems, then defines Q-networks, the linear Q-network with radial basis features, and the deep Q-network. It then covers the DQN loss, the gradient step of a linear network, the two stabilizers, and the DQN algorithm. It closes with the example, overestimation and Double DQN, the lab, and the Summary. Its three learning objectives align with its three closing takeaways.
+The 22-slide deck follows the [Deep Q-Learning lecture](../CHEME-5800-L12c-Lecture-DeepQLearning-Fall-2026.ipynb) in its order. It opens with the Q-table and its three problems, then defines the Q-network $Q_\theta:\mathcal{S}\times\mathcal{A}\rightarrow\mathbb{R}$, the linear Q-network with two choices of features, and the feedforward deep Q-network. It then covers the DQN loss, the derivation and update of the linear gradient step, the replay buffer and the target network, and the DQN algorithm. It closes with the example and the Summary. Its three learning objectives align with its three closing takeaways.
 
-**Review status:** Built November 10, 2026; not yet reviewed by the instructor. A read-only codex review scored the deck 9/10 for accuracy and fidelity, found no equation or number that differs from the lecture or the example's saved outputs, and marked it ready for review. Its fixes were applied: $p$ is now defined on the two-networks slide, the transition tuple is glossed, the gradient is defined, the done-flag condition is back in the pseudocode, DQN is spelled out, the 41-level result says "within 100 cycles", and the lab bullet names what Task 3 measures. The deck was not re-scored after these fixes. Later on November 10, a review of the lecture and the example changed the lecture's wording, and the deck was synced to it: the first objective, the check against the table, the convergence conditions, the notes after the algorithm (including "the policy gives an action for any state"), and overestimation. At the instructor's request, the radial basis slide and the one-hot slide became one two-column slide, "Two Choices of Features", and the check against the table moved onto the gradient-step slide, without the Q-learning update equation or the comparison with logistic regression. The build has no overfull or underfull boxes.
+**Review status:** Synced to the lecture on November 11, 2026, after the instructor's line-by-line review of the lecture. The deck now uses the $Q_\theta$ and $Q_{\mathbf{W}}$ notation; the new learning objectives; the grid-world examples of the Q-table's problems; "training estimates only the weights" for both networks; the feedforward network description; the annotated three-step gradient derivation; and the replay buffer and target network as what each is and why we need it. Removed with the lecture: the check against the table, regression and bootstrap targets, and the demo counts (36 basis functions, 148 weights, 3,000 episodes). At the instructor's request, the Overestimation subsection, Double DQN, and the Lab section were removed from the lecture and the deck, because the L12d lab will change. The figure copy in `assets/` was refreshed from the updated Q-networks figure. The build has no overfull or underfull boxes. Not yet reviewed by the instructor.
 
 The style files and Cornell seal are copied unchanged from L12a (identical to L10c, L10a, L9c, and L9a, which match the approved L6a deck). The deck keeps their 16:9 format, typography, palette, title page, and footer. Text, equations, and tables are editable in the LaTeX source.
 
@@ -28,17 +28,15 @@ Requirements: XeLaTeX and `latexmk`. The style uses Helvetica Neue when availabl
 |---|---|
 | 1–3 | Title, three learning objectives, and the lecture and example |
 | 4–5 | The Q-table figure and its three problems: exponential growth, no generalization, and rounding |
-| 6–7 | Q-networks: the definition, the greedy policy, and the two-networks figure |
+| 6–7 | Q-networks: the definition $Q_\theta:\mathcal{S}\times\mathcal{A}\rightarrow\mathbb{R}$, the greedy policy, and the two-networks figure |
 | 8–9 | The linear Q-network and two choices of features: radial basis functions, and one-hot features, which make a Q-table a linear network |
-| 10 | The deep Q-network |
-| 11–12 | The DQN loss: bootstrap targets, transitions and the done flag, and the DQN Bellman Loss box |
-| 13 | The gradient step of a linear network, with the check against the table |
-| 14 | The two stabilizers: the replay buffer and the target network |
-| 15–18 | The DQN algorithm: Initialize and hyperparameters, the episode loop, the training step, and the notes |
-| 19 | Example: a linear DQN for adaptive drug dosing |
-| 20–21 | Overestimation and Double DQN |
-| 22 | Lab: overestimation and Double DQN |
-| 23 | Summary with three key takeaways |
+| 10 | The deep Q-network: a feedforward network with input, hidden, and output layers |
+| 11–12 | The DQN loss: transitions, the done flag, gradient descent, and the DQN Bellman Loss box |
+| 13–14 | The gradient of a linear network (three-step derivation) and the gradient step |
+| 15–16 | The two stabilizers: the replay buffer and the target network |
+| 17–20 | The DQN algorithm: Initialize and hyperparameters, the episode loop, the training step, and the notes |
+| 21 | Example: a linear DQN for adaptive drug dosing |
+| 22 | Summary: three key takeaways |
 
 ## Sources and scope
 
