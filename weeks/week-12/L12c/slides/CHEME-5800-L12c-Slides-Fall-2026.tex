@@ -407,15 +407,11 @@
   \begin{itemize}\setlength{\itemsep}{0.7em}
     \item The policy gives an action for any state, including states the agent
       never visited.
-    \item \emph{Why random starting weights for a deep network?} If all the
-      weights start equal, the units of a hidden layer compute the same feature,
-      get the same update, and stay equal. A linear network has fixed
-      features, and zeros work.
     \item In the example, a linear network with radial basis features trains
       quickly on a laptop. The same algorithm trains a deep network, which needs
       a package for neural networks and much more time.
   \end{itemize}
-  \lecturesource{Algorithm: the sentence after Extract Policy, the note on random starting weights, and the paragraph on training time.}
+  \lecturesource{Algorithm: the sentence after Extract Policy, and the paragraph on training time.}
 \end{frame}
 
 \begin{frame}{Example: A Linear DQN for Adaptive Dosing}
