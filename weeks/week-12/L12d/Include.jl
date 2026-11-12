@@ -40,7 +40,7 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
 end
 
 # The lab's code, loaded once: one module that reads src/Types.jl, src/Factory.jl,
-# src/Helper.jl, and src/Compute.jl, in that order.
+# src/Helper.jl, src/Compute.jl, and src/Visualize.jl, in that order.
 if !isdefined(@__MODULE__, :L12dLab)
     include(joinpath(CHEME5800_L12D_ROOT, "src", "L12dLab.jl"))
 end
