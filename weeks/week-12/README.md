@@ -14,7 +14,7 @@ In week 12, we learn a policy from experience instead of computing it from a mod
 - The L12c example trains a linear DQN to dose the L12b patient without rounding the patient
   state to a grid. It compares the learned doses with policies from value iteration.
 - The L12d lab works through the L12c example in class. Its code is complete, and each task
-  stops at a few questions.
+  ends with one question for the class.
 
 | Meeting | Topic | Notebook |
 |---|---|---|

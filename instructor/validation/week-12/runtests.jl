@@ -506,7 +506,7 @@ end
         cured = w.simulate(patient, w.grid_41; B₀ = 0.10, Z₀ = 0.0, γ = 0.95)
         @test (cured.outcome, cured.cycles, cured.G, length(cured.dose)) == (:cured, 0, 0.0, 0)
 
-        # Task 2: 37 features, 148 weights; the two nearest centers are 0.10 away, basis functions ≈ 0.80 -
+        # Task 3: 37 features, 148 weights; the two nearest centers are 0.10 away, basis functions ≈ 0.80 -
         @test (length(w.φ), length(w.network.W)) == (37, 148)
         @test round(maximum(w.φ[1:end-1]), digits = 2) == 0.80
         @test count(x -> x ≈ maximum(w.φ[1:end-1]), w.φ[1:end-1]) == 2
@@ -518,7 +518,7 @@ end
         @test length(full) == 2 && all(diff(full) .> 1)
         @test all(Z < patient.Zlethal for Z in w.run_dqn.Z)
 
-        # Task 3: the 41-level policy is the lab's optimal policy -
+        # Task 2: the 41-level policy is the lab's optimal policy -
         if released("L12b")
             env = build(MyAdaptiveDosingModel, (nlevels = 41, doses = [0.0, 1/3, 2/3, 1.0], g = 0.15, k = 0.35,
                 b = 0.50, c = 0.35, Bcure = 0.10, Zlethal = 0.90, wB = 1.0, wZ = 1.0, wu = 0.10, rcure = 60.0, rdead = -60.0))
@@ -533,49 +533,44 @@ end
         @test (round(w.run_41.B[21], digits = 3), round(w.run_41.Z[21], digits = 3)) == (0.109, 0.816)
         @test w.patient.doses[w.gridaction(w.grid_41, 0.109, 0.816)] == 0.0
         @test round(0.109 / 0.025) * 0.025 ≈ 0.100
-        # the eight starts: the DQN cures from all, with 0 to 4 more cycles than the 201-level grid -
-        @test all(w.comparison.dqn_outcome .== :cured) && all(w.comparison.grid_outcome .== :cured)
-        @test w.comparison.dqn_cycles == [12, 13, 20, 21, 20, 22, 23, 24]
-        @test w.comparison.grid_cycles == [10, 13, 16, 17, 19, 19, 19, 20]
-        @test extrema(w.comparison.dqn_cycles .- w.comparison.grid_cycles) == (0, 4)
-        # "161604 entries, about a thousand times the 148 weights" -
-        @test 201^2 * 4 == 161604 && round(161604 / 148, sigdigits = 1) == 1000
+        # "the number of gradient steps and the number of cycles differ only by the warm-up" -
+        @test w.result.cycles - w.result.updates == 1000 - 1
+        @test length(w.result.loss) == w.result.updates # one loss per gradient step
+        @test all(w.result.loss .≥ 0.0)
+        @test sum(w.result.loss[end-499:end]) < sum(w.result.loss[1:500]) / 10 # the average loss falls over the run
+        # the dosing lab's grid rounds the next state to multiples of 0.025 -
+        @test 1 / (41 - 1) == 0.025
+        # "In the last cycle, the equations gave a tumor burden of 0.112, and rounding made it 0.100, a cure":
+        # the 41-level policy in the dosing lab's world, where each next state is rounded to the grid -
+        (B, Z, B_exact, last_cycle) = (0.90, 0.0, 0.90, 0)
+        for t in 1:100
+            (B_exact, Z_exact, _, _) = w.treat(patient, B, Z, w.gridaction(w.grid_41, B, Z))
+            (B, Z, last_cycle) = (round(B_exact / 0.025) * 0.025, round(Z_exact / 0.025) * 0.025, t)
+            B ≤ 0.10 + 1e-12 && break
+        end
+        @test (round(B_exact, digits = 3), last_cycle) == (0.112, 13) && B ≈ 0.100 && Z < 0.90
 
-        # --- the answers to the lab's questions ---
-        # Task 1: from (0.90, 0), no dose earns the largest one-cycle reward; from Z = 0.7, only the full dose ends the treatment, in a toxic death -
+        # --- the answers to the lab's questions, one per task ---
+        # Task 1: from (0.90, 0), no dose earns the largest one-cycle reward, and no dose ends the treatment -
         one_cycle = [w.treat(patient, 0.90, 0.0, a) for a in 1:4]
         @test argmax([c[3] for c in one_cycle]) == 1 && !any(c[4] for c in one_cycle)
-        high_Z = [w.treat(patient, 0.90, 0.7, a) for a in 1:4]
-        @test [c[4] for c in high_Z] == [false, false, false, true] && high_Z[4][3] == patient.rdead
-        # Task 2, the replay buffer: slots 1-3 hold cycles 4, 5, and 3; the next transition replaces slot 3 (cycle 3) -
-        @test [e.a for e in w.small_buffer.memory] == [1, 2, 3] && w.small_buffer.oldest == 3
-        cycle_rewards = Float64[]; (B, Z) = (0.90, 0.0)
-        for a in [4, 1, 3, 1, 2]
-            (B, Z, r, _) = w.treat(patient, B, Z, a); push!(cycle_rewards, r)
-        end
-        @test [e.r for e in w.small_buffer.memory] == cycle_rewards[[4, 5, 3]]
-        # Task 2, fewer episodes: 100 episodes never cure; 1,000 episodes cure in more cycles than 3,000 -
+        # Task 3, the width: σ = 0.05 never cures, σ = 0.5 lets the patient die -
         settings = (maxcycles = 80, γ = 0.95, α = 0.05, capacity = 20_000, batchsize = 32, warmup = 1000, C = 500, seed = 1234)
-        follow(net) = w.simulate(patient, net; B₀ = 0.90, Z₀ = 0.0, maxcycles = 100, γ = 0.95)
-        @test follow(w.mydqn(w.network, patient; episodes = 100, settings...).network).outcome == :timeout
-        thousand = follow(w.mydqn(w.network, patient; episodes = 1000, settings...).network)
-        @test thousand.outcome == :cured && thousand.cycles > w.run_dqn.cycles
-        # Task 2, the width: σ = 0.05 never cures, σ = 0.5 lets the patient die -
+        follow(policy) = w.simulate(patient, policy; B₀ = 0.90, Z₀ = 0.0, maxcycles = 100, γ = 0.95)
         narrow = w.build(w.MyLinearQNetworkModel, (nactions = 4, m = 6, σ = 0.05))
         wide = w.build(w.MyLinearQNetworkModel, (nactions = 4, m = 6, σ = 0.5))
         @test follow(w.mydqn(narrow, patient; episodes = 3000, settings...).network).outcome == :timeout
         @test follow(w.mydqn(wide, patient; episodes = 3000, settings...).network).outcome == :dead
         @test round(maximum(w.features(narrow, 0.90, 0.0)[1:end-1]), digits = 2) == 0.14
         @test maximum(w.features(wide, 0.90, 0.0)[1:end-1]) > 0.95 # wide: many centers count as near
-        # Task 3, inside the grid policy: rows 1-5 (B ≤ 0.10) are cured grid points with action 1; row 6 doses -
-        @test size(w.grid_41.π) == (41, 41) && all(w.grid_41.π[1:5, :] .== 1) && all(w.grid_41.π[6, 1:8] .!= 1)
-        @test round(0.109 / 0.025) + 1 == 5 # 0.109 snaps to row 5
-        # Task 3, near the lethal toxicity: both policies cure from every start, the DQN in at least as many cycles -
-        for Z₀ in (0.8, 0.85)
-            dqn = [w.simulate(patient, w.trained; B₀ = B₀, Z₀ = Z₀, γ = 0.95) for B₀ in (0.3, 0.5, 0.7, 0.9)]
-            grid = [w.simulate(patient, w.grid_201; B₀ = B₀, Z₀ = Z₀, γ = 0.95) for B₀ in (0.3, 0.5, 0.7, 0.9)]
-            @test all(r.outcome == :cured for r in dqn) && all(r.outcome == :cured for r in grid)
-            @test all(dqn[i].cycles ≥ grid[i].cycles for i in 1:4)
-        end
+        # Task 2, the grid size: 49 levels kill the patient at cycle 7, where Z = 0.883 rounds down to 0.875 -
+        grid_run(n) = follow(w.solvegrid(patient; nlevels = n, γ = 0.95))
+        run_49 = grid_run(49)
+        @test (run_49.outcome, run_49.cycles) == (:dead, 7)
+        @test round(run_49.Z[7], digits = 3) == 0.883 && round(run_49.Z[7] * 48) / 48 == 0.875
+        # a finer grid is not always better: 42-47 cure, 48-50 kill, 51 cures, and 87 kills again -
+        @test [grid_run(n).outcome for n in 41:52] ==
+            [:timeout, :cured, :cured, :cured, :cured, :cured, :cured, :dead, :dead, :dead, :cured, :cured]
+        @test grid_run(81).outcome == :cured && grid_run(87).outcome == :dead
     end
 end

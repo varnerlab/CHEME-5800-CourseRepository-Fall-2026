@@ -284,7 +284,9 @@ episodes. Here `doneᵢ` is `true` only for a cure or a toxic death; an episode 
 
     W[a,:] ← W[a,:] + (α/batchsize)⋅Σ over the experiences i with aᵢ = a of (yᵢ - W[a,:]⋅φ(sᵢ))⋅φ(sᵢ),
 
-with every error computed from the weights before the step.
+with every error computed from the weights before the step. Each step also records the
+mini-batch loss, half the mean squared error `(1/(2⋅batchsize))⋅Σᵢ (yᵢ - W[aᵢ,:]⋅φ(sᵢ))²`,
+computed from the weights before the step.
 
 ### Arguments
 - `network::MyLinearQNetworkModel`: the untrained network; its weights are copied, not changed.
@@ -307,6 +309,7 @@ A `NamedTuple` with the fields:
 - `network::MyLinearQNetworkModel`: the trained network.
 - `cycles::Int64`: the number of cycles of experience over all episodes.
 - `updates::Int64`: the number of gradient steps taken.
+- `loss::Array{Float64,1}`: the mini-batch loss of each gradient step, in order.
 """
 function mydqn(network::MyLinearQNetworkModel, model::MyPatientModel; episodes::Int64 = 3000,
     maxcycles::Int64 = 80, γ::Float64 = 0.95, α::Float64 = 0.05, capacity::Int64 = 20_000,
@@ -322,6 +325,7 @@ function mydqn(network::MyLinearQNetworkModel, model::MyPatientModel; episodes::
     buffer = build(MyReplayBufferModel, (capacity = capacity,));
     cycles = 0; # cycles of experience so far
     updates = 0; # gradient steps so far
+    losses = Array{Float64,1}(); # the mini-batch loss of each gradient step
 
     # main loop: one episode per pass -
     for episode ∈ 1:episodes
@@ -361,6 +365,7 @@ function mydqn(network::MyLinearQNetworkModel, model::MyPatientModel; episodes::
             # training step: once the buffer is warm, one gradient step on a random mini-batch -
             if (length(buffer.memory) ≥ warmup)
                 gradient = zeros(size(W)); # the sum over the mini-batch of error × features
+                squared_error = 0.0; # the sum over the mini-batch of error²
                 for i ∈ 1:batchsize
                     e = buffer.memory[rand(rng, 1:length(buffer.memory))]; # a random stored experience
 
@@ -373,9 +378,11 @@ function mydqn(network::MyLinearQNetworkModel, model::MyPatientModel; episodes::
                     # the error on the action taken, and its contribution to the gradient step -
                     δ = y - sum(W[e.a, :].*e.φ);
                     gradient[e.a, :] = gradient[e.a, :] .+ δ.*e.φ;
+                    squared_error = squared_error + δ^2;
                 end
                 W .= W .+ (α/batchsize).*gradient; # one gradient step on half the mean squared error
                 updates = updates + 1;
+                push!(losses, squared_error/(2*batchsize)); # half the mean squared error, before the step
             end
 
             # every C cycles, copy the main network to the target network -
@@ -393,7 +400,7 @@ function mydqn(network::MyLinearQNetworkModel, model::MyPatientModel; episodes::
     end
 
     # return -
-    return (network = trained, cycles = cycles, updates = updates);
+    return (network = trained, cycles = cycles, updates = updates, loss = losses);
 end
 
 """
