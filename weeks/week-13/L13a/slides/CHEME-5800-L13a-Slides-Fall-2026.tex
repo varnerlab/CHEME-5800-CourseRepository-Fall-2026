@@ -1,8 +1,9 @@
 % L13a lecture companion. Notebook hashes and coverage are recorded in README.md.
 % Style files and Cornell seal are copied unchanged from the L12c deck (identical
 % to L12a, L10c, L10a, L9c, and L9a, which match the approved L6a deck). The
-% five figures are the light TikZ PDFs in ../figs (Fig-HTTP-Messages,
-% Fig-URL-Anatomy, Fig-JSON-Tree, Fig-REST-Cycle, and Fig-CRUD-Methods).
+% six figures are the light TikZ PDFs in ../figs (Fig-Client-Server,
+% Fig-HTTP-Messages, Fig-URL-Anatomy, Fig-JSON-Tree, Fig-REST-Cycle, and
+% Fig-CRUD-Methods).
 %
 % Terms follow the lecture: web service, API, client, server, endpoint, the four
 % parts of a request (method, URL, headers, body), the three parts of a response
@@ -69,26 +70,34 @@
 
 \begin{frame}{Web Services and APIs}
   A \hilite{web service} is software that lets machines interact over a
-  network. An \hilite{application programming interface (API)} is the set of
-  rules used to access the service. The \hilite{client} makes a request, and
-  the \hilite{server} answers it.
+  network. The \hilite{client} makes a request, and the \hilite{server}
+  answers it.
+
+  \vspace{0.5em}
+  \centering
+  \includegraphics[width=\textwidth,height=0.52\paperheight,keepaspectratio]{assets/Fig-Client-Server.pdf}
+  \lecturesource{Web Services and APIs: the opening definitions and the client and server figure.
+    Figure: ../figs/Fig-Client-Server/Fig-Client-Server.pdf (light TikZ build).}
+\end{frame}
+
+\begin{frame}{APIs and Communication Protocols}
+  An \hilite{application programming interface (API)} is the set of rules
+  used to access the service.
 
   \vspace{0.3em}
   \begin{itemize}\setlength{\itemsep}{0.4em}
     \item \hilite{API specification}: the requests that a client can make and
       the data that comes back.
-    \item \hilite{Public and private APIs}: clients call the public API
-      methods, which in turn call the private API methods.
     \item \hilite{Communication protocol}: a shared set of rules for exchanging
       messages. Most web services use the Hypertext Transfer Protocol (HTTP),
       with data in formats such as JSON, CSV, and XML.
   \end{itemize}
 
   \vspace{0.4em}
-  Most HTTP messages travel over TCP, which delivers the bytes reliably and in
-  order. HTTPS is HTTP sent over a connection encrypted with Transport Layer
-  Security (TLS).
-  \lecturesource{Web Services and APIs: the definitions, the API specification, the public and private APIs, the communication protocol, and the TCP and HTTPS paragraph.}
+  HTTP messages usually travel over TCP, which delivers the bytes reliably and
+  in order. Almost every public API requires HTTPS, which is HTTP sent over a
+  connection encrypted with Transport Layer Security (TLS).
+  \lecturesource{Web Services and APIs: the API definition, the API specification, the communication protocol, and the TCP and HTTPS paragraph.}
 \end{frame}
 
 \begin{frame}{A Request and Its Response}

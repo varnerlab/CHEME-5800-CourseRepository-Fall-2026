@@ -1,8 +1,14 @@
 # L13a figures
 
-The lecture has five figures. Each figure has its own folder with the TikZ source, the build
-files, the light PDF for notes and slides, and the notebook SVG. All five were drawn on
-November 12, 2026 with the palette, Makefile, and theme script of the L12c figures.
+The lecture has six figures. Each figure has its own folder with the TikZ source, the build
+files, the light PDF for notes and slides, and the notebook SVG. All six use the palette,
+Makefile, and theme script of the L12c figures.
+
+## A client and a server
+
+`Fig-Client-Server/` holds the first figure of the Web Services and APIs section. A desktop
+computer is the client, a cloud is the Internet, and a tower computer is the server. Blue arrows
+carry the request to the server, and dark arrows carry the response back.
 
 ## A request and its response
 

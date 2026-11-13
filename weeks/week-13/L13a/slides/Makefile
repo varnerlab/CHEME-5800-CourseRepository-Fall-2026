@@ -8,7 +8,7 @@ BUILD_DIR ?= ../../../../build/slides/L13a
 
 STYLES := vnslides.sty vnslides-base.sty vnflow.sty
 SEAL := assets/cornell-seal.pdf
-FIGURE_STEMS := Fig-HTTP-Messages Fig-URL-Anatomy Fig-JSON-Tree Fig-REST-Cycle Fig-CRUD-Methods
+FIGURE_STEMS := Fig-Client-Server Fig-HTTP-Messages Fig-URL-Anatomy Fig-JSON-Tree Fig-REST-Cycle Fig-CRUD-Methods
 FIGURES := $(foreach stem,$(FIGURE_STEMS),assets/$(stem).pdf)
 
 .DEFAULT_GOAL := slides
