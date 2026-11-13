@@ -1,0 +1,2 @@
+# The configuration file holds a private FRED API key. Git must never track it.
+Configuration.toml

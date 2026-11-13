@@ -1,0 +1,12 @@
+# FRED API connection settings for the L13b lab.
+#
+# 1. Copy this file to Configuration.toml, in this folder.
+# 2. In Configuration.toml, replace the text between the quotes on the apikey
+#    line with your FRED API key.
+#
+# Your key is like a password: do not share it. Configuration.toml is listed in
+# the .gitignore file of this folder, so git does not track your key.
+
+[connection]
+apikey = "paste-your-FRED-API-key-here"
+baseurl = "https://api.stlouisfed.org"

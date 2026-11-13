@@ -29,6 +29,10 @@ if !isdefined(@__MODULE__, :CHEME5800_L13B_ROOT)
     const CHEME5800_L13B_ROOT = @__DIR__
 end
 
+if !isdefined(@__MODULE__, :CHEME5800_L13B_CONFIG)
+    const CHEME5800_L13B_CONFIG = joinpath(CHEME5800_L13B_ROOT, "conf") # the configuration file with your FRED API key
+end
+
 
 # --- 2. CODE -----------------------------------------------------------------
 # The repository root `Include.jl` activates the course environment and imports
@@ -39,12 +43,26 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `Week13Client` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week13Client)
-    include(joinpath(@__DIR__, "..", "src", "Week13Client.jl"))
+# The supplied FRED code is wrapped in the `L13bFRED` module. The module imports
+# its dependencies, and the guard supports rerunning the notebook setup cell.
+#   src/Types.jl     the endpoint models
+#   src/Factory.jl   the build methods for the request URLs
+#   src/Network.jl   the HTTP calls
+#   src/Handler.jl   the functions that process the responses
+if !isdefined(@__MODULE__, :L13bFRED)
+    include(joinpath(CHEME5800_L13B_ROOT, "src", "FRED.jl"))
+end
+
+# `L13bObservations` holds the student's build(...) method and observations
+# handler. It is included on every run, with no guard, so re-running the setup
+# cell picks up the student's edits. It uses the endpoint models of `L13bFRED`,
+# so it is included after that module.
+include(joinpath(CHEME5800_L13B_ROOT, "src", "Compute.jl"))
+
+# Supplied helpers, loaded once: reading the configuration file and hiding the
+# API key in a printed URL.
+if !isdefined(@__MODULE__, :L13bUtility)
+    include(joinpath(CHEME5800_L13B_ROOT, "src", "Utility.jl"))
 end
 
 
@@ -57,13 +75,24 @@ end
 #   VLDataScienceMachineLearningPackage   the course package
 #
 # Standard library:
-using Test           # @test / @testset for the checks in the notebook
+using Dates          # the Date type of the observation dates
+using Statistics     # mean, for the average price
+using Test           # @test / @testset for the check in the notebook
 #
 # Packages:
-using DataFrames     # tabular records held as columns
-using JSON           # parsing and writing JSON
+using DataFrames     # the tables of series and observations
+using JSON           # parsing JSON text
+using Plots          # figures
 using PrettyTables   # formatted table output in the notebook
 #
-# This meeting's own source, included above. The leading dot means "a module
+# This meeting's supplied code (section 2). The leading dot means "a module
 # defined here", as opposed to an installed package of the same name:
-using .Week13Client  # from the include in section 2
+using .L13bFRED      # the endpoint models, the search handler, and the FRED interface
+using .L13bUtility   # read_configuration and hidekey
+#
+# There is deliberately no `using .L13bObservations`. Re-running this file
+# replaces that module, and on Julia 1.12 a second `using` of the replacement
+# makes every exported name ambiguous. The notebook calls
+# L13bObservations.process_observations_response_dataframe(...) instead. The
+# build(...) method of that module extends the course package's build function,
+# so the notebook calls build(...) by its plain name.

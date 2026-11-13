@@ -1,0 +1,21 @@
+{
+  "realtime_start": "2026-11-12",
+  "realtime_end": "2026-11-12",
+  "seriess": [
+    {
+      "id": "DHHNGSP",
+      "realtime_start": "2026-11-12",
+      "realtime_end": "2026-11-12",
+      "title": "Henry Hub Natural Gas Spot Price",
+      "observation_start": "1997-01-07",
+      "observation_end": "2026-11-11",
+      "frequency": "Daily",
+      "frequency_short": "D",
+      "units": "Dollars per Million BTU",
+      "units_short": "$ per Mil. BTU",
+      "seasonal_adjustment": "Not Seasonally Adjusted",
+      "seasonal_adjustment_short": "NSA",
+      "popularity": 70
+    }
+  ]
+}

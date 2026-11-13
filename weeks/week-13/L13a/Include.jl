@@ -39,12 +39,14 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `Week13Client` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week13Client)
-    include(joinpath(@__DIR__, "..", "src", "Week13Client.jl"))
+# The weather service code is wrapped in the `L13aNWS` module. The module imports
+# its dependencies, and the guard supports rerunning the notebook setup cell.
+#   src/Types.jl     the endpoint models
+#   src/Factory.jl   the build methods for the request URLs
+#   src/Network.jl   the HTTP calls
+#   src/Handler.jl   the functions that process the responses
+if !isdefined(@__MODULE__, :L13aNWS)
+    include(joinpath(CHEME5800_L13A_ROOT, "src", "NWS.jl"))
 end
 
 
@@ -57,14 +59,13 @@ end
 #   VLDataScienceMachineLearningPackage   the course package
 #
 # Standard library:
-using LinearAlgebra  # factorizations, norms, and matrix operations
-using Test           # @test / @testset for the checks in the notebook
+using Test           # @test / @testset for the check in the example
 #
 # Packages:
-using DataFrames     # tabular records held as columns
-using JSON           # parsing and writing JSON
+using DataFrames     # the forecast table
+using JSON           # parsing JSON text
 using PrettyTables   # formatted table output in the notebook
 #
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .Week13Client  # from the include in section 2
+# This meeting's code (section 2). The leading dot means "a module defined
+# here", as opposed to an installed package of the same name:
+using .L13aNWS       # endpoint models and the weather service interface

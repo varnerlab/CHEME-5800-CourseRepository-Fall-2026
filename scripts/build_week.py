@@ -20,7 +20,9 @@ import zipfile
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
 ROOT_FILES = ("Include.jl", "Project.toml", "Manifest.toml", "LICENSE", "docs/src/index.md")
 PACKAGE_PATHS = ("code/Project.toml", "code/src")
-SKIP_NAMES = {".DS_Store", ".AppleDouble", "__pycache__", ".ipynb_checkpoints"}
+# Configuration.toml holds a private API key (the week 13 FRED lab); git ignores it, and a
+# local build must never copy it into a student bundle. The template file ships instead.
+SKIP_NAMES = {".DS_Store", ".AppleDouble", "__pycache__", ".ipynb_checkpoints", "Configuration.toml"}
 AUTHOR_PATH_MARKERS = (b"/Users/", b"\\Users\\", b"Desktop/julia_work", b"jl_notebook_cell_")
 # Third-party binaries (publisher PDFs) can carry other people's home-directory
 # paths in their metadata, so they are scanned only for this repository's markers.
