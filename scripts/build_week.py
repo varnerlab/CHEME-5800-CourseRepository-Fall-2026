@@ -220,8 +220,9 @@ error message to office hours if the problem continues.
 
 ## Lab reference solutions
 
-Labs with a student `src/Compute.jl` file include the reference implementation
-as `src/Compute-solution.jl`. Open the two files side by side
+Each file in a lab's `src` folder that you complete has its reference
+implementation beside it, with `-solution` added to the name, for example
+`src/Compute-solution.jl` for `src/Compute.jl`. Open the two files side by side
 to compare your implementation with the reference. The notebook loads the student
 file by default; the solution file does not replace your work.
 """

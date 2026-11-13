@@ -9,6 +9,13 @@
     "gridId": "BGM",
     "gridX": 52,
     "gridY": 99,
+    "relativeLocation": {
+      "properties": {
+        "city": "Ithaca",
+        "state": "NY"
+      }
+    },
+    "timeZone": "America/New_York",
     "forecast": "https://api.weather.gov/gridpoints/BGM/52,99/forecast",
     "forecastHourly": "https://api.weather.gov/gridpoints/BGM/52,99/forecast/hourly"
   }

@@ -1,0 +1,20 @@
+{
+  "id": 5,
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/clientCapabilities": {},
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "cheme-5800-notebook",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+    },
+    "arguments": {
+      "latitude": 48.8566,
+      "longitude": 2.3522
+    },
+    "name": "get_hourly_forecast"
+  }
+}

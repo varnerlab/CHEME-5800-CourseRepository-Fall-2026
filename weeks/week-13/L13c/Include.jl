@@ -29,6 +29,10 @@ if !isdefined(@__MODULE__, :CHEME5800_L13C_ROOT)
     const CHEME5800_L13C_ROOT = @__DIR__
 end
 
+if !isdefined(@__MODULE__, :CHEME5800_L13C_SERVER)
+    const CHEME5800_L13C_SERVER = joinpath(CHEME5800_L13C_ROOT, "server.jl") # the program that a host starts
+end
+
 
 # --- 2. CODE -----------------------------------------------------------------
 # The repository root `Include.jl` activates the course environment and imports
@@ -39,7 +43,34 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
+# The weather server code is wrapped in the `L13cWeatherMCP` module. The module
+# imports its dependencies, and the guard supports rerunning the notebook setup cell.
+#   src/Types.jl     the endpoint models, and the MCP tool, server, and client models
+#   src/Factory.jl   the build methods for the request URLs, the tools, and the server
+#   src/Network.jl   the HTTP calls to the weather service
+#   src/Handler.jl   the functions that process the weather service responses
+#   src/Tools.jl     the two tools of the weather server
+#   src/Server.jl    the MCP server
+#   src/Client.jl    the MCP client that the notebook uses
+if !isdefined(@__MODULE__, :L13cWeatherMCP)
+    include(joinpath(CHEME5800_L13C_ROOT, "src", "WeatherMCP.jl"))
+end
+
 
 # --- 3. IMPORTS --------------------------------------------------------------
-# This meeting adds nothing beyond the root bootstrap, which already imports
-# the course package (VLDataScienceMachineLearningPackage).
+# Everything this meeting brings into scope. One `using` per line so each can
+# be annotated and each shows up on its own line in a diff.
+#
+# Already imported by the root bootstrap above, listed so this block is the
+# whole picture rather than most of it:
+#   VLDataScienceMachineLearningPackage   the course package
+#
+# Packages:
+using DataFrames     # the forecast table
+using JSON           # parsing and printing JSON text
+using PrettyTables   # formatted table output in the notebook
+using Test           # @test / @testset for the check in the example
+#
+# This meeting's code (section 2). The leading dot means "a module defined
+# here", as opposed to an installed package of the same name:
+using .L13cWeatherMCP   # the weather server, and the client that talks to it

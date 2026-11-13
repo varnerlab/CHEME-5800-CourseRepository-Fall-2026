@@ -1,3 +1,13 @@
+# =============================================================================
+# CHEME 5800 | L13b SDK: the functions that process the responses
+# =============================================================================
+# You edit this file in this lab. The default handler and the search handler are
+# complete. Complete the observations handler, at the bottom of the file, by
+# filling in the lines marked TODO 2 and TODO 3.
+#
+# After each edit: save this file, restart the kernel, and run the notebook
+# from the top. You are done when the check cell of Task 3 passes.
+# =============================================================================
 # --- PRIVATE METHODS BELOW HERE ------------------------------------------------------------------------------- #
 """
 Private default handler that parses the JSON response string from the FRED API.
@@ -70,4 +80,82 @@ function process_search_response_dataframe(model::Type{T}, response::String)::Da
         observation_start = observation_starts, observation_end = observation_ends);
     return dataframe
 end
+
+"""
+    process_observations_response_dataframe(model::Type{T}, response::String) -> DataFrame where T <: AbstractFredEndpointModel
+
+Process the JSON response string from the `fred/series/observations` endpoint of the FRED API.
+We parse the response string, convert the date and the value of each observation, and return them as a `DataFrame`.
+
+The response is a JSON object. Its `"observations"` key holds an array with one object for each observation.
+FRED sends the date and the value of an observation as text:
+- The `"date"` key holds the date as text, e.g., `"2025-01-02"`. Converting this text to a `Date` is TODO 2.
+- The `"value"` key holds the value as text, e.g., `"3.65"`. Converting this text to a `Float64` is TODO 3.
+- When FRED has no value for a date, e.g., a holiday in a daily series, the `"value"` key holds a period, `"."`.
+  We store `missing` for that observation.
+
+### Arguments
+- `model::Type{T}`: the endpoint model type. Must be a subtype of `AbstractFredEndpointModel`.
+- `response::String`: the JSON response string from the `fred/series/observations` endpoint.
+
+### Returns
+- `DataFrame`: a table with one row for each observation, in the order of the response. The columns are:
+    - `date::Date`: the date of the observation.
+    - `value::Union{Missing,Float64}`: the value of the observation, or `missing` when FRED has no value for the date.
+
+  If the response has no observations, the table is empty.
+
+### Throws
+- `ErrorException`: when TODO 2 or TODO 3 is not complete.
+
+### Example
+```julia
+url = build("https://api.stlouisfed.org", model);
+table = MyFredSeriesObservationsEndpointModel(url; handler = process_observations_response_dataframe);
+```
+"""
+function process_observations_response_dataframe(model::Type{T}, response::String)::DataFrame where T <: AbstractFredEndpointModel
+
+    # initialize; this part is complete -
+    dates = Array{Date,1}(); # the date of each observation
+    observation_values = Array{Union{Missing,Float64},1}(); # the value of each observation: a number, or missing
+    message = "Oooops! The `process_observations_response_dataframe(...)` function is not implemented yet - " *
+        "we'd better fix that. Complete TODO 2 and TODO 3 in src/Handler.jl.";
+
+    # parse the response, and visit the observations one at a time. This part is complete -
+    response_dict = JSON.parse(response);
+    for data ∈ response_dict["observations"]
+
+        # get the date and the value of this observation as text. This part is complete -
+        date_string = data["date"]; # e.g., "2025-01-02"
+        value_string = data["value"]; # e.g., "3.65", or "." when FRED has no value for this date
+
+        # TODO 2: the date. Replace nothing with the date of this observation as a Date.
+        # Hint: Date(x) converts the String x, written as "YYYY-MM-DD", to a Date.
+        date = nothing;
+        if (isnothing(date) == true) # this part is complete: a blank TODO 2 leaves nothing behind
+            throw(ErrorException(message));
+        end
+
+        # The value starts as missing, and stays missing when FRED sent a period. This part is complete -
+        value = missing;
+        if (value_string != ".")
+            # TODO 3: the value. Replace nothing with the value of this observation as a Float64.
+            # Hint: parse(Float64, x) converts the String x, e.g., "3.65", to the number 3.65.
+            value = nothing;
+        end
+        if (isnothing(value) == true) # this part is complete: a blank TODO 3 leaves nothing behind
+            throw(ErrorException(message));
+        end
+
+        # store the date and the value of this observation. This part is complete -
+        push!(dates, date);
+        push!(observation_values, value);
+    end
+
+    # put the two columns into a table, and return it -
+    dataframe = DataFrame(date = dates, value = observation_values);
+    return dataframe
+end
+
 # --- PUBLIC METHODS ABOVE HERE -------------------------------------------------------------------------------- #

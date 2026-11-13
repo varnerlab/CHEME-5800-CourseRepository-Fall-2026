@@ -1,0 +1,73 @@
+{
+  "id": 2,
+  "jsonrpc": "2.0",
+  "result": {
+    "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+        "name": "cheme-5800-weather",
+        "version": "1.0.0"
+      }
+    },
+    "cacheScope": "public",
+    "resultType": "complete",
+    "tools": [
+      {
+        "description": "Get the hourly weather forecast for a location in the United States from the National Weather Service: temperature, wind, and a short forecast for each hour.",
+        "inputSchema": {
+          "properties": {
+            "hours": {
+              "description": "Number of hours to return, starting now (default: 12)",
+              "maximum": 48,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "latitude": {
+              "description": "Latitude in decimal degrees, north is positive, e.g., 42.444 for Ithaca, NY",
+              "maximum": 90,
+              "minimum": -90,
+              "type": "number"
+            },
+            "longitude": {
+              "description": "Longitude in decimal degrees, east is positive, e.g., -76.502 for Ithaca, NY",
+              "maximum": 180,
+              "minimum": -180,
+              "type": "number"
+            }
+          },
+          "required": [
+            "latitude",
+            "longitude"
+          ],
+          "type": "object"
+        },
+        "name": "get_hourly_forecast"
+      },
+      {
+        "description": "Find the nearest city, the state, and the National Weather Service forecast office of a location in the United States.",
+        "inputSchema": {
+          "properties": {
+            "latitude": {
+              "description": "Latitude in decimal degrees, north is positive, e.g., 42.444 for Ithaca, NY",
+              "maximum": 90,
+              "minimum": -90,
+              "type": "number"
+            },
+            "longitude": {
+              "description": "Longitude in decimal degrees, east is positive, e.g., -76.502 for Ithaca, NY",
+              "maximum": 180,
+              "minimum": -180,
+              "type": "number"
+            }
+          },
+          "required": [
+            "latitude",
+            "longitude"
+          ],
+          "type": "object"
+        },
+        "name": "get_location"
+      }
+    ],
+    "ttlMs": 3600000
+  }
+}

@@ -4,13 +4,14 @@ version = "1.0-prototype"
 status = "prototype"
 cadence = "meeting"
 title = "REST clients and MCP servers"
-languages = ["Julia", "Python"]
+languages = ["Julia"]
 entry_notebooks = [
   "L13a/CHEME-5800-L13a-Lecture-RESTJSONAndSchemas-Fall-2026.ipynb",
   "L13a/CHEME-5800-L13a-Example-RESTful-NWS-Fall-2026.ipynb",
   "L13b/CHEME-5800-L13b-Lab-RESTful-FRED-Fall-2026.ipynb",
-  "L13c/CHEME-5800-L13c-Lecture-MCPToolsResourcesAndTrust-Fall-2026.ipynb",
-  "L13d/CHEME-5800-L13d-Lab-UreaCycleMCP-Fall-2026.ipynb",
+  "L13c/CHEME-5800-L13c-Lecture-ModelContextProtocol-Fall-2026.ipynb",
+  "L13c/CHEME-5800-L13c-Example-MCP-NWS-Fall-2026.ipynb",
+  "L13d/CHEME-5800-L13d-Lab-MCP-FRED-Fall-2026.ipynb",
 ]
 supporting_notebooks = []
 datasets = [
@@ -19,19 +20,29 @@ datasets = [
   "L13a/figs/Fig-JSON-Tree/Fig-JSON-Tree.svg",
   "L13a/figs/Fig-REST-Cycle/Fig-REST-Cycle.svg",
   "L13a/figs/Fig-CRUD-Methods/Fig-CRUD-Methods.svg",
+  "L13c/figs/Fig-MCP-Architecture/Fig-MCP-Architecture.svg",
+  "L13c/figs/Fig-MCP-ToolCall/Fig-MCP-ToolCall.svg",
+  "L13c/messages/1-discover-request.json",
+  "L13c/messages/1-discover-response.json",
+  "L13c/messages/2-list-request.json",
+  "L13c/messages/2-list-response.json",
+  "L13c/messages/3-call-request.json",
+  "L13c/messages/3-call-response.json",
+  "L13c/messages/4-unknown-tool-request.json",
+  "L13c/messages/4-unknown-tool-response.json",
+  "L13c/messages/5-paris-request.json",
+  "L13c/messages/5-paris-response.json",
   "data/nws-points-ithaca.fixture.json",
   "data/nws-forecast-hourly-ithaca.fixture.json",
   "data/fred-series-search.fixture.json",
   "data/fred-series.fixture.json",
   "data/fred-series-observations.fixture.json",
   "data/fred-error.fixture.json",
-  "data/urea-cycle-network.json",
 ]
-student_paths = ["README.md", "L13a", "data", "python"]
+student_paths = ["README.md", "L13a", "data"]
 instructor_only_paths = ["../../instructor/validation/week-13"]
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-13/runtests.jl"
-python = "PYTHONPATH=weeks/week-13/python/src python -m unittest discover -s weeks/week-13/python/test -v"
 network_required = false
 live_nws_required = false
 model_account_required = false

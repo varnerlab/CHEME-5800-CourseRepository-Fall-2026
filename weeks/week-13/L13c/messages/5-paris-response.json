@@ -1,0 +1,20 @@
+{
+  "id": 5,
+  "jsonrpc": "2.0",
+  "result": {
+    "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+        "name": "cheme-5800-weather",
+        "version": "1.0.0"
+      }
+    },
+    "content": [
+      {
+        "text": "ArgumentError: HTTP GET call failed with status code 404",
+        "type": "text"
+      }
+    ],
+    "isError": true,
+    "resultType": "complete"
+  }
+}

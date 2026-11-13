@@ -58,7 +58,7 @@ class WeeklyBundleTests(unittest.TestCase):
                 builder.validate_bundle(bundle)
 
     def test_every_reference_solution_is_selected_by_its_manifest(self):
-        references = sorted((ROOT / "weeks").glob("week-*/*/src/Compute-solution.jl"))
+        references = sorted((ROOT / "weeks").glob("week-*/*/src/*-solution.jl"))
         self.assertTrue(references)
         for reference in references:
             with self.subTest(reference=reference.relative_to(ROOT)):
@@ -74,7 +74,7 @@ class WeeklyBundleTests(unittest.TestCase):
                 else:
                     selected = [(week / p).resolve() for p in manifest["student_paths"]]
                     self.assertTrue(any(p == reference or p in reference.parents for p in selected))
-                self.assertTrue(reference.with_name("Compute.jl").is_file())
+                self.assertTrue(reference.with_name(reference.name.replace("-solution.jl", ".jl")).is_file())
 
 
 def _week_with_meetings(root: Path, *meetings: str) -> Path:

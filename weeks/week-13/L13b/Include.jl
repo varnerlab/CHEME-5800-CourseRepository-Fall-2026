@@ -43,21 +43,17 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# The supplied FRED code is wrapped in the `L13bFRED` module. The module imports
-# its dependencies, and the guard supports rerunning the notebook setup cell.
+# The FRED code is wrapped in the `L13bFRED` module. The module imports its
+# dependencies, and the guard supports rerunning the notebook setup cell.
 #   src/Types.jl     the endpoint models
-#   src/Factory.jl   the build methods for the request URLs
+#   src/Factory.jl   the build methods for the request URLs (you complete one)
 #   src/Network.jl   the HTTP calls
-#   src/Handler.jl   the functions that process the responses
+#   src/Handler.jl   the functions that process the responses (you complete one)
+# The guard loads the module once. After you edit Factory.jl or Handler.jl,
+# restart the kernel and run the notebook from the top to load your edits.
 if !isdefined(@__MODULE__, :L13bFRED)
     include(joinpath(CHEME5800_L13B_ROOT, "src", "FRED.jl"))
 end
-
-# `L13bObservations` holds the student's build(...) method and observations
-# handler. It is included on every run, with no guard, so re-running the setup
-# cell picks up the student's edits. It uses the endpoint models of `L13bFRED`,
-# so it is included after that module.
-include(joinpath(CHEME5800_L13B_ROOT, "src", "Compute.jl"))
 
 # Supplied helpers, loaded once: reading the configuration file and hiding the
 # API key in a printed URL.
@@ -85,14 +81,7 @@ using JSON           # parsing JSON text
 using Plots          # figures
 using PrettyTables   # formatted table output in the notebook
 #
-# This meeting's supplied code (section 2). The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .L13bFRED      # the endpoint models, the search handler, and the FRED interface
+# This meeting's code (section 2). The leading dot means "a module defined
+# here", as opposed to an installed package of the same name:
+using .L13bFRED      # the endpoint models, the handlers, and the FRED interface
 using .L13bUtility   # read_configuration and hidekey
-#
-# There is deliberately no `using .L13bObservations`. Re-running this file
-# replaces that module, and on Julia 1.12 a second `using` of the replacement
-# makes every exported name ambiguous. The notebook calls
-# L13bObservations.process_observations_response_dataframe(...) instead. The
-# build(...) method of that module extends the course package's build function,
-# so the notebook calls build(...) by its plain name.
