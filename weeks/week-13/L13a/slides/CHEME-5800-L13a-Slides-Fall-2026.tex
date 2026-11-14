@@ -135,8 +135,7 @@
 \end{frame}
 
 \begin{frame}{The Pieces of a URL}
-  A URL has four main pieces. The URL of the hourly weather forecast for
-  Ithaca, NY from the NWS API, in metric units:
+  A URL has four main pieces.
 
   \vspace{0.6em}
   \centering
@@ -204,7 +203,7 @@
 \end{frame}
 
 \begin{frame}{JSON Text Is a Tree of Data}
-  Part of the body of the NWS response, and the data that the text describes:
+  Each line out of an object carries a key.
 
   \vspace{0.6em}
   \centering
@@ -212,9 +211,8 @@
 
   \vspace{0.6em}
   \raggedright
-  Objects and arrays can hold other objects and arrays. We reach the grid
-  identifier \code{"BGM"} by following the \code{"properties"} key and then
-  the \code{"gridId"} key.
+  We reach the grid identifier \code{"BGM"} by following the
+  \code{"properties"} key and then the \code{"gridId"} key.
   \lecturesource{JSON: the tree figure and the paragraph on values.
     Figure: ../figs/Fig-JSON-Tree/Fig-JSON-Tree.pdf (light TikZ build).}
 \end{frame}
@@ -275,8 +273,8 @@
 \end{frame}
 
 \begin{frame}{What the Server Does for Each Method}
-  The lab's web service for its experiment records, with the status code that
-  the server returns on success:
+  The URL \code{/experiments} is the collection of all the records. The URL
+  \code{/experiments/42} is the record with identifier \code{42}.
 
   \vspace{0.3em}
   \centering
@@ -296,48 +294,23 @@
     Delete & \code{DELETE /experiments/42} & removes record \code{42}, and returns no body & \code{204 No Content}\\
     \bottomrule
   \end{tabular}}
-
-  \vspace{0.3em}
-  \raggedright
-  The URL \code{/experiments} is the collection of all the records. The URL
-  \code{/experiments/42} is the record with identifier \code{42}.
   \lecturesource{HTTP Methods and CRUD: the experiment records service and the CRUD table.}
 \end{frame}
 
-\begin{frame}[fragile]{Safe and Idempotent Methods}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.46\textwidth}
-      \begin{itemize}\setlength{\itemsep}{0.3em}
-        \item \hilite{Safe}: the method only reads data. Of the five
-          methods, only \code{GET} is safe.
-        \item \hilite{Idempotent}: sending the same request many times has
-          the same effect on the server as sending it once. \code{GET},
-          \code{PUT}, and \code{DELETE} are idempotent.
-        \item \code{POST} is not idempotent: in our example, sending the
-          same \code{POST} request twice creates two records.
-      \end{itemize}
+\begin{frame}{Safe and Idempotent Methods}
+  \begin{itemize}\setlength{\itemsep}{0.6em}
+    \item \hilite{Safe}: the method only reads data. Of the five methods, only
+      \code{GET} is safe.
+    \item \hilite{Idempotent}: sending the same request many times has the
+      same effect on the server as sending it once. \code{GET}, \code{PUT},
+      and \code{DELETE} are idempotent.
+    \item \code{POST} is not idempotent: in our example, sending the same
+      \code{POST} request twice creates two records.
+  \end{itemize}
 
-      \vspace{0.2em}
-      A client can send an idempotent request again after a timeout.
-    \end{column}
-    \begin{column}{0.50\textwidth}
-      In Julia, the
-      \href{https://juliaweb.github.io/HTTP.jl/stable/}{HTTP.jl package} has
-      one function for each method:
-      \footnotesize
-\begin{verbatim}
-HTTP.post(url, headers, body)   # create
-HTTP.get(url, headers)          # read
-HTTP.put(url, headers, body)    # update
-HTTP.patch(url, headers, body)  # update
-HTTP.delete(url, headers)       # delete
-\end{verbatim}
-      \normalsize
-      Each returns a response with \code{status}, \code{headers}, and
-      \code{body} fields.
-    \end{column}
-  \end{columns}
-  \lecturesource{HTTP Methods and CRUD: safe and idempotent methods, the timeout paragraph, and the HTTP.jl functions.}
+  \vspace{0.5em}
+  A client can send an idempotent request again after a timeout.
+  \lecturesource{HTTP Methods and CRUD: safe and idempotent methods and the timeout paragraph.}
 \end{frame}
 
 \begin{frame}{Why Are RESTful Web Services so Popular?}
