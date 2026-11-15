@@ -46,7 +46,7 @@ end
 # The weather server code is wrapped in the `L13cWeatherMCP` module. The module
 # imports its dependencies, and the guard supports rerunning the notebook setup cell.
 #   src/Types.jl     the endpoint models, and the MCP tool, server, and client models
-#   src/Factory.jl   the build methods for the request URLs, the tools, and the server
+#   src/Factory.jl   url(...) for requests; build(...) for the tools and server
 #   src/Network.jl   the HTTP calls to the weather service
 #   src/Handler.jl   the functions that process the weather service responses
 #   src/Tools.jl     the two tools of the weather server

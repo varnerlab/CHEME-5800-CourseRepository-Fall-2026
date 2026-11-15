@@ -9,6 +9,7 @@ module L13dFredMCP
     import VLDataScienceMachineLearningPackage: build # extend the course factory interface
 
     # what do we want to export?
+    export url, api
     export AbstractFredEndpointModel
     export MyFredSeriesSearchEndpointModel, MyFredSeriesEndpointModel, MyFredSeriesObservationsEndpointModel
     export process_search_response_dataframe, process_observations_response_dataframe
@@ -19,7 +20,7 @@ module L13dFredMCP
 
     # load my codes. In this lab, you complete one tool in Tools.jl -
     include("Types.jl")   # the FRED endpoint models, and the MCP tool, server, and client models
-    include("Factory.jl") # the build methods: request URLs, tools, and servers
+    include("Factory.jl") # url(...) for requests; build(...) for tools and servers
     include("Network.jl") # the HTTP calls to FRED
     include("Handler.jl") # the functions that process the FRED responses
     include("Utility.jl") # read the configuration file that holds the API key

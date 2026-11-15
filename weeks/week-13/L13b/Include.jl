@@ -46,7 +46,7 @@ end
 # The FRED code is wrapped in the `L13bFRED` module. The module imports its
 # dependencies, and the guard supports rerunning the notebook setup cell.
 #   src/Types.jl     the endpoint models
-#   src/Factory.jl   the build methods for the request URLs (you complete one)
+#   src/Factory.jl   the url(...) methods for the request URLs (you complete one)
 #   src/Network.jl   the HTTP calls
 #   src/Handler.jl   the functions that process the responses (you complete one)
 # The guard loads the module once. After you edit Factory.jl or Handler.jl,
@@ -73,7 +73,6 @@ end
 # Standard library:
 using Dates          # the Date type of the observation dates
 using Statistics     # mean, for the average price
-using Test           # @test / @testset for the check in the notebook
 #
 # Packages:
 using DataFrames     # the tables of series and observations

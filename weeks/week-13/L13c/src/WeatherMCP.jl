@@ -7,6 +7,7 @@ module L13cWeatherMCP
     import VLDataScienceMachineLearningPackage: build # extend the course factory interface
 
     # what do we want to export?
+    export url, api
     export MyWeatherGridPointEndpointModel, MyWeatherForecastEndpointModel, process_forecast_response_dataframe
     export MyMCPToolModel, MyMCPServerModel, MyMCPClientModel
     export process_message, serve, build_weather_server
@@ -14,7 +15,7 @@ module L13cWeatherMCP
 
     # load my codes -
     include("Types.jl")   # the weather service endpoint models, and the MCP tool, server, and client models
-    include("Factory.jl") # the build methods: request URLs, tools, and servers
+    include("Factory.jl") # url(...) for requests; build(...) for tools and servers
     include("Network.jl") # the HTTP calls to the weather service
     include("Handler.jl") # the functions that process the weather service responses
     include("Tools.jl")   # the two tools of the weather server

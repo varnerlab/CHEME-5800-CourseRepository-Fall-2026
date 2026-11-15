@@ -6,7 +6,7 @@
 # filling in the lines marked TODO 2 and TODO 3.
 #
 # After each edit: save this file, restart the kernel, and run the notebook
-# from the top. You are done when the check cell of Task 3 passes.
+# from the top. Your completed methods return the daily prices as a table.
 # =============================================================================
 # --- PRIVATE METHODS BELOW HERE ------------------------------------------------------------------------------- #
 """
@@ -110,8 +110,8 @@ FRED sends the date and the value of an observation as text:
 
 ### Example
 ```julia
-url = build("https://api.stlouisfed.org", model);
-table = MyFredSeriesObservationsEndpointModel(url; handler = process_observations_response_dataframe);
+request_url = url("https://api.stlouisfed.org", model);
+table = api(MyFredSeriesObservationsEndpointModel, request_url; handler = process_observations_response_dataframe);
 ```
 """
 function process_observations_response_dataframe(model::Type{T}, response::String)::DataFrame where T <: AbstractFredEndpointModel

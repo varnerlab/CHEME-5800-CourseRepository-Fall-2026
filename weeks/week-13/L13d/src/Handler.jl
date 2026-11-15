@@ -97,8 +97,8 @@ FRED sends the date and the value of an observation as text:
 
 ### Example
 ```julia
-url = build("https://api.stlouisfed.org", model);
-table = MyFredSeriesObservationsEndpointModel(url; handler = process_observations_response_dataframe);
+request_url = url("https://api.stlouisfed.org", model);
+table = api(MyFredSeriesObservationsEndpointModel, request_url; handler = process_observations_response_dataframe);
 ```
 """
 function process_observations_response_dataframe(model::Type{T}, response::String)::DataFrame where T <: AbstractFredEndpointModel

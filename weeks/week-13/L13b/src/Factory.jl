@@ -1,16 +1,16 @@
 # =============================================================================
-# CHEME 5800 | L13b SDK: the build methods for the request URLs
+# CHEME 5800 | L13b SDK: the url(...) methods for the request URLs
 # =============================================================================
-# You edit this file in this lab. The build methods of the search and series
-# endpoints are complete. Complete the build method of the observations endpoint,
+# You edit this file in this lab. The url(...) methods of the search and series
+# endpoints are complete. Complete the url(...) method of the observations endpoint,
 # at the bottom of the file, by filling in the line marked TODO 1.
 #
 # After each edit: save this file, restart the kernel, and run the notebook
-# from the top. You are done when the check cell of Task 3 passes.
+# from the top. Your completed methods return the daily prices as a table.
 # =============================================================================
 # --- PUBLIC METHODS BELOW HERE -------------------------------------------------------------------------------- #
 """
-    build(base::String, model::MyFredSeriesSearchEndpointModel) -> String
+    url(base::String, model::MyFredSeriesSearchEndpointModel) -> String
 
 Build the URL string for the `fred/series/search` endpoint of the FRED API.
 An HTTP GET call to this URL returns the series that match the search text held by the model.
@@ -24,7 +24,7 @@ An HTTP GET call to this URL returns the series that match the search text held 
   `"https://api.stlouisfed.org/fred/series/search?search_text=natural%20gas&limit=5&api_key=<your key>&file_type=json"`.
   The URL holds the API key, so do not print it or share it.
 """
-function build(base::String, model::MyFredSeriesSearchEndpointModel)::String
+function url(base::String, model::MyFredSeriesSearchEndpointModel)::String
 
     # get data from the model -
     apikey = model.apikey;
@@ -43,7 +43,7 @@ function build(base::String, model::MyFredSeriesSearchEndpointModel)::String
 end
 
 """
-    build(base::String, model::MyFredSeriesEndpointModel) -> String
+    url(base::String, model::MyFredSeriesEndpointModel) -> String
 
 Build the URL string for the `fred/series` endpoint of the FRED API.
 An HTTP GET call to this URL returns the description of the series held by the model.
@@ -57,7 +57,7 @@ An HTTP GET call to this URL returns the description of the series held by the m
   `"https://api.stlouisfed.org/fred/series?series_id=DHHNGSP&api_key=<your key>&file_type=json"`.
   The URL holds the API key, so do not print it or share it.
 """
-function build(base::String, model::MyFredSeriesEndpointModel)::String
+function url(base::String, model::MyFredSeriesEndpointModel)::String
 
     # get data from the model -
     apikey = model.apikey;
@@ -70,7 +70,7 @@ function build(base::String, model::MyFredSeriesEndpointModel)::String
     return url_string;
 end
 """
-    build(base::String, model::MyFredSeriesObservationsEndpointModel) -> String
+    url(base::String, model::MyFredSeriesObservationsEndpointModel) -> String
 
 Build the URL string for the `fred/series/observations` endpoint of the FRED API.
 An HTTP GET call to this URL returns the observations of the series held by the model.
@@ -105,10 +105,10 @@ FRED reads each parameter by its key, so the order of the parameters does not ma
 ```julia
 model = MyFredSeriesObservationsEndpointModel(apikey = apikey, series_id = "DHHNGSP",
     observation_start = "2025-01-01", observation_end = "2025-12-31", frequency = "m", units = "lin");
-url = build("https://api.stlouisfed.org", model);
+request_url = url("https://api.stlouisfed.org", model);
 ```
 """
-function build(base::String, model::MyFredSeriesObservationsEndpointModel)::String
+function url(base::String, model::MyFredSeriesObservationsEndpointModel)::String
 
     # get data from the model; this part is complete -
     apikey = model.apikey;
@@ -117,13 +117,13 @@ function build(base::String, model::MyFredSeriesObservationsEndpointModel)::Stri
     observation_end = model.observation_end;
     frequency = model.frequency;
     units = model.units;
-    message = "Oooops! The `build(...)` method for the observations endpoint is not implemented yet - " *
+    message = "Oooops! The `url(...)` method for the observations endpoint is not implemented yet - " *
         "we'd better fix that. Complete TODO 1 in src/Factory.jl.";
 
     # TODO 1: the URL string. Replace "" with one string: base + path + ? + query string. The path
     # is /fred/series/observations, and the query string holds the seven key=value parameters in
     # the table of the docstring, joined by &. Hint: put each variable into the string with
-    # $(...), the way the two build methods above do. The key of the API key
+    # $(...), the way the two url(...) methods above do. The key of the API key
     # parameter is api_key, with an underscore.
     url_string = "";
     if (isempty(url_string) == true) # this part is complete: a blank TODO 1 leaves "" behind

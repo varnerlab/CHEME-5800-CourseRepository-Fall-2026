@@ -86,7 +86,7 @@ Return a copy of a URL that shows the text `<your key>` in place of the API key.
 Use this copy to print or share a URL. Use the original URL to call FRED.
 
 ### Arguments
-- `url::String`: the URL string that a `build(...)` method returned.
+- `url::String`: the URL string that a `url(...)` method returned.
 - `apikey::String`: your FRED API key.
 
 ### Returns

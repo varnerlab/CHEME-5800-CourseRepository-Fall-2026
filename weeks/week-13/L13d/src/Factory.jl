@@ -1,6 +1,6 @@
 # --- PUBLIC METHODS BELOW HERE -------------------------------------------------------------------------------- #
 """
-    build(base::String, model::MyFredSeriesSearchEndpointModel) -> String
+    url(base::String, model::MyFredSeriesSearchEndpointModel) -> String
 
 Build the URL string for the `fred/series/search` endpoint of the FRED API.
 An HTTP GET call to this URL returns the series that match the search text held by the model.
@@ -14,7 +14,7 @@ An HTTP GET call to this URL returns the series that match the search text held 
   `"https://api.stlouisfed.org/fred/series/search?search_text=natural%20gas&limit=5&api_key=<your key>&file_type=json"`.
   The URL holds the API key, so do not print it or share it.
 """
-function build(base::String, model::MyFredSeriesSearchEndpointModel)::String
+function url(base::String, model::MyFredSeriesSearchEndpointModel)::String
 
     # get data from the model -
     apikey = model.apikey;
@@ -33,7 +33,7 @@ function build(base::String, model::MyFredSeriesSearchEndpointModel)::String
 end
 
 """
-    build(base::String, model::MyFredSeriesEndpointModel) -> String
+    url(base::String, model::MyFredSeriesEndpointModel) -> String
 
 Build the URL string for the `fred/series` endpoint of the FRED API.
 An HTTP GET call to this URL returns the description of the series held by the model.
@@ -47,7 +47,7 @@ An HTTP GET call to this URL returns the description of the series held by the m
   `"https://api.stlouisfed.org/fred/series?series_id=DHHNGSP&api_key=<your key>&file_type=json"`.
   The URL holds the API key, so do not print it or share it.
 """
-function build(base::String, model::MyFredSeriesEndpointModel)::String
+function url(base::String, model::MyFredSeriesEndpointModel)::String
 
     # get data from the model -
     apikey = model.apikey;
@@ -61,7 +61,7 @@ function build(base::String, model::MyFredSeriesEndpointModel)::String
 end
 
 """
-    build(base::String, model::MyFredSeriesObservationsEndpointModel) -> String
+    url(base::String, model::MyFredSeriesObservationsEndpointModel) -> String
 
 Build the URL string for the `fred/series/observations` endpoint of the FRED API.
 An HTTP GET call to this URL returns the observations of the series held by the model.
@@ -93,10 +93,10 @@ FRED reads each parameter by its key, so the order of the parameters does not ma
 ```julia
 model = MyFredSeriesObservationsEndpointModel(apikey = apikey, series_id = "DHHNGSP",
     observation_start = "2025-01-01", observation_end = "2025-12-31", frequency = "m", units = "lin");
-url = build("https://api.stlouisfed.org", model);
+request_url = url("https://api.stlouisfed.org", model);
 ```
 """
-function build(base::String, model::MyFredSeriesObservationsEndpointModel)::String
+function url(base::String, model::MyFredSeriesObservationsEndpointModel)::String
 
     # get data from the model -
     apikey = model.apikey;

@@ -28,23 +28,35 @@ function _http_get_call_with_url(url::String)::String
     return response.body |> String;
 end
 
-# This function calls the HTTP GET call, and then processes the response.
-# We use a default handler, but you can pass in your own if you want to process the response differently.
-function _api(model::Type{T}, complete_url_string::String;
-    handler::Function = _default_handler_process_weather_response) where T <: AbstractWeatherEndpointModel
-
-    # execute the HTTP GET call, the body of the response comes back as a String -
-    result_string = _http_get_call_with_url(complete_url_string);
-
-    # process and return -
-    return handler(model, result_string)
-end
 # --- PRIVATE METHODS ABOVE HERE ------------------------------------------------------------------------------- #
 
 # --- PUBLIC METHODS BELOW HERE -------------------------------------------------------------------------------- #
+"""
+    api(endpoint::Type{T}, request_url::String;
+        handler::Function = _default_handler_process_weather_response) where T <: AbstractWeatherEndpointModel
 
-# New pattern: This makes it look we are calling a method on an struct, but we are not!
-# We are using the Julia type system (and something called multiple dispatch) to call the correct method.
-# For more information on multiple dispatch, see: https://docs.julialang.org/en/v1/manual/methods/#Defining-Methods
-(endpoint::Type{T})(url::String; handler::Function = _default_handler_process_weather_response) where T <: AbstractWeatherEndpointModel = _api(endpoint, url, handler = handler)
+Make an HTTP GET request to a National Weather Service endpoint and process its response.
+
+### Arguments
+- `endpoint::Type{T}`: the endpoint type, either `MyWeatherGridPointEndpointModel` or `MyWeatherForecastEndpointModel`.
+- `request_url::String`: the complete URL returned by `url(...)` or supplied in an NWS response.
+- `handler::Function`: the function that receives the endpoint type and the response body as a `String`.
+  The default handler parses the JSON text into a dictionary.
+
+### Returns
+- The result of the handler. The default is a parsed JSON dictionary. The forecast table handler returns a `DataFrame`.
+
+### Throws
+- `ArgumentError`: when the URL does not start with `http://` or `https://`, or the response status is not `200`.
+  Connection failures are reported by HTTP.jl.
+"""
+function api(endpoint::Type{T}, request_url::String;
+    handler::Function = _default_handler_process_weather_response) where T <: AbstractWeatherEndpointModel
+
+    # make the HTTP GET call and read the response body as a String -
+    response_string = _http_get_call_with_url(request_url);
+
+    # process the response and return the handler's result -
+    return handler(endpoint, response_string);
+end
 # --- PUBLIC METHODS ABOVE HERE -------------------------------------------------------------------------------- #

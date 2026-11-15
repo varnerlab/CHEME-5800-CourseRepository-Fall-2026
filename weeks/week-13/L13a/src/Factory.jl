@@ -1,6 +1,6 @@
 # --- PUBLIC METHODS BELOW HERE -------------------------------------------------------------------------------- #
 """
-    build(base::String, model::MyWeatherGridPointEndpointModel) -> String
+    url(base::String, model::MyWeatherGridPointEndpointModel) -> String
 
 Build the URL string for the points endpoint of the National Weather Service (NWS) API.
 An HTTP GET call to this URL returns information about the location held by the model.
@@ -12,7 +12,7 @@ An HTTP GET call to this URL returns information about the location held by the 
 ### Returns
 - `String`: the complete URL string for the points endpoint, e.g., `"https://api.weather.gov/points/42.4440,-76.5019"`.
 """
-function build(base::String, model::MyWeatherGridPointEndpointModel)::String
+function url(base::String, model::MyWeatherGridPointEndpointModel)::String
 
     # get data from the model -
     latitude = model.latitude;

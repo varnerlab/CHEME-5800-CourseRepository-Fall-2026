@@ -3,8 +3,8 @@ module L13aNWS
     import HTTP # make the HTTP calls to the weather service
     import JSON # parse the JSON text that the weather service returns
     import DataFrames: DataFrame # table for the processed forecast
-    import VLDataScienceMachineLearningPackage: build # extend the course factory interface
 
+    export url, api
     export MyWeatherGridPointEndpointModel, MyWeatherForecastEndpointModel
     export process_forecast_response_dataframe
 

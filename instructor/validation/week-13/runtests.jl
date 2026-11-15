@@ -32,14 +32,14 @@ function check_local_links(meeting::AbstractString, notebook::AbstractString)
     return text
 end
 
-# The L13a tests run without the network: the handlers are tested on the committed fixtures.
+# The L13a tests use committed fixtures and a local HTTP server; no outside network is needed.
 # The example notebook calls the live National Weather Service API, so the suite does not run it.
 @meeting "L13a" begin
     @testset "L13a weather service code" begin
         # the endpoint model and its URL -
         model = MyWeatherGridPointEndpointModel(latitude = 42.443961, longitude = -76.501881)
         @test model isa L13aNWS.AbstractWeatherEndpointModel
-        @test build("https://api.weather.gov", model) == "https://api.weather.gov/points/42.443961,-76.501881"
+        @test L13aNWS.url("https://api.weather.gov", model) == "https://api.weather.gov/points/42.443961,-76.501881"
         @test MyWeatherForecastEndpointModel() isa L13aNWS.AbstractWeatherEndpointModel
 
         # the default handler parses the JSON text of each endpoint -
@@ -58,8 +58,40 @@ end
         @test table.shortForecast[2] == "Partly Cloudy"
 
         # a string that is not a URL is rejected before any network call -
-        @test_throws ArgumentError MyWeatherGridPointEndpointModel("api.weather.gov/points/42,-76")
+        @test_throws ArgumentError L13aNWS.api(MyWeatherGridPointEndpointModel, "api.weather.gov/points/42,-76")
         @test_throws ArgumentError L13aNWS._http_get_call_with_url("not a url")
+    end
+
+    @testset "L13a public API" begin
+        request_headers = Tuple{String,String}[]
+        function fixture_nws(request)
+            push!(request_headers, (HTTP.header(request, "User-Agent"), HTTP.header(request, "Accept")))
+            path = HTTP.URI(request.target).path
+            headers = ["Content-Type" => "application/geo+json"]
+            if startswith(path, "/points/")
+                return HTTP.Response(200, headers, POINTS_BODY)
+            elseif path == "/forecast"
+                return HTTP.Response(200, headers, FORECAST_BODY)
+            end
+            return HTTP.Response(404, headers, "{\"status\": 404}")
+        end
+        nws = HTTP.serve!(fixture_nws, "127.0.0.1", 8714; listenany = true)
+        try
+            base = "http://127.0.0.1:$(HTTP.port(nws))"
+            model = MyWeatherGridPointEndpointModel(latitude = 42.443961, longitude = -76.501881)
+            points = L13aNWS.api(MyWeatherGridPointEndpointModel, L13aNWS.url(base, model))
+            @test points["properties"]["gridId"] == "BGM"
+            forecast = L13aNWS.api(MyWeatherForecastEndpointModel, base * "/forecast")
+            @test length(forecast["properties"]["periods"]) == 2
+            table = L13aNWS.api(MyWeatherForecastEndpointModel, base * "/forecast";
+                handler = process_forecast_response_dataframe)
+            @test table isa DataFrame
+            @test table.temperature == [72, 74]
+            @test_throws ArgumentError L13aNWS.api(MyWeatherForecastEndpointModel, base * "/missing")
+            @test all(headers == ("CHEME-5800-L13a-Example", "application/geo+json") for headers in request_headers)
+        finally
+            close(nws)
+        end
     end
 
     @testset "L13a notebooks" begin
@@ -112,10 +144,10 @@ end
         @testset "supplied endpoint models and URLs" begin
             search_model = MyFredSeriesSearchEndpointModel(apikey = demo_key, search_text = "natural gas", limit = 5)
             @test search_model isa AbstractFredEndpointModel
-            @test build(base, search_model) ==
+            @test L13bFRED.url(base, search_model) ==
                 "$(base)/fred/series/search?search_text=natural%20gas&limit=5&api_key=$(demo_key)&file_type=json"
             series_model = MyFredSeriesEndpointModel(apikey = demo_key, series_id = "DHHNGSP")
-            @test build(base, series_model) == "$(base)/fred/series?series_id=DHHNGSP&api_key=$(demo_key)&file_type=json"
+            @test L13bFRED.url(base, series_model) == "$(base)/fred/series?series_id=DHHNGSP&api_key=$(demo_key)&file_type=json"
             defaults = MyFredSeriesObservationsEndpointModel()
             @test (defaults.observation_start, defaults.observation_end, defaults.frequency, defaults.units) ==
                 ("1776-07-04", "9999-12-31", "m", "lin")
@@ -168,7 +200,7 @@ end
         end
 
         @testset "student files and reference solutions" begin
-            # the student edits two files of the SDK; each has a reference solution beside it -
+            # the student edits two SDK files; their reference solutions are in src/solution -
             pairs = [("Factory.jl", "Factory-solution.jl"), ("Handler.jl", "Handler-solution.jl")]
             function code_lines(text)
                 lines = String[]
@@ -182,7 +214,7 @@ end
             end
             for (student, solution) in pairs
                 student_text = read(joinpath(L13B_ROOT, "src", student), String)
-                solution_text = read(joinpath(L13B_ROOT, "src", solution), String)
+                solution_text = read(joinpath(L13B_ROOT, "src", "solution", solution), String)
                 @test code_lines(student_text) == code_lines(solution_text) # the same code outside the TODO lines
             end
             factory_text = read(joinpath(L13B_ROOT, "src", "Factory.jl"), String)
@@ -192,20 +224,20 @@ end
             for (answer, student, solution) in (("observations?series_id=", "Factory.jl", "Factory-solution.jl"),
                     ("Date(date_string)", "Handler.jl", "Handler-solution.jl"), ("parse(Float64, value_string)", "Handler.jl", "Handler-solution.jl"))
                 @test !occursin(answer, read(joinpath(L13B_ROOT, "src", student), String)) # the student file omits the answer
-                @test occursin(answer, read(joinpath(L13B_ROOT, "src", solution), String))
+                @test occursin(answer, read(joinpath(L13B_ROOT, "src", "solution", solution), String))
             end
             @test :process_observations_response_dataframe in names(L13bFRED)
 
             # the setup file loaded the untouched student files: both functions throw the house error -
-            @test_throws ErrorException build(base, observations_model)
+            @test_throws ErrorException L13bFRED.url(base, observations_model)
             @test_throws ErrorException process_observations_response_dataframe(MyFredSeriesObservationsEndpointModel, observations_body)
 
             # the reference solutions, loaded into the module in place of the student files -
             for (student, solution) in pairs
-                Base.include(L13bFRED, joinpath(L13B_ROOT, "src", solution))
+                Base.include(L13bFRED, joinpath(L13B_ROOT, "src", "solution", solution))
             end
-            url = Base.invokelatest(build, base, observations_model)
-            @test url == "$(base)/fred/series/observations?series_id=DHHNGSP&observation_start=2025-01-01" *
+            observations_url = Base.invokelatest(L13bFRED.url, base, observations_model)
+            @test observations_url == "$(base)/fred/series/observations?series_id=DHHNGSP&observation_start=2025-01-01" *
                 "&observation_end=2025-01-08&frequency=d&units=lin&api_key=$(demo_key)&file_type=json"
             handler = process_observations_response_dataframe
             table = Base.invokelatest(handler, MyFredSeriesObservationsEndpointModel, observations_body)
@@ -241,19 +273,19 @@ end
             server = HTTP.serve!(local_fred, "127.0.0.1", 8713; listenany = true) # the first free port from 8713 up
             try
                 local_base = "http://127.0.0.1:$(HTTP.port(server))"
-                description = MyFredSeriesEndpointModel(build(local_base, MyFredSeriesEndpointModel(apikey = demo_key, series_id = "DHHNGSP")))
+                description = L13bFRED.api(MyFredSeriesEndpointModel, L13bFRED.url(local_base, MyFredSeriesEndpointModel(apikey = demo_key, series_id = "DHHNGSP")))
                 @test description["seriess"][1]["id"] == "DHHNGSP"
-                found = MyFredSeriesSearchEndpointModel(build(local_base, MyFredSeriesSearchEndpointModel(apikey = demo_key,
+                found = L13bFRED.api(MyFredSeriesSearchEndpointModel, L13bFRED.url(local_base, MyFredSeriesSearchEndpointModel(apikey = demo_key,
                     search_text = "natural gas", limit = 5)); handler = process_search_response_dataframe)
                 @test found.id == ["DHHNGSP", "MHHNGSP"]
-                live_table = Base.invokelatest(MyFredSeriesObservationsEndpointModel, Base.invokelatest(build, local_base, observations_model);
+                live_table = Base.invokelatest(L13bFRED.api, MyFredSeriesObservationsEndpointModel, Base.invokelatest(L13bFRED.url, local_base, observations_model);
                     handler = handler)
                 @test isequal(live_table.value, [missing, 3.65, 3.40, 4.05, 3.80, 3.75])
 
                 # a failed call: the message has the status code and the description from FRED, and never the key -
                 wrong_key = "00000000000000000000000000000000"
                 failure = try
-                    MyFredSeriesEndpointModel(build(local_base, MyFredSeriesEndpointModel(apikey = wrong_key, series_id = "DHHNGSP")))
+                    L13bFRED.api(MyFredSeriesEndpointModel, L13bFRED.url(local_base, MyFredSeriesEndpointModel(apikey = wrong_key, series_id = "DHHNGSP")))
                     nothing
                 catch exception
                     exception
@@ -267,14 +299,14 @@ end
             end
             # no server at this address: the message of our error does not show the URL or its key -
             unreachable = try
-                MyFredSeriesEndpointModel("http://127.0.0.1:9/fred/series?api_key=$(demo_key)")
+                L13bFRED.api(MyFredSeriesEndpointModel, "http://127.0.0.1:9/fred/series?api_key=$(demo_key)")
                 nothing
             catch exception
                 exception
             end
             @test unreachable isa ArgumentError && !occursin(demo_key, unreachable.msg)
             malformed = try
-                MyFredSeriesEndpointModel("api.stlouisfed.org/fred/series?api_key=$(demo_key)")
+                L13bFRED.api(MyFredSeriesEndpointModel, "api.stlouisfed.org/fred/series?api_key=$(demo_key)")
                 nothing
             catch exception
                 exception
@@ -303,7 +335,7 @@ end
             # no file that ships holds a key: the only 32 character key-like text is the example key of the documentation -
             shipped = [joinpath(L13B_ROOT, notebook), joinpath(L13B_ROOT, "Include.jl"),
                 joinpath(L13B_ROOT, "conf", "Configuration-template.toml")]
-            append!(shipped, [joinpath(L13B_ROOT, "src", file) for file in readdir(joinpath(L13B_ROOT, "src"))])
+            append!(shipped, [joinpath(folder, file) for (folder, _, files) in walkdir(joinpath(L13B_ROOT, "src")) for file in files if endswith(file, ".jl")])
             append!(shipped, [joinpath(DATA_DIR, file) for file in readdir(DATA_DIR) if startswith(file, "fred-")])
             for path in shipped
                 keys_found = [m.match for m in eachmatch(r"(?<![a-z0-9])[a-z0-9]{32}(?![a-z0-9])", read(path, String))]
@@ -541,7 +573,7 @@ end
 
         @testset "student file and reference solution" begin
             student_text = read(joinpath(L13D_ROOT, "src", "Tools.jl"), String)
-            solution_text = read(joinpath(L13D_ROOT, "src", "Tools-solution.jl"), String)
+            solution_text = read(joinpath(L13D_ROOT, "src", "solution", "Tools-solution.jl"), String)
             # cut each TODO region, from its comment to the first complete line after it, then compare the code -
             function without_todos(text)
                 text = replace(text, r"# TODO 1.*?(?=\n\s*observations_tool = build)"s => "# TODO 1")
@@ -612,7 +644,7 @@ end
 
         @testset "reference solution against a local FRED" begin
             # load the reference solution into the module in place of the student file -
-            Base.include(D, joinpath(L13D_ROOT, "src", "Tools-solution.jl"))
+            Base.include(D, joinpath(L13D_ROOT, "src", "solution", "Tools-solution.jl"))
             requests = String[] # every request that reaches the local FRED
             function local_fred(request)
                 push!(requests, request.target)
@@ -750,7 +782,7 @@ end
             # no file that ships holds a key: the only 32 character key-like text is the example key of the documentation -
             shipped = [joinpath(L13D_ROOT, notebook), joinpath(L13D_ROOT, "Include.jl"), joinpath(L13D_ROOT, "server.jl"),
                 joinpath(L13D_ROOT, "conf", "Configuration-template.toml")]
-            append!(shipped, [joinpath(L13D_ROOT, "src", file) for file in readdir(joinpath(L13D_ROOT, "src"))])
+            append!(shipped, [joinpath(folder, file) for (folder, _, files) in walkdir(joinpath(L13D_ROOT, "src")) for file in files if endswith(file, ".jl")])
             for path in shipped
                 keys_found = [m.match for m in eachmatch(r"(?<![a-z0-9])[a-z0-9]{32}(?![a-z0-9])", read(path, String))]
                 @test all(key -> key == demo_key, keys_found)

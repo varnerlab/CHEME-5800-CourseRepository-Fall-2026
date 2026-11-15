@@ -50,7 +50,7 @@ end
 # The FRED server code is wrapped in the `L13dFredMCP` module. The module imports
 # its dependencies, and the guard supports rerunning the notebook setup cell.
 #   src/Types.jl     the endpoint models, and the MCP tool, server, and client models
-#   src/Factory.jl   the build methods for the request URLs, the tools, and the server
+#   src/Factory.jl   url(...) for requests; build(...) for the tools and server
 #   src/Network.jl   the HTTP calls to FRED
 #   src/Handler.jl   the functions that process the FRED responses
 #   src/Utility.jl   read the configuration file that holds the API key

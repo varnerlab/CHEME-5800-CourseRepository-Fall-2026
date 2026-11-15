@@ -2,7 +2,7 @@
 # The tools of the weather server. Each tool is a handler function, plus the
 # name, description, and input schema that tell a client how to call it. The
 # handlers call the National Weather Service API through the endpoint models
-# and build methods of this folder.
+# and the url(...) and api(...) functions of this folder.
 # =============================================================================
 
 # --- PRIVATE METHODS BELOW HERE ------------------------------------------------------------------------------- #
@@ -41,8 +41,8 @@ function _call_points_endpoint(baseurl::String, latitude::Float64, longitude::Fl
 
     # build the endpoint model and the URL, then make the call. The default handler parses the JSON text -
     model = MyWeatherGridPointEndpointModel(latitude = latitude, longitude = longitude);
-    url = build(baseurl, model);
-    return MyWeatherGridPointEndpointModel(url);
+    points_url = url(baseurl, model);
+    return api(MyWeatherGridPointEndpointModel, points_url);
 end
 # --- PRIVATE METHODS ABOVE HERE ------------------------------------------------------------------------------- #
 
@@ -123,7 +123,7 @@ function get_hourly_forecast(arguments::AbstractDict, configuration::AbstractDic
     forecast_url = points["properties"]["forecastHourly"];
 
     # call the forecast endpoint. The handler returns the forecast as a table with one row per hour -
-    table = MyWeatherForecastEndpointModel(forecast_url; handler = process_forecast_response_dataframe);
+    table = api(MyWeatherForecastEndpointModel, forecast_url; handler = process_forecast_response_dataframe);
 
     # put the first rows of the table into a list of dictionaries, one per hour -
     periods = Array{Dict{String,Any},1}();

@@ -42,7 +42,7 @@ end
 # The weather service code is wrapped in the `L13aNWS` module. The module imports
 # its dependencies, and the guard supports rerunning the notebook setup cell.
 #   src/Types.jl     the endpoint models
-#   src/Factory.jl   the build methods for the request URLs
+#   src/Factory.jl   the url(...) methods for the request URLs
 #   src/Network.jl   the HTTP calls
 #   src/Handler.jl   the functions that process the responses
 if !isdefined(@__MODULE__, :L13aNWS)
@@ -63,6 +63,7 @@ using Test           # @test / @testset for the check in the example
 #
 # Packages:
 using DataFrames     # the forecast table
+using HTTP           # the direct HTTP request in Task 1
 using JSON           # parsing JSON text
 using PrettyTables   # formatted table output in the notebook
 #

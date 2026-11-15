@@ -116,8 +116,8 @@ function search_series(arguments::AbstractDict, configuration::AbstractDict)::Di
 
     # call FRED in three steps: the endpoint model, its URL, and the call with a handler that returns a table -
     model = MyFredSeriesSearchEndpointModel(apikey = apikey, search_text = search_text, limit = limit);
-    url = build(baseurl, model);
-    table = MyFredSeriesSearchEndpointModel(url; handler = process_search_response_dataframe);
+    request_url = url(baseurl, model);
+    table = api(MyFredSeriesSearchEndpointModel, request_url; handler = process_search_response_dataframe);
 
     # put each row of the table into a dictionary -
     series = Array{Dict{String,Any},1}();
@@ -163,8 +163,8 @@ function get_series_info(arguments::AbstractDict, configuration::AbstractDict)::
 
     # call FRED: the endpoint model, its URL, and the call. The default handler parses the JSON text -
     model = MyFredSeriesEndpointModel(apikey = apikey, series_id = series_id);
-    url = build(baseurl, model);
-    response = MyFredSeriesEndpointModel(url);
+    request_url = url(baseurl, model);
+    response = api(MyFredSeriesEndpointModel, request_url);
     description = response["seriess"][1]; # the first, and only, entry of the list
 
     # select the fields that a language model needs -
@@ -228,8 +228,8 @@ function get_series_observations(arguments::AbstractDict, configuration::Abstrac
     # TODO 2: download the observations as a table -
     model = MyFredSeriesObservationsEndpointModel(apikey = apikey, series_id = series_id,
         observation_start = observation_start, observation_end = observation_end, frequency = frequency, units = "lin");
-    url = build(baseurl, model);
-    table = MyFredSeriesObservationsEndpointModel(url; handler = process_observations_response_dataframe);
+    request_url = url(baseurl, model);
+    table = api(MyFredSeriesObservationsEndpointModel, request_url; handler = process_observations_response_dataframe);
     if (isnothing(table) == true) # this part is complete: a blank TODO 2 leaves nothing behind
         throw(ErrorException(message));
     end

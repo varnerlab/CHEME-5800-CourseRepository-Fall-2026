@@ -120,8 +120,8 @@ function search_series(arguments::AbstractDict, configuration::AbstractDict)::Di
 
     # call FRED in three steps: the endpoint model, its URL, and the call with a handler that returns a table -
     model = MyFredSeriesSearchEndpointModel(apikey = apikey, search_text = search_text, limit = limit);
-    url = build(baseurl, model);
-    table = MyFredSeriesSearchEndpointModel(url; handler = process_search_response_dataframe);
+    request_url = url(baseurl, model);
+    table = api(MyFredSeriesSearchEndpointModel, request_url; handler = process_search_response_dataframe);
 
     # put each row of the table into a dictionary -
     series = Array{Dict{String,Any},1}();
@@ -167,8 +167,8 @@ function get_series_info(arguments::AbstractDict, configuration::AbstractDict)::
 
     # call FRED: the endpoint model, its URL, and the call. The default handler parses the JSON text -
     model = MyFredSeriesEndpointModel(apikey = apikey, series_id = series_id);
-    url = build(baseurl, model);
-    response = MyFredSeriesEndpointModel(url);
+    request_url = url(baseurl, model);
+    response = api(MyFredSeriesEndpointModel, request_url);
     description = response["seriess"][1]; # the first, and only, entry of the list
 
     # select the fields that a language model needs -
@@ -230,7 +230,7 @@ function get_series_observations(arguments::AbstractDict, configuration::Abstrac
     end
 
     # TODO 2: download the observations as a table. Replace nothing with three lines: build the endpoint model
-    # from the checked arguments above (with units = "lin"), build its URL with baseurl, and call FRED with the
+    # from the checked arguments above (with units = "lin"), build its URL with url(...), and call api(...) with the
     # process_observations_response_dataframe handler.
     # Hint: the search_series(...) tool above follows the same three steps for the search endpoint.
     table = nothing;

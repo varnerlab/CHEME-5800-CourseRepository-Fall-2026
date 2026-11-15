@@ -38,8 +38,8 @@
       interact over a network, and an API is the set of rules used to access
       the service.
     \item \hilite{Read an HTTP request and response}: a request has a method, a
-      URL, headers, and a body. A response has a status code, headers, and a
-      body.
+      URL, headers, and an optional body. A response has a status code, headers,
+      and an optional body.
     \item \hilite{Explain how a RESTful API works}: follow a request through a
       RESTful web service, and map the create, read, update, and delete
       operations onto the HTTP methods.
@@ -151,8 +151,8 @@
 \end{frame}
 
 \begin{frame}{The HTTP Response}
-  A response has three parts: a \hilite{status code}, the \hilite{headers},
-  and the \hilite{body}. The first digit of the status code gives the class of
+  A response has a \hilite{status code}, \hilite{headers},
+  and an optional \hilite{body}. The first digit of the status code gives the class of
   the response:
 
   \vspace{0.2em}
@@ -323,8 +323,8 @@
       the server does not need to remember earlier requests from the client.
       Any one of many servers can answer the next request.
     \item \hilite{Uniform interface}: a small, well-known set of methods
-      operates on resource URLs. A developer who has used one RESTful API can
-      quickly understand another.
+      operates on resource URLs. Responses can include links that let the
+      client discover related resources.
     \item \hilite{Layered system}: the client does not need to know whether it
       is talking to a single program or to a chain of services. The developers
       can change the backend without changing the client.
@@ -339,7 +339,7 @@
   \vspace{0.5em}
   \begin{enumerate}\setlength{\itemsep}{0.5em}
     \item Build the URL of the points endpoint from a latitude and longitude,
-      and make an HTTP GET call.
+      make an HTTP GET call, and parse the JSON response.
     \item Read the URL of the hourly forecast from the response, and call the
       forecast endpoint.
     \item Pass a handler to the forecast call that returns the forecast as a
@@ -364,7 +364,7 @@
     \item \textbf{\ink{Web services and APIs.}} A client needs to know what to
       send to an endpoint and what to expect in return.
     \item \textbf{\ink{HTTP requests and responses.}} A request has a method,
-      a URL, headers, and a body. The status code of the response says whether
+      a URL, headers, and an optional body. The status code of the response says whether
       the request succeeded.
     \item \textbf{\ink{REST and the CRUD methods.}} Each resource has its own
       URL, and POST, GET, PUT or PATCH, and DELETE create, read, update, and
