@@ -21,6 +21,7 @@ There are two ways to use the course materials:
    contains: `.0` is the first meeting only, `.1` the first two, `.3` the complete
    week. Every release contains everything in the earlier ones, so always download
    the most recent release for the week. Corrections ship with the next release.
+   **Week 13 exception:** `week-13.0` contains all four meetings, released together.
 2. **Clone the repository (for Git users).** The complete authoring repository is
    available at
    [varnerlab/CHEME-5800-CourseRepository-Fall-2026](https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026).

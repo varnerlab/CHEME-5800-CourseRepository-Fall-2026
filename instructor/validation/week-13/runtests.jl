@@ -550,11 +550,24 @@ end
             # the example ships with its outputs, no cell ended in an error, and no output shows a local path -
             example_cells = JSON.parsefile(joinpath(L13C_ROOT, example))["cells"]
             code_cells = [cell for cell in example_cells if cell["cell_type"] == "code"]
-            @test count(cell -> !isempty(cell["outputs"]), code_cells) >= 8
+            # Discovery, tool list, schema, location, forecast, and the two error examples show outputs.
+            @test count(cell -> !isempty(cell["outputs"]), code_cells) >= 7
             @test all(output["output_type"] != "error" for cell in code_cells for output in cell["outputs"])
             outputs_text = JSON.json([cell["outputs"] for cell in code_cells])
             @test !occursin("/Users/", outputs_text) && !occursin(homedir(), outputs_text)
-            @test occursin("Weather server", outputs_text) && occursin("Pass", outputs_text) # the check cell ran and passed
+            @test occursin("cheme-5800-weather", outputs_text)
+            @test occursin("get_location", outputs_text) && occursin("get_hourly_forecast", outputs_text)
+            function saved_stdout(source_fragment)
+                cell = only(filter(cell -> occursin(source_fragment, join(cell["source"])), code_cells))
+                return join(join(output["text"]) for output in cell["outputs"]
+                    if output["output_type"] == "stream" && output["name"] == "stdout")
+            end
+            location = JSON.parse(saved_stdout("location_response = calltool("))["result"]
+            @test location["isError"] == false && location["structuredContent"]["forecast_office"] == "BGM"
+            @test JSON.parse(saved_stdout("unknown_response = calltool("))["error"]["code"] == -32602
+            @test JSON.parse(saved_stdout("paris_response = calltool("))["result"]["isError"] == true
+            forecast_text = saved_stdout("forecast_response = calltool(")
+            @test length(collect(eachmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", forecast_text))) == 6
         end
     end
 end

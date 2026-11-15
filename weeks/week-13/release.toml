@@ -1,8 +1,8 @@
 schema_version = 2
 week = 13
-version = "1.0-prototype"
-status = "prototype"
-cadence = "meeting"
+version = "1.0"
+status = "ready"
+cadence = "week"
 title = "REST clients and MCP servers"
 languages = ["Julia"]
 entry_notebooks = [
@@ -15,13 +15,16 @@ entry_notebooks = [
 ]
 supporting_notebooks = []
 datasets = [
+  "L13a/figs/Fig-Client-Server/Fig-Client-Server.svg",
   "L13a/figs/Fig-HTTP-Messages/Fig-HTTP-Messages.svg",
   "L13a/figs/Fig-URL-Anatomy/Fig-URL-Anatomy.svg",
   "L13a/figs/Fig-JSON-Tree/Fig-JSON-Tree.svg",
   "L13a/figs/Fig-REST-Cycle/Fig-REST-Cycle.svg",
   "L13a/figs/Fig-CRUD-Methods/Fig-CRUD-Methods.svg",
+  "L13a/slides/CHEME-5800-L13a-Slides-Fall-2026.pdf",
   "L13c/figs/Fig-MCP-Architecture/Fig-MCP-Architecture.svg",
   "L13c/figs/Fig-MCP-ToolCall/Fig-MCP-ToolCall.svg",
+  "L13c/slides/CHEME-5800-L13c-Slides-Fall-2026.pdf",
   "L13c/messages/1-discover-request.json",
   "L13c/messages/1-discover-response.json",
   "L13c/messages/2-list-request.json",
@@ -39,7 +42,7 @@ datasets = [
   "data/fred-series-observations.fixture.json",
   "data/fred-error.fixture.json",
 ]
-student_paths = ["README.md", "L13a", "data"]
+student_paths = ["README.md", "L13a", "L13b", "L13c", "L13d", "data"]
 instructor_only_paths = ["../../instructor/validation/week-13"]
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-13/runtests.jl"

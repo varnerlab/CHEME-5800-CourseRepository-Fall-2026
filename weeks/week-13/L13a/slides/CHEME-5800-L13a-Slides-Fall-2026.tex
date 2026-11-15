@@ -8,7 +8,7 @@
 % Terms follow the lecture: web service, API, client, server, endpoint, the four
 % parts of a request (method, URL, headers, body), the three parts of a response
 % (status code, headers, body), JSON objects, arrays, and values, resource, the
-% four-step request-response cycle, CRUD, and safe and idempotent methods.
+% four-step request-response cycle, CRUD, and the three REST features.
 \documentclass[aspectratio=169,11pt]{beamer}
 \usepackage{vnslides}
 \renewcommand{\vnlecturecode}{L13a}
@@ -239,18 +239,14 @@
 \begin{frame}{The Four Steps of the Cycle}
   \begin{enumerate}\setlength{\itemsep}{0.6em}
     \item \hilite{Client $\rightarrow$ REST API}: the client sends an HTTPS
-      request to an endpoint. It selects the HTTP method, and encodes any data
-      in the body, typically as JSON.
-    \item \hilite{REST API internals}: the API maps the endpoint to a handler
-      function (routing). The handler checks the client and its inputs
-      (validation), parses the JSON in the request, and converts the result
-      back into JSON (serialization).
-    \item \hilite{REST API $\rightarrow$ backend services}: the handler gets
-      data from a database or another web service, often with a protocol other
-      than HTTP.
-    \item \hilite{REST API $\rightarrow$ client}: the API converts the result
-      into a JSON response, attaches a status code, and sends the response back
-      over HTTPS.
+      request with a method, URL, headers, and optional body. A header can
+      carry an API key.
+    \item \hilite{REST API internals}: the API routes the request to a handler.
+      The handler checks the client's access and validates the inputs.
+    \item \hilite{REST API $\rightarrow$ backend services}: when needed, the
+      handler reads or updates data in a database or another web service.
+    \item \hilite{REST API $\rightarrow$ client}: the API returns an HTTPS
+      response with a status code, headers, and an optional body, typically JSON.
   \end{enumerate}
   \lecturesource{RESTful Web Services: the four steps of the request-response cycle.}
 \end{frame}
@@ -297,39 +293,24 @@
   \lecturesource{HTTP Methods and CRUD: the experiment records service and the CRUD table.}
 \end{frame}
 
-\begin{frame}{Safe and Idempotent Methods}
-  \begin{itemize}\setlength{\itemsep}{0.6em}
-    \item \hilite{Safe}: the method only reads data. Of the five methods, only
-      \code{GET} is safe.
-    \item \hilite{Idempotent}: sending the same request many times has the
-      same effect on the server as sending it once. \code{GET}, \code{PUT},
-      and \code{DELETE} are idempotent.
-    \item \code{POST} is not idempotent: in our example, sending the same
-      \code{POST} request twice creates two records.
-  \end{itemize}
-
-  \vspace{0.5em}
-  A client can send an idempotent request again after a timeout.
-  \lecturesource{HTTP Methods and CRUD: safe and idempotent methods and the timeout paragraph.}
-\end{frame}
-
 \begin{frame}{Why Are RESTful Web Services so Popular?}
-  RESTful web services have become the standard for building web APIs. Three
-  principles of the architecture explain why:
+  Three features make RESTful web services easier to build and use:
 
   \vspace{0.4em}
   \begin{itemize}\setlength{\itemsep}{0.6em}
-    \item \hilite{Statelessness}: each request is complete on its own, and
-      the server does not need to remember earlier requests from the client.
-      Any one of many servers can answer the next request.
-    \item \hilite{Uniform interface}: a small, well-known set of methods
-      operates on resource URLs. Responses can include links that let the
-      client discover related resources.
-    \item \hilite{Layered system}: the client does not need to know whether it
-      is talking to a single program or to a chain of services. The developers
-      can change the backend without changing the client.
+    \item \hilite{Statelessness}: each request contains the information needed
+      to process it. Multiple servers can share the work without maintaining
+      client session state.
+    \item \hilite{Uniform interface}: services share standard HTTP methods.
+      Each service can define its own data structure, typically using JSON.
+      Developers can introduce a new API version at \code{/v2/experiments}
+      while retaining \code{/v1/experiments} for existing clients.
+    \item \hilite{Layered system}: clients access the service through a
+      consistent interface. The servers behind that interface can change or
+      scale independently. These changes are transparent to the client, which
+      does not need to know how the service is implemented.
   \end{itemize}
-  \lecturesource{Why Are RESTful Web Services so Popular?: the three principles.}
+  \lecturesource{Why Are RESTful Web Services so Popular?: the three features.}
 \end{frame}
 
 \begin{frame}{Example: The National Weather Service API}
@@ -347,8 +328,8 @@
   \end{enumerate}
 
   \vspace{0.5em}
-  The NWS API publishes resources that a client can read but not change. Every
-  call in the example uses the \code{GET} method.
+  The NWS API provides read-only access to weather data. Every call in our
+  example uses the \code{GET} method to retrieve a resource.
   \slidenote{Example:}{\href{\examplelink}{A software development kit for the National Weather Service API}}
   \lecturesource{Why Are RESTful Web Services so Popular?: the example box. HTTP Methods and CRUD: the read-only paragraph. Companion example: Tasks 1--3.}
 \end{frame}

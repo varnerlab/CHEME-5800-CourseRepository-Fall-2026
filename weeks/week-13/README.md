@@ -4,6 +4,8 @@ Week 13 connects two ways of exposing computational capabilities. Students first
 call documented REST services from Julia, then wrap the same services in Julia
 MCP servers that a language model application can call.
 
+Release `week-13.0` includes all four sessions, both slide decks, and the lab reference solutions.
+
 ## Session sequence
 
 | Session | Topic | Language | Notebook |
@@ -27,9 +29,11 @@ The L13a lecture and example are ported from the Fall 2025 CHEME 5800 networking
 National Weather Service example, and from the CHEME 142 web services module. The L13a code follows
 the layout of the week 7 BiGG download code. The L13a lecture has a slide deck in its `slides` folder.
 
-The L13b lab is new for Fall 2026. Its code follows the layout of the L13a example, and its configuration file follows the Fall 2024 Polygon example. Students complete the `build` method of the FRED observations endpoint in `L13b/src/Factory.jl` and its handler in `L13b/src/Handler.jl`. The reference solutions are `Factory-solution.jl` and `Handler-solution.jl` in the same folder.
+The L13b lab is new for Fall 2026. Its code follows the layout of the L13a example, and its configuration file follows the Fall 2024 Polygon example. Students complete the `url(...)` method of the FRED observations endpoint in `L13b/src/Factory.jl` and its handler in `L13b/src/Handler.jl`. The reference solutions are [Factory-solution.jl](L13b/src/solution/Factory-solution.jl) and [Handler-solution.jl](L13b/src/solution/Handler-solution.jl) in `L13b/src/solution`.
 
-The L13c lecture, the L13c example, and the L13d lab were rebuilt for Fall 2026 from the Julia MCP server of the CHEME 142 module, and updated to protocol version `2026-07-28`. The L13c weather server wraps the L13a SDK, and the L13d FRED server wraps the completed L13b SDK. Students complete the input schema and the handler of the `get_series_observations` tool in `L13d/src/Tools.jl`. The reference solution is `Tools-solution.jl` in the same folder.
+The L13c lecture, the L13c example, and the L13d lab were rebuilt for Fall 2026 from the Julia MCP server of the CHEME 142 module, and updated to protocol version `2026-07-28`. The L13c weather server wraps the L13a SDK, and the L13d FRED server wraps the completed L13b SDK. Students complete the input schema and the handler of the `get_series_observations` tool in `L13d/src/Tools.jl`. The reference solution is [Tools-solution.jl](L13d/src/solution/Tools-solution.jl) in `L13d/src/solution`.
+
+The L13c lecture has a [slide deck](L13c/slides/CHEME-5800-L13c-Slides-Fall-2026.pdf) in its [slides folder](L13c/slides/README.md), with editable LaTeX source and build instructions.
 
 ## Instructor validation
 
