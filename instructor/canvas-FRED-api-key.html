@@ -1,0 +1,157 @@
+<!--
+INSTRUCTOR-FACING CANVAS COPY
+
+Post this page before the L13b lab.
+Keep the inline styles: they carry the code colors and gray backgrounds into Canvas.
+
+1. Open this file on GitHub and select Download raw file.
+2. Open the downloaded .html file in a web browser; it will render as a page.
+3. Select the rendered page (Command+A on macOS or Ctrl+A on Windows).
+4. Copy it, then paste it into the ordinary Canvas page editor.
+5. Preview the Canvas page and verify the two links before publishing.
+-->
+
+<h2>Get a FRED API key for the Week 13 labs</h2>
+
+<p>
+  <strong>Needed for:</strong> the L13b and L13d labs<br>
+  <strong>Cost:</strong> free<br>
+  <strong>Time:</strong> about 10 minutes
+</p>
+
+<p>
+  FRED (Federal Reserve Economic Data) is a free database of economic time
+  series from the Federal Reserve Bank of St. Louis. In the L13b lab, you will
+  build a small Julia client for the FRED API. In the L13d lab, you will build
+  an MCP server that calls the same API.
+</p>
+
+<p>
+  FRED identifies each client by an <strong>API key</strong>, a string of 32
+  lowercase letters and numbers. Every request to FRED carries the key. Each
+  student must use their own key, so please get yours before the L13b lab.
+</p>
+
+<h3>Step 1: Create a FRED account</h3>
+
+<ol>
+  <li>
+    Go to
+    <a href="https://fredaccount.stlouisfed.org/apikeys">fredaccount.stlouisfed.org/apikeys</a>.
+  </li>
+  <li>
+    Create a free account, or sign in if you already have one. You can use your
+    Cornell email address.
+  </li>
+  <li>Confirm your email address if FRED sends you a confirmation link.</li>
+</ol>
+
+<h3>Step 2: Request an API key</h3>
+
+<ol>
+  <li>
+    On the <strong>API Keys</strong> page, select <strong>Request API Key</strong>.
+  </li>
+  <li>
+    FRED asks how you will use the key. A short answer is enough, for example:
+    <em>Class labs for CHEME 4800/5800 at Cornell University.</em>
+  </li>
+  <li>Agree to the terms of use and submit the request.</li>
+  <li>
+    Your new key appears on the <strong>API Keys</strong> page. You can return
+    to this page at any time to view it again.
+  </li>
+</ol>
+
+<h3>Step 3: Store the key for the L13b lab</h3>
+
+<p>
+  The lab reads your key from a configuration file, not from the notebook. A key
+  typed into a notebook goes to everyone who gets a copy of the notebook. The
+  configuration file stays on your computer.
+</p>
+
+<ol>
+  <li>
+    In the L13b lab folder, open the <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">conf</code> folder.
+  </li>
+  <li>
+    Copy <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">Configuration-template.toml</code> to a new file named
+    <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">Configuration.toml</code> in the same folder.
+  </li>
+  <li>
+    In <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">Configuration.toml</code>, replace the text between the quotes on the
+    <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">apikey</code> line with your key, and save the file.
+  </li>
+</ol>
+
+<p>
+  Keep the quotes and leave the <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">baseurl</code> line as it is.
+  The finished file looks like this, with your own key in place of the
+  example key:
+</p>
+
+<pre style="display: block; padding: 10px; margin: 0 0 10px; color: #333333; background-color: #f5f5f5; border: 1px solid #cccccc; border-radius: 4px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 13px; line-height: 1.5; white-space: pre-wrap;"><code style="color: #333333; background-color: #f5f5f5; padding: 0; font-family: inherit; font-size: inherit;">[connection]
+apikey = "abcdefghijklmnopqrstuvwxyz012345"
+baseurl = "https://api.stlouisfed.org"</code></pre>
+
+<h3>Step 4: Reuse the key for the L13d lab</h3>
+
+<p>
+  The L13d lab has the same <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">conf</code> folder. Copy your finished
+  <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">Configuration.toml</code> from the L13b
+  <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">conf</code> folder into the L13d
+  <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">conf</code> folder. You do not need a second key.
+</p>
+
+<h3>Keep your key private</h3>
+
+<p>
+  Treat your API key like a password. Requests made with your key count
+  against your account.
+</p>
+
+<ul>
+  <li>Do not paste your key into a notebook, a Canvas submission, or Ed Discussion.</li>
+  <li>Do not share your key with classmates. Each student needs their own key.</li>
+  <li>
+    Do not commit <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">Configuration.toml</code> to GitHub. The
+    <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">.gitignore</code> file in each
+    <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">conf</code> folder already tells git to skip it.
+  </li>
+</ul>
+
+<p>
+  If you think your key was exposed, delete it on the
+  <a href="https://fredaccount.stlouisfed.org/apikeys">FRED API Keys page</a>
+  and request a new one. Then paste the new key into your configuration files.
+</p>
+
+<h3>If the lab cannot read your key</h3>
+
+<p>
+  The lab checks the configuration file before it calls FRED. If something is
+  wrong, the error message says what to fix. The most common problems are:
+</p>
+
+<ul>
+  <li>
+    <strong>The file is missing.</strong> The file must be named exactly
+    <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">Configuration.toml</code> and sit in the
+    <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">conf</code> folder of the lab. On Windows, check that the editor
+    did not save it as <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">Configuration.toml.txt</code>.
+  </li>
+  <li>
+    <strong>The key has the wrong length.</strong> A FRED key has exactly 32
+    characters. Copy the key again, without spaces before or after it.
+  </li>
+  <li>
+    <strong>The quotes are missing.</strong> The key must sit between the two
+    quote marks on the <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">apikey</code> line.
+  </li>
+</ul>
+
+<p>
+  If you are still stuck, post your question on Ed Discussion or come to
+  office hours. Describe the error message, but do not include your key.
+</p>
