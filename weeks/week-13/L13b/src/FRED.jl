@@ -17,10 +17,10 @@ module L13bFRED
     include("Network.jl") # the HTTP calls
 
     # These call the student versions, comment out these lines, and load the solution versions to see how they work.
-    include("Factory.jl") # the url(...) methods for the request URLs
-    include("Handler.jl") # the functions that process the responses
+    #include("Factory.jl") # the url(...) methods for the request URLs
+    #include("Handler.jl") # the functions that process the responses
 
     # uncomment the next two lines to load the solutions for Factory.jl and Handler.jl. The solution code is in the `solution` subdirectory.
-    # include(joinpath(@__DIR__, "solution", "Factory-solution.jl")) # the url(...) methods for the request URLs
-    # include(joinpath(@__DIR__, "solution", "Handler-solution.jl")) # the functions that process the responses
+    include(joinpath(@__DIR__, "solution", "Factory-solution.jl")) # the url(...) methods for the request URLs
+    include(joinpath(@__DIR__, "solution", "Handler-solution.jl")) # the functions that process the responses
 end
