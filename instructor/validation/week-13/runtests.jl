@@ -522,7 +522,7 @@ end
             @test occursin(example, lecture_text) # the lecture links the example
             lecture_cells = JSON.parsefile(joinpath(L13C_ROOT, lecture))["cells"]
             @test all(cell["cell_type"] == "markdown" for cell in lecture_cells)
-            for figure in ("Fig-MCP-Architecture", "Fig-MCP-ToolCall")
+            for figure in ("Fig-MCP-Architecture", "Fig-MCP-Connections", "Fig-MCP-RunsWhere", "Fig-MCP-ToolCall")
                 @test occursin("figs/$(figure)/$(figure).svg", lecture_text)
             end
             # the lecture links the recorded messages instead of showing them. Each pair is one exchange:

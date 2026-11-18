@@ -53,8 +53,8 @@
 
   In this lecture, we introduce the Model Context Protocol (MCP), an open
   standard that connects language model applications to tools. We define the
-  roles in an MCP system, follow the messages of a tool call, and look at what
-  the host and the server check before a tool runs.
+  roles in an MCP system, follow the messages of a tool call, and step through
+  the loop that our server runs for each message.
 
   \vspace{1.1em}
   \textbf{\ink{Example:}}
@@ -87,27 +87,19 @@
 \end{frame}
 
 \begin{frame}{The Model Context Protocol}
-  The \hilite{Model Context Protocol (MCP)} is an open standard that
-  connects applications to tools.
+  The \hilite{Model Context Protocol (MCP)}, released by Anthropic in
+  November 2024, is an open standard that connects applications to tools.
+
+  \vspace{0.6em}
+  \centering
+  \includegraphics[width=\textwidth,height=0.45\paperheight,keepaspectratio]{assets/Fig-MCP-Connections.pdf}
 
   \vspace{0.5em}
-  Without a standard, each application needs its own connection code for
-  each program that offers tools. For $M$ applications and $N$ programs, the
-  number of pieces of code is:
-  \[
-    \underbrace{M\times N}_{\text{without MCP (at most)}}
-    \qquad\text{versus}\qquad
-    \underbrace{M+N}_{\text{with MCP}}.
-  \]
-
-  \vspace{0.5em}
-  Anthropic released MCP in November 2024. It donated the protocol to the
-  Agentic AI Foundation of the Linux Foundation in December 2025.
-
-  \vspace{0.4em}
-  We use \href{\speclink}{version \code{2026-07-28} of the MCP specification}.
-  \lecturesource{Language Models and Tools: the integration count, history, and specification version.
-    Official specification: https://modelcontextprotocol.io/specification/2026-07-28.}
+  \raggedright
+  With MCP, each application and each program implements the protocol once.
+  Every application can then use every program.
+  \lecturesource{Language Models and Tools: the MCP definition and the connection-code figure and caption.
+    Figure: ../figs/Fig-MCP-Connections/Fig-MCP-Connections.pdf (light TikZ build).}
 \end{frame}
 
 \begin{frame}{Hosts, Clients, and Servers}
@@ -122,7 +114,7 @@
       which tool calls to run.
     \item \hilite{Client}: each client runs inside the host and exchanges
       MCP messages with one server.
-    \item \hilite{Server}: a server offers tools. The tools of our Julia
+    \item \hilite{Server}: a server offers tools. The tools of our MCP
       servers call the NWS and FRED APIs over HTTPS.
   \end{itemize}
   \lecturesource{Hosts, Clients, and Servers: the architecture figure and three role definitions.
@@ -147,6 +139,31 @@
   For a server on another computer, the protocol also defines the
   \hilite{Streamable HTTP} transport.
   \lecturesource{Hosts, Clients, and Servers: transport, stdio, one line per message, standard error, and Streamable HTTP.}
+\end{frame}
+
+\begin{frame}{What Runs Where}
+  \centering
+  \includegraphics[width=\textwidth,height=0.55\paperheight,keepaspectratio]{assets/Fig-MCP-RunsWhere.pdf}
+
+  \vspace{0.5em}
+  \raggedright
+  Messages between our MCP clients and servers stay on the user's computer.
+  A coding assistant such as Claude Code reaches its LLM over HTTPS.
+  \lecturesource{Hosts, Clients, and Servers: the what-runs-where figure and its caption.
+    Figure: ../figs/Fig-MCP-RunsWhere/Fig-MCP-RunsWhere.pdf (light TikZ build).}
+\end{frame}
+
+\begin{frame}{Permissions and Prompt Injection}
+  By default, a stdio server runs with the same permissions as the host. The
+  server can read or change any file that the host can. Install only MCP
+  servers whose code you trust.
+
+  \vspace{1.0em}
+  The host passes each tool result, including text from a web API, to the LLM.
+  \hilite{Prompt injection} happens when that text tells the LLM to do
+  something the user did not ask for. User approval of each tool call can stop
+  an injected instruction from running a tool.
+  \lecturesource{Hosts, Clients, and Servers: the permissions of a stdio server and prompt injection.}
 \end{frame}
 
 \begin{frame}{One Tool Call}

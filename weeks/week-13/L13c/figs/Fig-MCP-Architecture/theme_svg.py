@@ -19,7 +19,7 @@ from xml.etree import ElementTree
 DARK_COLORS = {
     (32, 33, 36): "#e3e6ea",     # vnink: text, box edges, and the HTTPS arrows
     (0, 145, 255): "#4fb0ff",    # gdblue: the MCP arrows and the host outline
-    (109, 114, 120): "#a7adb4",  # gdgray: notes and the model-to-client lines
+    (109, 114, 120): "#a7adb4",  # gdgray: notes and the arrow between the model and the host
     (238, 240, 242): "#4a5263",  # waband: the boxes
     (255, 255, 255): "#262a31",  # nodefill: the boxes inside the host
 }

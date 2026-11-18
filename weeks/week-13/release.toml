@@ -1,6 +1,6 @@
 schema_version = 2
 week = 13
-version = "1.0"
+version = "1.1"
 status = "ready"
 cadence = "week"
 title = "REST clients and MCP servers"
@@ -23,6 +23,8 @@ datasets = [
   "L13a/figs/Fig-CRUD-Methods/Fig-CRUD-Methods.svg",
   "L13a/slides/CHEME-5800-L13a-Slides-Fall-2026.pdf",
   "L13c/figs/Fig-MCP-Architecture/Fig-MCP-Architecture.svg",
+  "L13c/figs/Fig-MCP-Connections/Fig-MCP-Connections.svg",
+  "L13c/figs/Fig-MCP-RunsWhere/Fig-MCP-RunsWhere.svg",
   "L13c/figs/Fig-MCP-ToolCall/Fig-MCP-ToolCall.svg",
   "L13c/slides/CHEME-5800-L13c-Slides-Fall-2026.pdf",
   "L13c/messages/1-discover-request.json",

@@ -44,6 +44,7 @@ Send one JSON-RPC request to the server, and return the response of the server.
 
 The function adds the `_meta` field that protocol version 2026-07-28 requires on every request:
 the protocol version, the capabilities of the client, and the name of the client.
+If the server has exited, e.g., after `close(client)`, the function throws an error that says to start a new server.
 
 ### Arguments
 - `client::MyMCPClientModel`: the client, connected to a server.
@@ -54,6 +55,11 @@ the protocol version, the capabilities of the client, and the name of the client
 - `Dict{String,Any}`: the response message, with either a `result` field or an `error` field.
 """
 function send_request(client::MyMCPClientModel, method::String, params::Dict{String,Any})::Dict{String,Any}
+
+    # the server must still be running. After close(client), the server has exited, and we need a new server -
+    if (process_running(client.process) == false)
+        throw(ErrorException("the server has exited. Rerun the cell that calls connect(...) to start a new server"));
+    end
 
     # copy the parameters, so we do not change the dictionary of the caller -
     params = copy(params);

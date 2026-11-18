@@ -1,11 +1,13 @@
 % L13c figure: the architecture of the Model Context Protocol (MCP).
 %
-% A user talks to a host. Inside the host, a language model and one client for
-% each server. Each client exchanges MCP messages with one server. Each server
-% calls a web API over HTTPS: the weather server calls the NWS API, and the
-% FRED server calls the FRED API.
+% A user and a language model each talk to a host. Inside the host, one client
+% for each server. Each client exchanges MCP messages with one server. Each
+% server calls a web API over HTTPS: the weather server calls the NWS API, and
+% the FRED server calls the FRED API.
 %
 % Drawn on November 12, 2026 with the palette and build of the L13a figures.
+% On November 18, 2026 the language model moved outside the host, to agree with
+% the what-runs-where figure, where the LLM runs on a remote server.
 % The notebook SVG carries a dark palette added by theme_svg.py; keep new
 % colors in that script's mapping when changing the palette here.
 \documentclass[tikz,border=4pt]{standalone}
@@ -34,25 +36,25 @@
   msg/.style={font=\sffamily\normalsize, text=vnink, align=center},
   mcp/.style={<->, line width=1.0pt, draw=gdblue},
   https/.style={<->, line width=1.0pt, draw=vnink},
-  local/.style={line width=0.7pt, draw=gdgray}
+  local/.style={<->, line width=1.0pt, draw=gdgray}
 ]
 
 % ------------------------------------------------------------ the host
-\node[inner] (model)  at (0.0, 0.0)  {Language\\model};
 \node[inner] (client1) at (4.6, 1.5)  {Client};
 \node[inner] (client2) at (4.6, -1.5) {Client};
-\draw[local] (model.east) -- (client1.west);
-\draw[local] (model.east) -- (client2.west);
 \begin{scope}[on background layer]
   \node[draw=gdblue, rounded corners=6pt, line width=1.0pt, fill=waband,
-    fit=(model)(client1)(client2), inner xsep=10pt, inner ysep=12pt] (host) {};
+    fit=(client1)(client2), inner xsep=14pt, inner ysep=12pt] (host) {};
 \end{scope}
 \node[font=\sffamily\large\bfseries, text=vnink, anchor=south] at (host.north) {Host};
 \node[note, anchor=north] at ($(host.south)+(0,-0.15)$) {a chat app, a coding assistant,\\or our notebook};
 
-% ------------------------------------------------------------ the user
-\node[box, minimum width=2.4cm] (user) at (-5.0, 0.0) {User};
-\draw[https] (user.east) -- (host.west);
+% ---------------------------------------- the language model and the user
+% The host sends the user's questions to the language model, so both talk to the host.
+\node[box] (model) at (-0.6, 1.5)  {Language\\model};
+\node[box] (user)  at (-0.6, -1.5) {User};
+\draw[local] (model.east) -- (model.east -| host.west);
+\draw[https] (user.east) -- (user.east -| host.west);
 
 % ------------------------------------------------------------ the servers
 \node[box] (server1) at (11.6, 1.5)  {Weather\\server};

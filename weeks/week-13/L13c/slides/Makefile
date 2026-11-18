@@ -8,7 +8,7 @@ BUILD_DIR ?= ../../../../build/slides/L13c
 
 STYLES := vnslides.sty vnslides-base.sty vnflow.sty
 SEAL := assets/cornell-seal.pdf
-FIGURE_STEMS := Fig-MCP-Architecture Fig-MCP-ToolCall
+FIGURE_STEMS := Fig-MCP-Architecture Fig-MCP-Connections Fig-MCP-RunsWhere Fig-MCP-ToolCall
 FIGURES := $(foreach stem,$(FIGURE_STEMS),assets/$(stem).pdf)
 
 .DEFAULT_GOAL := slides

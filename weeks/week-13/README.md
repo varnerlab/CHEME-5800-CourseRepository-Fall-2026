@@ -12,7 +12,7 @@ Release `week-13.0` includes all four sessions, both slide decks, and the lab re
 |---|---|---|---|
 | L13a | RESTful web services, HTTP requests and responses, and the CRUD methods | Julia | [Lecture](L13a/CHEME-5800-L13a-Lecture-RESTJSONAndSchemas-Fall-2026.ipynb) and [example](L13a/CHEME-5800-L13a-Example-RESTful-NWS-Fall-2026.ipynb) |
 | L13b | A software development kit for three endpoints of the FRED API | Julia | [Lab](L13b/CHEME-5800-L13b-Lab-RESTful-FRED-Fall-2026.ipynb) |
-| L13c | The Model Context Protocol: hosts, clients, servers, tool calls, and trust boundaries | Julia | [Lecture](L13c/CHEME-5800-L13c-Lecture-ModelContextProtocol-Fall-2026.ipynb) and [example](L13c/CHEME-5800-L13c-Example-MCP-NWS-Fall-2026.ipynb) |
+| L13c | The Model Context Protocol: hosts, clients, servers, tool calls, and the server loop | Julia | [Lecture](L13c/CHEME-5800-L13c-Lecture-ModelContextProtocol-Fall-2026.ipynb) and [example](L13c/CHEME-5800-L13c-Example-MCP-NWS-Fall-2026.ipynb) |
 | L13d | An MCP server for the FRED API | Julia | [Lab](L13d/CHEME-5800-L13d-Lab-MCP-FRED-Fall-2026.ipynb) |
 
 ## Data and execution contracts

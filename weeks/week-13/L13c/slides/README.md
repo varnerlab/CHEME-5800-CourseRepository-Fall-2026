@@ -2,7 +2,7 @@
 
 [PDF deck](CHEME-5800-L13c-Slides-Fall-2026.pdf) · [Editable LaTeX source](CHEME-5800-L13c-Slides-Fall-2026.tex)
 
-The 22-slide deck follows [The Model Context Protocol lecture](../CHEME-5800-L13c-Lecture-ModelContextProtocol-Fall-2026.ipynb) in its order. It introduces language models and tools, explains the integration count, and defines hosts, clients, servers, and transports. It then follows JSON-RPC messages through server discovery, tool listing, and a tool call.
+The 24-slide deck follows [The Model Context Protocol lecture](../CHEME-5800-L13c-Lecture-ModelContextProtocol-Fall-2026.ipynb) in its order. It introduces language models and tools, explains the integration count, and defines hosts, clients, servers, and transports. It shows what runs on the user's computer and what runs on remote servers, the permissions of a stdio server, and prompt injection. It then follows JSON-RPC messages through server discovery, tool listing, and a tool call.
 
 The deck covers protocol errors and tool execution errors, and the server loop. It closes with the NWS example, the FRED lab, and three key takeaways aligned with the three opening learning objectives.
 
@@ -20,7 +20,7 @@ make
 
 Requirements: XeLaTeX, `latexmk`, and the standard LaTeX packages used by the L13a deck, plus `fancyvrb` for JSON excerpts. The style uses Helvetica Neue when available and includes font fallbacks. The PDF is written here; intermediate files go to the repository's ignored `build/slides/L13c/` directory.
 
-`make figures` copies the lecture's two light TikZ PDFs into `assets/` unchanged. Their editable sources remain in the [architecture figure folder](../figs/Fig-MCP-Architecture/) and the [tool-call figure folder](../figs/Fig-MCP-ToolCall/).
+`make figures` copies the lecture's four light TikZ PDFs into `assets/` unchanged. Their editable sources remain in the [connection-code figure folder](../figs/Fig-MCP-Connections/), the [architecture figure folder](../figs/Fig-MCP-Architecture/), the [what-runs-where figure folder](../figs/Fig-MCP-RunsWhere/), and the [tool-call figure folder](../figs/Fig-MCP-ToolCall/).
 
 `make clean` removes intermediate LaTeX files. `make distclean` also removes the generated deck PDF. Both preserve the source, figure, and seal assets.
 
@@ -30,21 +30,23 @@ Requirements: XeLaTeX, `latexmk`, and the standard LaTeX packages used by the L1
 |---|---|
 | 1–3 | Title, three learning objectives, and the lecture and example |
 | 4 | Language Models and Tools: the LLM, tools, and the steps of a tool call |
-| 5 | The Model Context Protocol: connection code without a standard versus implementations with MCP, protocol history, and specification version |
+| 5 | The Model Context Protocol: the MCP definition, and the connection-code figure (3 × 4 = 12 pieces of connection code without a standard versus 3 + 4 = 7 pieces of MCP code) |
 | 6 | Hosts, Clients, and Servers: the architecture figure and three role definitions |
 | 7 | Transports: standard input, standard output, standard error, one line of JSON per message, and Streamable HTTP |
-| 8 | MCP Messages: the sequence figure of one tool call, with its four phases (discover and list, choose a tool, run the tool, write the answer) |
-| 9 | The Message Format: JSON-RPC requests, responses, and notifications, and the comparison with REST |
-| 10 | Stateless protocol version `2026-07-28`: the protocol version, client, and client features that each request carries |
-| 11 | Discover a Server: supported versions, capabilities, instructions, and reuse of the response |
-| 12–13 | List the Tools: the two weather tools, their descriptions, JSON Schema, required arguments, and the range of `hours` |
-| 14–15 | Call a Tool: the Ithaca forecast request, response identifier, text content, structured content, and `isError` set to `false` |
-| 16 | Two Kinds of Errors: unknown `get_snowfall` tool versus a forecast failure for Paris, France |
-| 17 | The six JSON-RPC error codes used by our servers, including the rejection of an older `initialize` request |
-| 18–19 | The Server Loop: the lecture's pseudocode, with Initialize and the Read and Check steps on slide 18, and the Route and Write steps and Output on slide 19 |
-| 20 | Companion example: start and discover the server, list the tools, call them, cause a protocol error and a tool execution error, and close the connection |
-| 21 | Lab: the L13d MCP server for the FRED API, the observations tool that students complete, and the natural gas question |
-| 22 | Summary: introductory sentence, exactly three key takeaways, and the closing connection to our computational code |
+| 8 | What Runs Where: the user's computer runs the host and our MCP servers over stdio; the LLM, the NWS API, and the FRED API run on remote servers reached over HTTPS |
+| 9 | Permissions and Prompt Injection: by default, a stdio server runs with the same permissions as the host, and user approval of each tool call can stop an injected instruction from running a tool |
+| 10 | MCP Messages: the sequence figure of one tool call, with its four phases (discover and list, choose a tool, run the tool, write the answer) |
+| 11 | The Message Format: JSON-RPC requests, responses, and notifications, and the comparison with REST |
+| 12 | Stateless protocol version `2026-07-28`: the protocol version, client, and client features that each request carries |
+| 13 | Discover a Server: supported versions, capabilities, instructions, and reuse of the response |
+| 14–15 | List the Tools: the two weather tools, their descriptions, JSON Schema, required arguments, and the range of `hours` |
+| 16–17 | Call a Tool: the Ithaca forecast request, response identifier, text content, structured content, and `isError` set to `false` |
+| 18 | Two Kinds of Errors: unknown `get_snowfall` tool versus a forecast failure for Paris, France |
+| 19 | The six JSON-RPC error codes used by our servers, including the rejection of an older `initialize` request |
+| 20–21 | The Server Loop: the lecture's pseudocode, with Initialize and the Read and Check steps on slide 20, and the Route and Write steps and Output on slide 21 |
+| 22 | Companion example: start and discover the server, list the tools, call them, cause a protocol error and a tool execution error, and close the connection |
+| 23 | Lab: the L13d MCP server for the FRED API, the observations tool that students complete, and the natural gas question |
+| 24 | Summary: introductory sentence, exactly three key takeaways, and the closing connection to our computational code |
 
 ## Sources and scope
 
@@ -60,5 +62,5 @@ Source notebook snapshots (SHA-256):
 
 | Notebook | SHA-256 |
 |---|---|
-| CHEME-5800-L13c-Lecture-ModelContextProtocol-Fall-2026.ipynb | `b50eb2902a0c4d5aa127cca683571b24d190347c616700d0e7806e3ee29119dd` |
-| CHEME-5800-L13c-Example-MCP-NWS-Fall-2026.ipynb | `8d9bdb35c67f8c4773c2474944c46d999cb06a98d09cb4eb86ab4e09a71affdb` |
+| CHEME-5800-L13c-Lecture-ModelContextProtocol-Fall-2026.ipynb | `2c30ca3704b3d3c183487269a68de74a4870bd71f6f31df1862740e0679f250d` |
+| CHEME-5800-L13c-Example-MCP-NWS-Fall-2026.ipynb | `96f87e2346030b89908b56770e1028578a44879e45eb7d778dac16f2870c0f81` |

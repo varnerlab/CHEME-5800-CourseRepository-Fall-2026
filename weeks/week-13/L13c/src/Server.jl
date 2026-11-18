@@ -183,11 +183,11 @@ function process_message(server::MyMCPServerModel, line::String)::Union{Nothing,
 
     # route the request by its method -
     if (method == "server/discover")
-        return _discover(server, id);
+        return _discover(server, id); # call the discover method of the server
     elseif (method == "tools/list")
-        return _list_tools(server, id);
+        return _list_tools(server, id); # call the list method of the server
     elseif (method == "tools/call")
-        return _call_tool(server, id, params);
+        return _call_tool(server, id, params); # call the call method of the server
     end
 
     # any other method is a protocol error -
