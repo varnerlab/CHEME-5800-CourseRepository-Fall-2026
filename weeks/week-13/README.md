@@ -4,7 +4,7 @@ Week 13 connects two ways of exposing computational capabilities. Students first
 call documented REST services from Julia, then wrap the same services in Julia
 MCP servers that a language model application can call.
 
-Release `week-13.0` includes all four sessions, both slide decks, and the lab reference solutions.
+Release `week-13.2` includes all four sessions, both slide decks, and the L13b reference solutions.
 
 ## Session sequence
 
