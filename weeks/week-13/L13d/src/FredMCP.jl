@@ -1,30 +1,23 @@
 module L13dFredMCP
 
     # load external packages -
-    import HTTP # make the HTTP calls to FRED, and encode text for a URL
-    import JSON # parse and write JSON text: the FRED responses, and the MCP messages
+    import FredAPI # the FRED SDK: one endpoint model for each endpoint, url(...) for the request URLs, and api(...) for the calls
+    import JSON # write JSON text: the MCP messages, and the length check of a result
     import TOML # read the configuration file that holds the API key
-    import Dates: Date # the type of a calendar date, for the observation dates
-    import DataFrames: DataFrame, nrow # tables for the search results and the observations
     import VLDataScienceMachineLearningPackage: build # extend the course factory interface
 
     # what do we want to export?
-    export url, api
-    export AbstractFredEndpointModel
-    export MyFredSeriesSearchEndpointModel, MyFredSeriesEndpointModel, MyFredSeriesObservationsEndpointModel
-    export process_search_response_dataframe, process_observations_response_dataframe
     export MyMCPToolModel, MyMCPServerModel, MyMCPClientModel
-    export read_configuration, load_server_configuration
+    export load_server_configuration
     export process_message, serve, build_fred_server
     export connect, send_request, discover, listtools, calltool
 
-    # load my codes. In this lab, you complete one tool in Tools.jl -
-    include("Types.jl")   # the FRED endpoint models, and the MCP tool, server, and client models
-    include("Factory.jl") # url(...) for requests; build(...) for tools and servers
-    include("Network.jl") # the HTTP calls to FRED
-    include("Handler.jl") # the functions that process the FRED responses
+    # load my codes. The FRED calls go through the FredAPI package -
+    include("Types.jl")   # the MCP tool, server, and client models
+    include("Factory.jl") # build(...) for tools and servers
     include("Utility.jl") # read the configuration file that holds the API key
-    include("Tools.jl")   # the three tools of the FRED server (you complete one)
+    include("Tools.jl")   # how a FRED tool works: the arguments, the input schema, and the call to FRED
+    include("Catalog.jl") # the 36 tools of the FRED server, one for each endpoint of the FRED API
     include("Server.jl")  # the MCP server: process one message, and the server loop
     include("Client.jl")  # the MCP client: start a server, and send it requests
 end

@@ -10,7 +10,7 @@
 \newcommand{\lecturebase}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-13/L13c/}
 \newcommand{\lecturelink}{\lecturebase CHEME-5800-L13c-Lecture-ModelContextProtocol-Fall-2026.ipynb}
 \newcommand{\examplelink}{\lecturebase CHEME-5800-L13c-Example-MCP-NWS-Fall-2026.ipynb}
-\newcommand{\lablink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-13/L13d/CHEME-5800-L13d-Lab-MCP-FRED-Fall-2026.ipynb}
+\newcommand{\lablink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-13/L13d/README.md}
 \newcommand{\speclink}{https://modelcontextprotocol.io/specification/2026-07-28}
 \newcommand{\lecturesource}[1]{\note{[Sources]\par
   \href{\lecturelink}{L13c lecture: The Model Context Protocol.}\par
@@ -230,6 +230,11 @@
       The server checks the protocol version on every request.
     \end{column}
   \end{columns}
+
+  \vspace{0.5em}
+  Hosts of the older version \code{2025-06-18}, such as the Codex command-line
+  tool, name the version once, in an \code{initialize} request. Our servers
+  answer both versions.
   \lecturesource{MCP Messages / The Message Format: stateless requests.
     Metadata copied from messages/1-discover-request.json.}
 \end{frame}
@@ -477,8 +482,8 @@
     \addlinespace[5pt]
     \code{-32603} & Internal error: the server failed while processing the request.\\
     \addlinespace[5pt]
-    \code{-32022} & Unsupported protocol version: the request does not name
-      \href{\speclink}{version \code{2026-07-28}}, e.g., an \code{initialize} request from an older host.\\
+    \code{-32022} & Unsupported protocol version: the request names a version
+      other than \href{\speclink}{\code{2026-07-28}}.\\
     \bottomrule
   \end{tabular}}
   \lecturesource{MCP Messages / Two Kinds of Errors: the six-code table.}
@@ -502,7 +507,7 @@
           invalid-request error, \code{-32600}.
         \item If $m$ has no \code{id}, \textbf{then} $r\gets\texttt{nothing}$, because a
           notification receives no response.
-        \item If $m$ does not name the protocol version $v$,
+        \item If the \code{\_meta} field of $m$ names a protocol version other than $v$,
           \textbf{then} $r\gets$ an unsupported-version error, \code{-32022}.
       \end{itemize}
   \end{enumerate}
@@ -510,19 +515,21 @@
 \end{frame}
 
 \begin{frame}{The Server Loop: Routing}
-  \begin{enumerate}\setcounter{enumi}{2}\setlength{\itemsep}{0.3em}
+  \begin{enumerate}\setcounter{enumi}{2}\setlength{\itemsep}{0.15em}
     \item \hilite{Route}: if no condition in step 2 holds, \textbf{then} choose $r$ by
       the method of $m$:
-      \begin{itemize}\setlength{\itemsep}{0.15em}
+      \begin{itemize}\setlength{\itemsep}{0.05em}
+        \item If the method is \code{initialize}, \textbf{then} $r\gets$ version
+          \code{2025-06-18}, capabilities, and name.
         \item If the method is \code{server/discover}, \textbf{then} $r\gets$ the
-          server's protocol versions, capabilities, and name.
+          versions, capabilities, and name.
         \item If the method is \code{tools/list}, \textbf{then} $r\gets$ each tool's
           name, description, and input schema.
         \item If the method is \code{tools/call} and $\mathcal{T}$ has no tool with
           that name, \textbf{then} $r\gets$ an invalid-params error, \code{-32602}.
         \item If the method is \code{tools/call} and $\mathcal{T}$ has that tool,
-          \textbf{then} run its handler and set $r\gets$ its result, with
-          \code{isError} set to \code{true} if the handler fails.
+          \textbf{then} $r\gets$ the result of its handler, with \code{isError}
+          set to \code{true} if the handler fails.
         \item Otherwise, $r\gets$ a method-not-found error, \code{-32601}.
       \end{itemize}
     \item \hilite{Write}: if $r\neq\texttt{nothing}$, \textbf{then} write $r$ as one
@@ -556,20 +563,21 @@
 \end{frame}
 
 \begin{frame}{Lab: An MCP Server for the FRED API}
-  In the \href{\lablink}{lab}, we use an MCP server that wraps our SDK for the
-  Federal Reserve Economic Data (FRED) API:
+  In the \href{\lablink}{lab}, we use an MCP server that wraps the FredAPI
+  package, an SDK for the 36 endpoints of the Federal Reserve Economic Data
+  (FRED) API:
 
   \vspace{0.6em}
   \begin{itemize}\setlength{\itemsep}{0.6em}
-    \item we \hilite{start the server}, list its three tools, and search FRED
-      for the price of natural gas,
-    \item you \hilite{write the input schema and the handler} of the tool that
-      downloads one data series,
-    \item we \hilite{act as the host} and answer a process engineer's question:
-      was natural gas cheaper in 2025 than in 2024?
+    \item we \hilite{tour the code} of the server, which offers one tool for
+      each endpoint,
+    \item you \hilite{connect the server to a host}: Claude Code or the Codex
+      command-line tool,
+    \item you \hilite{ask FRED questions} in plain English, e.g., was natural
+      gas cheaper in 2025 than in 2024?
   \end{itemize}
   \slidenote{Lab:}{\href{\lablink}{An MCP server for the FRED API}}
-  \lecturesource{Lab section. Lab notebook: introduction and Learning Objectives.}
+  \lecturesource{Lab section. Lab README: introduction, Part 1 (the code tour), and Part 2 (the experiments).}
 \end{frame}
 
 \begin{frame}{Summary}

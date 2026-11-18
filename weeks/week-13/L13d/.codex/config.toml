@@ -1,0 +1,8 @@
+# The FRED server of the L13d lab, for the Codex command-line tool. Codex reads
+# this file when you start it in the L13d folder and trust the folder.
+[mcp_servers.fred]
+command = "julia"
+args = ["--startup-file=no", "server.jl"]
+startup_timeout_sec = 120 # Julia loads its packages before the server answers
+tool_timeout_sec = 120
+default_tools_approval_mode = "prompt" # ask before each tool call

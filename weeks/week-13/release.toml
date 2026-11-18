@@ -11,7 +11,6 @@ entry_notebooks = [
   "L13b/CHEME-5800-L13b-Lab-RESTful-FRED-Fall-2026.ipynb",
   "L13c/CHEME-5800-L13c-Lecture-ModelContextProtocol-Fall-2026.ipynb",
   "L13c/CHEME-5800-L13c-Example-MCP-NWS-Fall-2026.ipynb",
-  "L13d/CHEME-5800-L13d-Lab-MCP-FRED-Fall-2026.ipynb",
 ]
 supporting_notebooks = []
 datasets = [

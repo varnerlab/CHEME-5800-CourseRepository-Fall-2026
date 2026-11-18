@@ -1,8 +1,9 @@
 # =============================================================================
 # CHEME 5800 | L13d local setup
 # =============================================================================
-# Every class-meeting folder carries one of these, and running it from the first
-# cell of the notebook is the only setup a student performs.
+# Every class-meeting folder carries one of these. In this lab, server.jl runs
+# it when a host starts the server, and a Julia REPL can run it to call the
+# server from Julia.
 #
 # The file is in three sections, in this order:
 #
@@ -48,18 +49,17 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
 end
 
 # The FRED server code is wrapped in the `L13dFredMCP` module. The module imports
-# its dependencies, and the guard supports rerunning the notebook setup cell.
-#   src/Types.jl     the endpoint models, and the MCP tool, server, and client models
-#   src/Factory.jl   url(...) for requests; build(...) for the tools and server
-#   src/Network.jl   the HTTP calls to FRED
-#   src/Handler.jl   the functions that process the FRED responses
+# its dependencies, and the guard supports running this file again.
+#   src/Types.jl     the MCP tool, server, and client models
+#   src/Factory.jl   build(...) for the tools and the server
 #   src/Utility.jl   read the configuration file that holds the API key
-#   src/Tools.jl     the three tools of the FRED server (you complete one)
+#   src/Tools.jl     how a FRED tool works: arguments, input schema, and the call
+#   src/Catalog.jl   the 36 tools, one for each endpoint of the FRED API
 #   src/Server.jl    the MCP server
-#   src/Client.jl    the MCP client that the notebook uses
-# The notebook uses the client. The server runs in its own process, which
-# loads src/Tools.jl each time it starts, so an edit to Tools.jl takes effect
-# when the notebook starts the server again.
+#   src/Client.jl    the MCP client, which starts a server and sends it requests
+# The FRED calls go through the FredAPI package, the FRED SDK. A host such as
+# Claude Code or the Codex command-line tool starts server.jl, which loads this
+# file and runs the server.
 if !isdefined(@__MODULE__, :L13dFredMCP)
     include(joinpath(CHEME5800_L13D_ROOT, "src", "FredMCP.jl"))
 end
@@ -73,15 +73,9 @@ end
 # whole picture rather than most of it:
 #   VLDataScienceMachineLearningPackage   the course package
 #
-# Standard library:
-using Dates          # the Date type of the observation dates
-using Statistics     # mean, for the average price
-using Test           # @test / @testset for the check in the notebook
-#
 # Packages:
-using DataFrames     # the tables of tools, series, and observations
+import FredAPI       # the FRED SDK, e.g., FredAPI.MyFredSeriesEndpointModel
 using JSON           # parsing and printing JSON text
-using PrettyTables   # formatted table output in the notebook
 #
 # This meeting's code (section 2). The leading dot means "a module defined
 # here", as opposed to an installed package of the same name:

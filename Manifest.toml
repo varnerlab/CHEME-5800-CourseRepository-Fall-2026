@@ -2,7 +2,7 @@
 
 julia_version = "1.12.7"
 manifest_format = "2.0"
-project_hash = "793f0c4e40e5a689f8332e786220f2158f38f8df"
+project_hash = "4005c92e7d22cad7521ec523d462e3c1f0dd95f3"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "5970c86505ae9c07bf5bc521ef2bbbb3849e8b7b"
@@ -855,6 +855,14 @@ weakdeps = ["StaticArrays"]
 
     [deps.ForwardDiff.extensions]
     ForwardDiffStaticArraysExt = "StaticArrays"
+
+[[deps.FredAPI]]
+deps = ["DataFrames", "Dates", "HTTP", "JSON", "TOML"]
+git-tree-sha1 = "da2d2b14e68e183c16ab264a53a21781414845ee"
+repo-rev = "main"
+repo-url = "https://github.com/varnerlab/fred-sdk.git"
+uuid = "d9bedd26-f847-4972-b871-e049ba70493b"
+version = "0.1.0"
 
 [[deps.FreeType2_jll]]
 deps = ["Artifacts", "Bzip2_jll", "JLLWrappers", "Libdl", "Zlib_jll"]

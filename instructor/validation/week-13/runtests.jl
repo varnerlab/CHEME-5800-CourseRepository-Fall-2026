@@ -2,8 +2,9 @@ const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-1
 include(joinpath(@__DIR__, "..", "release_scope.jl"))
 import JSON  # reads the fixtures and the notebooks whose links the suite checks
 import HTTP  # the local server that stands in for FRED in the L13b tests
-import Dates  # Dates.Day, for the long request of the L13d tests
-import Dates: Date  # the dates of the L13b and L13d observations
+import Dates: Date  # the dates of the L13b observations
+import TOML  # reads the Codex configuration of the L13d lab
+import InteractiveUtils: subtypes  # counts the endpoint models of the FredAPI package
 using Test   # @testset must be defined when the file is parsed, even if no meeting that loads it is released
 released("L13a") && include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-13", "L13a", "Include.jl"))
 released("L13b") && include(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-13", "L13b", "Include.jl"))
@@ -461,7 +462,7 @@ end
                 @test ask("{\"jsonrpc\": \"1.0\", \"id\": 1, \"method\": \"tools/list\"}")["error"]["code"] == -32600
                 @test ask(replace(mcp_line(1, "tools/list"), "\"id\":1" => "\"id\":true"))["error"]["code"] == -32600 # a boolean id
                 null_meta = ask("{\"jsonrpc\": \"2.0\", \"id\": 14, \"method\": \"tools/list\", \"params\": {\"_meta\": null}}")
-                @test null_meta["error"]["code"] == -32022 && null_meta["id"] == 14 # the id survives
+                @test haskey(null_meta, "result") && null_meta["id"] == 14 # no version: a request of the older version
                 text_arguments = replace(mcp_call_line(15, "get_location", ithaca), r"\"arguments\":\{[^}]*\}" => "\"arguments\":\"Ithaca\"")
                 @test ask(text_arguments)["error"]["code"] == -32602 # the arguments must be a JSON object
                 @test ask("{\"jsonrpc\": \"2.0\", \"id\": 10, \"method\": \"tools/list\", \"params\": 3}")["error"]["code"] == -32602
@@ -469,10 +470,18 @@ end
                 old = ask(mcp_line(11, "tools/list"; version = "2025-06-18"))
                 @test old["error"]["code"] == -32022
                 @test old["error"]["data"]["supported"] == [MCP_VERSION] && old["error"]["data"]["requested"] == "2025-06-18"
-                @test ask(mcp_line(12, "tools/list"; version = nothing))["error"]["code"] == -32022 # no _meta
+                @test length(ask(mcp_line(12, "tools/list"; version = nothing))["result"]["tools"]) == 2 # no _meta: older version
+                # the handshake of the older version 2025-06-18, as the Codex command-line tool sends it -
                 initialize = JSON.json(Dict("jsonrpc" => "2.0", "id" => 13, "method" => "initialize",
-                    "params" => Dict("protocolVersion" => "2025-06-18", "capabilities" => Dict())))
-                @test ask(initialize)["error"]["code"] == -32022 # the handshake of earlier versions
+                    "params" => Dict("protocolVersion" => "2025-06-18", "capabilities" => Dict(),
+                        "clientInfo" => Dict("name" => "codex-mcp-client", "version" => "0.169.0"))))
+                handshake = ask(initialize)
+                @test handshake["id"] == 13 && handshake["result"]["protocolVersion"] == "2025-06-18"
+                @test haskey(handshake["result"]["capabilities"], "tools")
+                @test handshake["result"]["serverInfo"]["name"] == "cheme-5800-weather"
+                @test ask("{\"jsonrpc\": \"2.0\", \"method\": \"notifications/initialized\"}") === nothing
+                older_call = mcp_line(16, "tools/call", Dict{String,Any}("name" => "get_location", "arguments" => ithaca); version = nothing)
+                @test ask(older_call)["result"]["structuredContent"]["forecast_office"] == "BGM" # an older-version call runs the tool
             end
 
             @testset "server loop" begin
@@ -573,59 +582,94 @@ end
 end
 
 # The L13d tests need no FRED API key and no outside network. The FRED server runs in this process
-# against a small server on this machine that answers like FRED, with the committed fixtures.
+# against a small server on this machine that answers like FRED, with the test fixtures of the FredAPI
+# package: one trimmed FRED response for each endpoint path.
 @meeting "L13d" begin
     @testset "L13d FRED MCP lab" begin
         D = L13dFredMCP
         L13D_ROOT = joinpath(WEEK_ROOT, "L13d")
         demo_key = "abcdefghijklmnopqrstuvwxyz123456" # the example key of the FRED documentation, not a registered key
-        search_body = read(joinpath(DATA_DIR, "fred-series-search.fixture.json"), String)
-        series_body = read(joinpath(DATA_DIR, "fred-series.fixture.json"), String)
-        observations_body = read(joinpath(DATA_DIR, "fred-series-observations.fixture.json"), String)
-        error_body = read(joinpath(DATA_DIR, "fred-error.fixture.json"), String)
+        fixtures = joinpath(pkgdir(D.FredAPI), "test", "fixtures")
+        fixture_path(path) = joinpath(fixtures, replace(lstrip(path, '/'), "/" => "_") * ".json")
 
-        @testset "student file and reference solution" begin
-            student_text = read(joinpath(L13D_ROOT, "src", "Tools.jl"), String)
-            solution_text = read(joinpath(L13D_ROOT, "src", "solution", "Tools-solution.jl"), String)
-            # cut each TODO region, from its comment to the first complete line after it, then compare the code -
-            function without_todos(text)
-                text = replace(text, r"# TODO 1.*?(?=\n\s*observations_tool = build)"s => "# TODO 1")
-                text = replace(text, r"# TODO 2.*?(?=\n\s*if \(isnothing\(table\))"s => "# TODO 2")
-                text = replace(text, r"# TODO 3.*?(?=\n\s*if \(isnothing\(observation\))"s => "# TODO 3")
-                return [String(line) for line in split(text, '\n') if !isempty(strip(line)) && !startswith(strip(line), "#")]
-            end
-            @test without_todos(student_text) == without_todos(solution_text)
-            @test length(without_todos(student_text)) > 150 # the cut regions are small
-            for todo in ("TODO 1", "TODO 2", "TODO 3")
-                @test occursin(todo, student_text) && occursin(todo, solution_text)
-            end
-            @test count("Hint:", student_text) == 3 && count("Hint:", solution_text) == 0
-            @test occursin("table = nothing;", student_text) && occursin("observation = nothing;", student_text)
-            @test !occursin("process_observations_response_dataframe);", student_text) # the student file omits the answer
-            @test occursin("handler = process_observations_response_dataframe);", solution_text)
+        # each tool, the endpoint path that it calls, and arguments that hold its required arguments -
+        series = Dict{String,Any}("series_id" => "GNPCA")
+        expected = [
+            ("get_series", "/fred/series", series),
+            ("get_series_categories", "/fred/series/categories", series),
+            ("get_series_observations", "/fred/series/observations", series),
+            ("get_series_release", "/fred/series/release", series),
+            ("search_series", "/fred/series/search", Dict{String,Any}("search_text" => "natural gas")),
+            ("search_series_tags", "/fred/series/search/tags", Dict{String,Any}("series_search_text" => "natural gas")),
+            ("search_series_related_tags", "/fred/series/search/related_tags",
+                Dict{String,Any}("series_search_text" => "natural gas", "tag_names" => "monthly;usa")),
+            ("get_series_tags", "/fred/series/tags", series),
+            ("get_series_updates", "/fred/series/updates", Dict{String,Any}()),
+            ("get_series_vintage_dates", "/fred/series/vintagedates", series),
+            ("get_category", "/fred/category", Dict{String,Any}()),
+            ("get_category_children", "/fred/category/children", Dict{String,Any}("category_id" => 13)),
+            ("get_category_related", "/fred/category/related", Dict{String,Any}("category_id" => 32073)),
+            ("get_category_series", "/fred/category/series", Dict{String,Any}("category_id" => 125)),
+            ("get_category_tags", "/fred/category/tags", Dict{String,Any}("category_id" => 125)),
+            ("get_category_related_tags", "/fred/category/related_tags", Dict{String,Any}("category_id" => 125, "tag_names" => "services;quarterly")),
+            ("get_releases", "/fred/releases", Dict{String,Any}()),
+            ("get_releases_dates", "/fred/releases/dates", Dict{String,Any}("include_release_dates_with_no_data" => true)),
+            ("get_release", "/fred/release", Dict{String,Any}("release_id" => 53)),
+            ("get_release_dates", "/fred/release/dates", Dict{String,Any}("release_id" => 82)),
+            ("get_release_series", "/fred/release/series", Dict{String,Any}("release_id" => 51)),
+            ("get_release_sources", "/fred/release/sources", Dict{String,Any}("release_id" => 51)),
+            ("get_release_tags", "/fred/release/tags", Dict{String,Any}("release_id" => 86)),
+            ("get_release_related_tags", "/fred/release/related_tags", Dict{String,Any}("release_id" => 86, "tag_names" => "sa;foreign")),
+            ("get_release_tables", "/fred/release/tables", Dict{String,Any}("release_id" => 53)),
+            ("get_sources", "/fred/sources", Dict{String,Any}()),
+            ("get_source", "/fred/source", Dict{String,Any}("source_id" => 1)),
+            ("get_source_releases", "/fred/source/releases", Dict{String,Any}("source_id" => 1)),
+            ("get_tags", "/fred/tags", Dict{String,Any}()),
+            ("get_related_tags", "/fred/related_tags", Dict{String,Any}("tag_names" => "monetary aggregates;weekly")),
+            ("get_tags_series", "/fred/tags/series", Dict{String,Any}("tag_names" => "slovenia;food")),
+            ("get_maps_shapes", "/geofred/shapes/file", Dict{String,Any}("shape" => "state")),
+            ("get_maps_series_group", "/geofred/series/group", Dict{String,Any}("series_id" => "SMU56000000500000001a")),
+            ("get_maps_series_data", "/geofred/series/data", Dict{String,Any}("series_id" => "WIPCPI")),
+            ("get_maps_regional_data", "/geofred/regional/data", Dict{String,Any}("series_group" => "882", "region_type" => "state",
+                "date" => "2013-01-01", "season" => "NSA", "units" => "Dollars")),
+            ("get_release_observations", "/fred/v2/release/observations", Dict{String,Any}("release_id" => 52, "limit" => 2)),
+        ]
 
-            # the module loaded the untouched student file: the observations tool throws the house error,
-            # and its input schema is empty -
-            configuration = Dict{String,Any}("baseurl" => "http://127.0.0.1:9", "apikey" => demo_key) # no server answers here
-            arguments = Dict{String,Any}("series_id" => "DHHNGSP", "observation_start" => "2025-01-01", "observation_end" => "2025-01-08")
-            house = try
-                D.get_series_observations(arguments, configuration)
-                nothing
-            catch exception
-                exception
-            end
-            @test house isa ErrorException && startswith(house.msg, "Oooops!")
-            student_server = D.build_fred_server(configuration)
-            response = D.process_message(student_server, mcp_call_line(1, "get_series_observations", arguments))
-            @test response["result"]["isError"] == true && startswith(result_text(response), "Oooops!")
-            schema = student_server.tools["get_series_observations"].inputschema
-            @test isempty(schema["properties"]) && isempty(schema["required"])
+        @testset "one tool for each FredAPI endpoint" begin
+            @test length(expected) == 36 && length(unique(first.(expected))) == 36
+            paths = [entry[2] for entry in expected]
+            @test length(unique(paths)) == 36
+            # the FredAPI fixtures hold one response for each endpoint path of the package -
+            @test Set(fixture_path(path) for path in paths) == Set(joinpath(fixtures, file) for file in readdir(fixtures))
+            @test length(subtypes(D.FredAPI.AbstractFredEndpointModel)) == 36
 
-            # the supplied argument checks: a trailing newline, a date in another form, and a boolean limit -
-            for (key, value) in (("series_id", "DHHNGSP\n"), ("observation_start", "2025-1-001"), ("observation_end", "20250108"))
-                @test_throws ArgumentError D.get_series_observations(merge(arguments, Dict{String,Any}(key => value)), configuration)
+            server = D.build_fred_server(Dict{String,Any}("baseurl" => "http://127.0.0.1:9", "apikey" => demo_key))
+            @test sort(collect(keys(server.tools))) == sort(first.(expected))
+            for (name, tool) in server.tools
+                schema = tool.inputschema
+                @test schema["type"] == "object" && schema["additionalProperties"] == false
+                @test !haskey(schema["properties"], "apikey") # a call never sets the key
+                @test issubset(schema["required"], keys(schema["properties"]))
+                @test !isempty(tool.description)
+                for (argument, property) in schema["properties"]
+                    @test property["type"] in ("string", "integer", "boolean") && !isempty(property["description"])
+                end
             end
-            @test_throws ArgumentError D.search_series(Dict{String,Any}("search_text" => "gas", "limit" => true), configuration)
+            # the input schema follows the fields of the endpoint model -
+            observations = server.tools["get_series_observations"].inputschema
+            @test Set(keys(observations["properties"])) ==
+                Set(String(f) for f in fieldnames(D.FredAPI.MyFredSeriesObservationsEndpointModel) if f != :apikey)
+            @test observations["required"] == ["series_id"]
+            @test observations["properties"]["limit"]["type"] == "integer"
+            @test server.tools["get_release_tables"].inputschema["properties"]["include_observation_values"]["type"] == "boolean"
+            @test server.tools["get_maps_regional_data"].inputschema["required"] == ["series_group", "region_type", "date", "season", "units"]
+            @test occursin("search_rank", server.tools["search_series"].inputschema["properties"]["order_by"]["description"])
+            @test occursin("series_count", server.tools["get_tags"].inputschema["properties"]["order_by"]["description"])
+            @test server.tools["get_maps_regional_data"].inputschema["properties"]["units"]["description"] != observations["properties"]["units"]["description"]
+            # tag_names selects the tags that a tags endpoint returns, and the series that a series endpoint returns -
+            @test startswith(server.tools["get_tags"].inputschema["properties"]["tag_names"]["description"], "Tag names to return")
+            @test startswith(server.tools["get_category_series"].inputschema["properties"]["tag_names"]["description"], "Tag names that every series")
+            @test occursin("WIPCPI", server.tools["get_maps_series_data"].inputschema["properties"]["series_id"]["description"])
         end
 
         @testset "configuration" begin
@@ -646,7 +690,7 @@ end
                 # a server with no configuration still answers discover and list, and each tool reports the reason -
                 server = D.build_fred_server(missing_file)
                 @test D.process_message(server, mcp_line(1, "server/discover"))["result"]["supportedVersions"] == [MCP_VERSION]
-                @test length(D.process_message(server, mcp_line(2, "tools/list"))["result"]["tools"]) == 3
+                @test length(D.process_message(server, mcp_line(2, "tools/list"))["result"]["tools"]) == 36
                 response = D.process_message(server, mcp_call_line(3, "search_series", Dict{String,Any}("search_text" => "gas")))
                 @test response["result"]["isError"] == true && occursin("configuration file", result_text(response))
             end
@@ -655,107 +699,107 @@ end
                 !success(pipeline(`git -C $(L13D_ROOT) ls-files --error-unmatch conf/Configuration.toml`; stdout = devnull, stderr = devnull))
         end
 
-        @testset "reference solution against a local FRED" begin
-            # load the reference solution into the module in place of the student file -
-            Base.include(D, joinpath(L13D_ROOT, "src", "solution", "Tools-solution.jl"))
-            requests = String[] # every request that reaches the local FRED
+        @testset "every tool against a local FRED" begin
+            requests = Dict{String,String}[] # the path, the query without the key, and the key of each request
+            long_rows = JSON.json(Dict("observations" => [Dict("date" => "2010-01-01", "value" => "3.00") for i in 1:2000]))
             function local_fred(request)
-                push!(requests, request.target)
                 uri = HTTP.URI(request.target)
                 query = HTTP.queryparams(uri)
+                key = get(query, "api_key", "")
+                if uri.path == "/fred/v2/release/observations" # version 2 takes the key in the Authorization header
+                    key = replace(HTTP.header(request, "Authorization"), "Bearer " => "")
+                end
+                push!(requests, Dict("path" => uri.path, "target" => request.target, "key" => key))
                 json_type = ["Content-Type" => "application/json; charset=UTF-8"]
-                if get(query, "api_key", "") != demo_key || get(query, "file_type", "") != "json"
-                    return HTTP.Response(400, json_type, error_body)
+                if key != demo_key
+                    return HTTP.Response(400, json_type, "{\"error_code\": 400, \"error_message\": \"Bad Request.  The api_key is not registered.\"}")
                 end
-                if uri.path == "/fred/series/search"
-                    return HTTP.Response(200, json_type, search_body)
-                elseif uri.path == "/fred/series" && get(query, "series_id", "") == "DHHNGSP"
-                    return HTTP.Response(200, json_type, series_body)
-                elseif uri.path == "/fred/series" && get(query, "series_id", "") == "ECHO"
-                    # a careless upstream that repeats the request, with its key, in its error message -
-                    echo = JSON.json(Dict("error_code" => 400, "error_message" => "Bad Request for $(request.target)"))
-                    return HTTP.Response(400, json_type, echo)
-                elseif uri.path == "/fred/series/observations" && get(query, "series_id", "") == "DHHNGSP"
-                    if get(query, "units", "") != "lin"
-                        return HTTP.Response(400, json_type, error_body)
-                    end
-                    if get(query, "observation_start", "") == "2010-01-01" # a long request: 500 observations
-                        rows = [Dict("date" => string(Date(2010, 1, 1) + Dates.Day(i)), "value" => "3.00") for i in 0:499]
-                        return HTTP.Response(200, json_type, JSON.json(Dict("observations" => rows)))
-                    end
-                    return HTTP.Response(200, json_type, observations_body)
+                series_id = get(query, "series_id", "")
+                if series_id == "NOTASERIES"
+                    return HTTP.Response(400, json_type, "{\"error_code\": 400, \"error_message\": \"Bad Request.  The series does not exist.\"}")
+                elseif series_id == "ECHO" # a careless upstream that repeats the request, with its key, in its error message
+                    return HTTP.Response(400, json_type, JSON.json(Dict("error_code" => 400, "error_message" => "Bad Request for $(request.target)")))
+                elseif series_id == "ECHO200" # a successful response that repeats the request, with its key
+                    return HTTP.Response(200, json_type, JSON.json(Dict("request" => request.target)))
+                elseif series_id == "LONG"
+                    return HTTP.Response(200, json_type, long_rows)
                 end
-                return HTTP.Response(400, json_type, error_body)
+                if isfile(fixture_path(uri.path)) == false
+                    return HTTP.Response(404, json_type, "{}")
+                end
+                return HTTP.Response(200, json_type, read(fixture_path(uri.path), String))
             end
-            fred = HTTP.serve!(local_fred, "127.0.0.1", 8716; listenany = true)
+            fred = HTTP.serve!(local_fred, "127.0.0.1", 8716; listenany = true, verbose = -1)
             try
                 configuration = Dict{String,Any}("baseurl" => "http://127.0.0.1:$(HTTP.port(fred))", "apikey" => demo_key)
-                server = Base.invokelatest(D.build_fred_server, configuration)
-                ask(line) = Base.invokelatest(D.process_message, server, line)
+                server = D.build_fred_server(configuration)
+                ask(line) = D.process_message(server, line)
                 answers = String[] # every message that the server writes, to check that none holds the key
 
-                listed = ask(mcp_line(1, "tools/list"))
-                push!(answers, JSON.json(listed))
-                tools = listed["result"]["tools"]
-                @test [tool["name"] for tool in tools] == ["get_series_info", "get_series_observations", "search_series"]
-                @test listed["result"]["ttlMs"] == 3600000 && listed["result"]["cacheScope"] == "public"
-                schema = tools[2]["inputSchema"]
-                @test Set(keys(schema["properties"])) == Set(["series_id", "observation_start", "observation_end", "frequency"])
-                @test Set(schema["required"]) == Set(["series_id", "observation_start", "observation_end"])
+                # each tool calls its endpoint, and returns the JSON response of FRED -
+                for (index, (name, path, arguments)) in enumerate(expected)
+                    response = ask(mcp_call_line(index, name, arguments))
+                    push!(answers, JSON.json(response))
+                    @test response["result"]["isError"] == false
+                    @test requests[end]["path"] == path
+                    if name != "get_maps_shapes"
+                        @test response["result"]["structuredContent"] == JSON.parse(read(fixture_path(path), String))
+                    end
+                end
+                @test length(requests) == 36
 
-                found = ask(mcp_call_line(2, "search_series", Dict{String,Any}("search_text" => "Henry Hub", "limit" => 5)))
-                push!(answers, JSON.json(found))
-                @test [entry["series_id"] for entry in found["result"]["structuredContent"]["series"]] == ["DHHNGSP", "MHHNGSP"]
-                search_query = HTTP.queryparams(HTTP.URI(requests[end]))
-                @test search_query["search_text"] == "Henry Hub" && search_query["limit"] == "5"
-                info = ask(mcp_call_line(3, "get_series_info", Dict{String,Any}("series_id" => "DHHNGSP")))
-                push!(answers, JSON.json(info))
-                @test info["result"]["structuredContent"]["units"] == "Dollars per Million BTU"
+                # the arguments of a call go into the query, encoded for a URL -
+                ask(mcp_call_line(40, "search_series", Dict{String,Any}("search_text" => "natural gas&api_key=other", "limit" => 3)))
+                query = HTTP.queryparams(HTTP.URI(requests[end]["target"]))
+                @test query["search_text"] == "natural gas&api_key=other" && query["limit"] == "3" && query["api_key"] == demo_key
+                ask(mcp_call_line(41, "get_releases_dates", Dict{String,Any}("include_release_dates_with_no_data" => true)))
+                @test HTTP.queryparams(HTTP.URI(requests[end]["target"]))["include_release_dates_with_no_data"] == "true"
 
-                daily = Dict{String,Any}("series_id" => "DHHNGSP", "observation_start" => "2025-01-01",
-                    "observation_end" => "2025-01-08", "frequency" => "d")
-                observed = ask(mcp_call_line(4, "get_series_observations", daily))
-                push!(answers, JSON.json(observed))
-                result = observed["result"]
-                @test result["isError"] == false
-                @test result["structuredContent"]["series_id"] == "DHHNGSP" && result["structuredContent"]["frequency"] == "d"
-                observations = result["structuredContent"]["observations"]
-                @test [o["date"] for o in observations] == ["2025-01-01", "2025-01-02", "2025-01-03", "2025-01-06", "2025-01-07", "2025-01-08"]
-                @test ismissing(observations[1]["value"]) # FRED has no value for January 1
-                @test occursin("{\"date\":\"2025-01-01\",\"value\":null}", result_text(observed)) # missing becomes null in the text
-                @test [o["value"] for o in observations[2:end]] == [3.65, 3.40, 4.05, 3.80, 3.75]
-                @test Dict(HTTP.queryparams(HTTP.URI(requests[end]))) == Dict("series_id" => "DHHNGSP", "observation_start" => "2025-01-01",
-                    "observation_end" => "2025-01-08", "frequency" => "d", "units" => "lin", "api_key" => demo_key, "file_type" => "json")
-                monthly = ask(mcp_call_line(5, "get_series_observations", delete!(copy(daily), "frequency")))
-                @test monthly["result"]["structuredContent"]["frequency"] == "m" # the default frequency
-                @test occursin("frequency=m", requests[end])
+                # the shapes tool keeps the properties of each region, and leaves out the boundaries -
+                shapes = ask(mcp_call_line(42, "get_maps_shapes", Dict{String,Any}("shape" => "state")))
+                fixture = JSON.parse(read(fixture_path("/geofred/shapes/file"), String))
+                @test shapes["result"]["structuredContent"]["regions"] == [feature["properties"] for feature in fixture["features"]]
+                @test !occursin("coordinates", result_text(shapes))
 
-                # wrong arguments are tool execution errors; the ones that would change the URL never reach FRED -
+                # version 2 sends the key in the Authorization header, not in the URL -
+                ask(mcp_call_line(43, "get_release_observations", Dict{String,Any}("release_id" => 52, "limit" => 2)))
+                @test requests[end]["key"] == demo_key && !occursin(demo_key, requests[end]["target"])
+
+                # wrong arguments are tool execution errors, and they never reach FRED -
                 number_of_requests = length(requests)
-                for arguments in (merge(daily, Dict{String,Any}("series_id" => "DHHNGSP&units=pch")),
-                        merge(daily, Dict{String,Any}("observation_start" => "2025-13-01")),
-                        merge(daily, Dict{String,Any}("observation_end" => "Jan 8")),
-                        merge(daily, Dict{String,Any}("frequency" => "x")),
-                        delete!(copy(daily), "series_id"))
-                    response = ask(mcp_call_line(6, "get_series_observations", arguments))
+                for (name, arguments) in (("get_series", Dict{String,Any}("series_id" => "GNPCA", "apikey" => "x" ^ 32)),
+                        ("get_series", Dict{String,Any}("series" => "GNPCA")),
+                        ("get_series", Dict{String,Any}("series_id" => 42)),
+                        ("get_release", Dict{String,Any}("release_id" => "53")),
+                        ("get_release", Dict{String,Any}("release_id" => true)),
+                        ("get_release", Dict{String,Any}("release_id" => 53.5)),
+                        ("get_release_tables", Dict{String,Any}("release_id" => 53, "include_observation_values" => 1)))
+                    response = ask(mcp_call_line(50, name, arguments))
                     push!(answers, JSON.json(response))
                     @test response["result"]["isError"] == true && startswith(result_text(response), "ArgumentError")
                 end
-                limit = ask(mcp_call_line(7, "search_series", Dict{String,Any}("search_text" => "gas", "limit" => 0)))
-                @test limit["result"]["isError"] == true
+                unknown = ask(mcp_call_line(51, "get_series", Dict{String,Any}("series" => "GNPCA")))
+                @test occursin("unknown argument: series", result_text(unknown)) && occursin("series_id", result_text(unknown))
                 @test length(requests) == number_of_requests
-                long = ask(mcp_call_line(8, "get_series_observations", merge(daily, Dict{String,Any}("observation_start" => "2010-01-01"))))
-                push!(answers, JSON.json(long))
-                @test long["result"]["isError"] == true && occursin("at most 400", result_text(long))
-                unknown = ask(mcp_call_line(9, "get_series_info", Dict{String,Any}("series_id" => "NOTASERIES")))
-                push!(answers, JSON.json(unknown))
-                echoed = ask(mcp_call_line(10, "get_series_info", Dict{String,Any}("series_id" => "ECHO")))
+
+                # errors of FRED are tool execution errors with the message of FRED, and never show the key -
+                missing_series = ask(mcp_call_line(52, "get_series", Dict{String,Any}("series_id" => "NOTASERIES")))
+                push!(answers, JSON.json(missing_series))
+                @test missing_series["result"]["isError"] == true && occursin("The series does not exist", result_text(missing_series))
+                echoed = ask(mcp_call_line(53, "get_series", Dict{String,Any}("series_id" => "ECHO")))
                 push!(answers, JSON.json(echoed))
                 @test echoed["result"]["isError"] == true && occursin("<your API key>", result_text(echoed))
-                @test unknown["result"]["isError"] == true && occursin("400", result_text(unknown))
+                echoed_success = ask(mcp_call_line(55, "get_series", Dict{String,Any}("series_id" => "ECHO200")))
+                push!(answers, JSON.json(echoed_success))
+                @test echoed_success["result"]["isError"] == true && occursin("holds the API key", result_text(echoed_success))
 
-                # the key went to FRED in every request, and never into an MCP message -
-                @test all(target -> occursin("api_key=$(demo_key)", target), requests)
+                # a result that is too long is a tool execution error that tells the model how to ask for less -
+                long = ask(mcp_call_line(54, "get_series_observations", Dict{String,Any}("series_id" => "LONG")))
+                push!(answers, JSON.json(long))
+                @test long["result"]["isError"] == true && occursin("at most $(D.MAX_RESULT_CHARACTERS)", result_text(long))
+
+                # the key went to FRED with every request, and never into an MCP message -
+                @test all(request -> request["key"] == demo_key, requests)
                 @test all(answer -> !occursin(demo_key, answer), answers)
             finally
                 close(fred)
@@ -763,12 +807,12 @@ end
         end
 
         @testset "server.jl as a subprocess" begin
-            # the command of the notebook. With no configuration file, the server still discovers and lists -
-            command = `$(joinpath(Sys.BINDIR, "julia")) --startup-file=no --project=$(normpath(joinpath(WEEK_ROOT, "..", ".."))) $(joinpath(L13D_ROOT, "server.jl"))`
+            # the command of .mcp.json and .codex/config.toml. With no configuration file, the server still discovers and lists -
+            command = `$(joinpath(Sys.BINDIR, "julia")) --startup-file=no $(joinpath(L13D_ROOT, "server.jl"))`
             client = D.connect(command)
             try
                 @test D.discover(client)["result"]["_meta"]["io.modelcontextprotocol/serverInfo"]["name"] == "cheme-5800-fred"
-                @test length(D.listtools(client)["result"]["tools"]) == 3
+                @test length(D.listtools(client)["result"]["tools"]) == 36
                 close(client)
                 @test success(client.process)
             finally
@@ -776,26 +820,33 @@ end
             end
         end
 
-        @testset "L13d lab notebook" begin
-            notebook = "CHEME-5800-L13d-Lab-MCP-FRED-Fall-2026.ipynb"
-            text = check_notebook_frame("L13d", notebook)
-            @test occursin("__TODO 1:__", text) && occursin("__TODO 2:__", text) && occursin("__TODO 3:__", text)
-            cells = JSON.parsefile(joinpath(L13D_ROOT, notebook))["cells"]
-            code_cells = [cell for cell in cells if cell["cell_type"] == "code"]
-            @test length(code_cells) >= 10
-            @test all(isempty(cell["outputs"]) for cell in code_cells) # the lab ships without outputs
-            for cell in code_cells
-                parsed = Meta.parseall(join(cell["source"]))
-                @test !(parsed.args[end] isa Expr && parsed.args[end].head in (:error, :incomplete)) # every cell parses
+        @testset "host configuration and README" begin
+            # Claude Code reads .mcp.json, and the Codex command-line tool reads .codex/config.toml -
+            claude = JSON.parsefile(joinpath(L13D_ROOT, ".mcp.json"))["mcpServers"]["fred"]
+            codex = TOML.parsefile(joinpath(L13D_ROOT, ".codex", "config.toml"))["mcp_servers"]["fred"]
+            for entry in (claude, codex)
+                @test entry["command"] == "julia" && entry["args"] == ["--startup-file=no", "server.jl"]
             end
-            notebook_code = join([join(cell["source"]) for cell in code_cells], "\n")
-            @test occursin("connect(server_command)", notebook_code)
-            @test !occursin("read_configuration", notebook_code) # the notebook never reads the key
+            @test codex["startup_timeout_sec"] >= 60 && codex["default_tools_approval_mode"] == "prompt"
+
+            # the lab has a README of experiments, no notebook, and no student TODOs -
+            readme_path = joinpath(L13D_ROOT, "README.md")
+            readme = read(readme_path, String)
+            @test isempty(filter(file -> endswith(file, ".ipynb"), readdir(L13D_ROOT)))
+            for target in [m.captures[1] for m in eachmatch(r"\]\(([^)\s]+)\)", readme)]
+                startswith(target, "http") && continue
+                @test ispath(joinpath(L13D_ROOT, target))
+            end
+            for experiment in 1:6
+                @test occursin("__Experiment $(experiment):", readme)
+            end
+            sources = [joinpath(folder, file) for (folder, _, files) in walkdir(joinpath(L13D_ROOT, "src")) for file in files if endswith(file, ".jl")]
+            @test all(path -> !occursin("TODO", read(path, String)), sources)
+            @test !isdir(joinpath(L13D_ROOT, "src", "solution"))
 
             # no file that ships holds a key: the only 32 character key-like text is the example key of the documentation -
-            shipped = [joinpath(L13D_ROOT, notebook), joinpath(L13D_ROOT, "Include.jl"), joinpath(L13D_ROOT, "server.jl"),
-                joinpath(L13D_ROOT, "conf", "Configuration-template.toml")]
-            append!(shipped, [joinpath(folder, file) for (folder, _, files) in walkdir(joinpath(L13D_ROOT, "src")) for file in files if endswith(file, ".jl")])
+            shipped = vcat([readme_path, joinpath(L13D_ROOT, "Include.jl"), joinpath(L13D_ROOT, "server.jl"), joinpath(L13D_ROOT, ".mcp.json"),
+                joinpath(L13D_ROOT, ".codex", "config.toml"), joinpath(L13D_ROOT, "conf", "Configuration-template.toml")], sources)
             for path in shipped
                 keys_found = [m.match for m in eachmatch(r"(?<![a-z0-9])[a-z0-9]{32}(?![a-z0-9])", read(path, String))]
                 @test all(key -> key == demo_key, keys_found)

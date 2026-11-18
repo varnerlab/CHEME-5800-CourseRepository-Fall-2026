@@ -2,11 +2,17 @@
 # The MCP server: read one JSON-RPC message, route it by its method, and write
 # one response. This file implements the tools part of protocol version
 # 2026-07-28 over the stdio transport: server/discover, tools/list, and
-# tools/call. The tools themselves are in src/Tools.jl.
+# tools/call. It also answers the initialize request of the older version
+# 2025-06-18, which some hosts still use, e.g., the Codex command-line tool.
+# The tools themselves are in src/Tools.jl.
 # =============================================================================
 
-# the one protocol version that this server supports -
+# the protocol version of this server -
 const MCP_PROTOCOL_VERSION = "2026-07-28";
+
+# the older protocol version. A host of this version names the version once, in its initialize request,
+# and its later requests name no version -
+const MCP_OLDER_PROTOCOL_VERSION = "2025-06-18";
 
 # --- PRIVATE METHODS BELOW HERE ------------------------------------------------------------------------------- #
 # Wrap a result in a JSON-RPC response message. Every result of protocol version 2026-07-28 carries a
@@ -44,6 +50,18 @@ function _error_message(id, code::Int64, text::String; data = nothing)::Dict{Str
     message["id"] = id;
     message["error"] = error_object;
     return message;
+end
+
+# initialize: the handshake of the older protocol version. The server answers with the older version,
+# its capabilities, its name, and its instructions -
+function _initialize(server::MyMCPServerModel, id)::Dict{String,Any}
+
+    result = Dict{String,Any}();
+    result["protocolVersion"] = MCP_OLDER_PROTOCOL_VERSION;
+    result["capabilities"] = Dict{String,Any}("tools" => Dict{String,Any}()); # this server offers tools, and nothing else
+    result["serverInfo"] = Dict{String,Any}("name" => server.name, "version" => server.version);
+    result["instructions"] = server.instructions;
+    return _result_message(server, id, result);
 end
 
 # server/discover: the protocol versions, the capabilities, and the identity of the server -
@@ -127,7 +145,8 @@ end
 Process one JSON-RPC message from a client, and return the response message.
 
 The function parses the message, checks the protocol version in the `_meta` field of the request,
-and routes the request by its method to `server/discover`, `tools/list`, or `tools/call`.
+and routes the request by its method to `initialize`, `server/discover`, `tools/list`, or `tools/call`.
+A request that names no version is a request of the older version `2025-06-18`.
 
 ### Arguments
 - `server::MyMCPServerModel`: the server, with its tools and configuration.
@@ -171,18 +190,21 @@ function process_message(server::MyMCPServerModel, line::String)::Union{Nothing,
         return _error_message(id, -32602, "Invalid params: params must be a JSON object");
     end
 
-    # every request names its protocol version in its _meta field. The server checks it on every request -
+    # a request of version 2026-07-28 names its protocol version in its _meta field. The server checks it on every
+    # request. A request that names no version comes from a host of the older version, which named it in initialize -
     requested = nothing;
     if (haskey(params, "_meta") == true && isa(params["_meta"], AbstractDict) == true)
         requested = get(params["_meta"], "io.modelcontextprotocol/protocolVersion", nothing);
     end
-    if (requested != MCP_PROTOCOL_VERSION)
+    if (isnothing(requested) == false && requested != MCP_PROTOCOL_VERSION)
         data = Dict{String,Any}("supported" => [MCP_PROTOCOL_VERSION], "requested" => requested);
         return _error_message(id, -32022, "Unsupported protocol version", data = data);
     end
 
     # route the request by its method -
-    if (method == "server/discover")
+    if (method == "initialize")
+        return _initialize(server, id); # the handshake of the older version
+    elseif (method == "server/discover")
         return _discover(server, id); # call the discover method of the server
     elseif (method == "tools/list")
         return _list_tools(server, id); # call the list method of the server

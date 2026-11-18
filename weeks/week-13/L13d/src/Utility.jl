@@ -1,9 +1,8 @@
 # =============================================================================
-# CHEME 5800 | L13d supplied helper: read the configuration file
+# CHEME 5800 | L13d FRED server: read the configuration file
 # =============================================================================
 # The server reads your FRED API key from conf/Configuration.toml when it starts.
-# The key stays in the server: it is never part of an MCP message. You do not
-# need to edit this file.
+# The key stays in the server: it is never part of an MCP message.
 # =============================================================================
 
 # --- PUBLIC METHODS BELOW HERE -------------------------------------------------------------------------------- #

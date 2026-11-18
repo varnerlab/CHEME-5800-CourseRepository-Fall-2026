@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "fred": {
+      "command": "julia",
+      "args": ["--startup-file=no", "server.jl"]
+    }
+  }
+}

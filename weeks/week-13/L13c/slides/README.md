@@ -37,15 +37,15 @@ Requirements: XeLaTeX, `latexmk`, and the standard LaTeX packages used by the L1
 | 9 | Permissions and Prompt Injection: by default, a stdio server runs with the same permissions as the host, and user approval of each tool call can stop an injected instruction from running a tool |
 | 10 | MCP Messages: the sequence figure of one tool call, with its four phases (discover and list, choose a tool, run the tool, write the answer) |
 | 11 | The Message Format: JSON-RPC requests, responses, and notifications, and the comparison with REST |
-| 12 | Stateless protocol version `2026-07-28`: the protocol version, client, and client features that each request carries |
+| 12 | Stateless protocol version `2026-07-28`: the protocol version, client, and client features that each request carries; hosts of the older version `2025-06-18`, such as the Codex command-line tool, and their `initialize` request |
 | 13 | Discover a Server: supported versions, capabilities, instructions, and reuse of the response |
 | 14–15 | List the Tools: the two weather tools, their descriptions, JSON Schema, required arguments, and the range of `hours` |
 | 16–17 | Call a Tool: the Ithaca forecast request, response identifier, text content, structured content, and `isError` set to `false` |
 | 18 | Two Kinds of Errors: unknown `get_snowfall` tool versus a forecast failure for Paris, France |
-| 19 | The six JSON-RPC error codes used by our servers, including the rejection of an older `initialize` request |
+| 19 | The six JSON-RPC error codes used by our servers, including a request that names a protocol version other than `2026-07-28` |
 | 20–21 | The Server Loop: the lecture's pseudocode, with Initialize and the Read and Check steps on slide 20, and the Route and Write steps and Output on slide 21 |
 | 22 | Companion example: start and discover the server, list the tools, call them, cause a protocol error and a tool execution error, and close the connection |
-| 23 | Lab: the L13d MCP server for the FRED API, the observations tool that students complete, and the natural gas question |
+| 23 | Lab: the L13d MCP server for the FRED API, with one tool for each of the 36 endpoints of the FredAPI package, the code tour, and the experiments with Claude Code or the Codex command-line tool |
 | 24 | Summary: introductory sentence, exactly three key takeaways, and the closing connection to our computational code |
 
 ## Sources and scope
@@ -62,5 +62,5 @@ Source notebook snapshots (SHA-256):
 
 | Notebook | SHA-256 |
 |---|---|
-| CHEME-5800-L13c-Lecture-ModelContextProtocol-Fall-2026.ipynb | `2c30ca3704b3d3c183487269a68de74a4870bd71f6f31df1862740e0679f250d` |
-| CHEME-5800-L13c-Example-MCP-NWS-Fall-2026.ipynb | `96f87e2346030b89908b56770e1028578a44879e45eb7d778dac16f2870c0f81` |
+| CHEME-5800-L13c-Lecture-ModelContextProtocol-Fall-2026.ipynb | `17f66f1d80e621a20fd4c1f50babbedf6345d9bf119fc24f5fc03755d583cc48` |
+| CHEME-5800-L13c-Example-MCP-NWS-Fall-2026.ipynb | `002d522c662c9f81c3b58a8b6620a5a64cc4a74c94284e1e4470b63778b416f2` |
