@@ -22,6 +22,7 @@ DARK_COLORS = {
     (109, 114, 120): "#a7adb4",  # gdgray: the host-model arrows and notes
     (238, 240, 242): "#4a5263",  # waband: the lifeline header boxes
     (255, 255, 255): "#262a31",  # nodefill: the step-number circles and notes
+    (245, 246, 247): "#2f343b",  # phaseband: the three phase bands behind the steps
 }
 TOLERANCE = 2
 

@@ -1,14 +1,24 @@
 % L13c figure: one tool call, from the user's question to the answer.
 %
-% Four lifelines: the language model, the host, the MCP server, and the web
-% API. The host gives the model the question and the tool list (1); the model
-% picks a tool and its arguments (2); the host sends a tools/call request (3);
-% the server calls the web API (4, 5); the server returns the result (6); the
-% host gives the result to the model (7); the model writes the answer (8).
-% Blue arrows are MCP messages, dark arrows are HTTPS, gray arrows stay
-% inside the host application.
+% Four lifelines: the large language model (LLM), the host, the MCP server, and the web
+% API. Four shaded bands group the twelve steps into phases:
+%   Discover and list: when the host starts the server, it sends
+%                      server/discover (1, 2) and tools/list (3, 4), so the
+%                      host has the tool list before the user asks anything.
+%   Choose a tool:     the host gives the LLM the question and the tool
+%                      list (5); the LLM answers with a tool name and its
+%                      arguments (6).
+%   Run the tool:      the host sends a tools/call request (7); the server
+%                      makes two HTTPS GET requests to the web API (8, 9);
+%                      the server returns the result (10).
+%   Write the answer:  the host gives the result to the LLM (11); the LLM
+%                      writes the answer (12).
+% The legend under the drawing names the three arrow colors. The lecture
+% caption walks through the step numbers.
 %
-% Drawn on November 12, 2026 with the palette and build of the L13a figures.
+% Drawn on November 12, 2026, with the palette and build of the L13a figures.
+% Phase bands, phase labels, the legend, and the discover-and-list phase were
+% added on November 18, 2026.
 % The notebook SVG carries a dark palette added by theme_svg.py; keep new
 % colors in that script's mapping when changing the palette here.
 \documentclass[tikz,border=4pt]{standalone}
@@ -24,6 +34,7 @@
 \definecolor{gdgray}{HTML}{6D7278}
 \definecolor{waband}{HTML}{EEF0F2}
 \definecolor{nodefill}{HTML}{FFFFFF}
+\definecolor{phaseband}{HTML}{F5F6F7}
 
 \begin{document}
 \begin{tikzpicture}[
@@ -33,67 +44,108 @@
     fill=waband, line width=0.7pt, text=vnink, align=center, font=\sffamily\large\bfseries},
   life/.style={line width=0.7pt, draw=vnink, dashed},
   msg/.style={font=\sffamily\normalsize, text=vnink, align=center},
-  note/.style={font=\sffamily\normalsize, text=gdgray, align=center},
+  note/.style={font=\sffamily\normalsize, text=vnink, align=center, draw=gdgray, rounded corners=3pt,
+    fill=nodefill, line width=0.6pt, inner sep=4pt},
+  band/.style={fill=phaseband, draw=none},
+  phase/.style={font=\sffamily\normalsize\bfseries, text=gdgray, align=right, anchor=east},
   stepnum/.style={circle, draw=gdblue, fill=nodefill, line width=0.7pt, inner sep=0pt,
     minimum size=6.2mm, font=\sffamily\normalsize\bfseries, text=gdblue},
   mcp/.style={->, line width=1.0pt, draw=gdblue},
   https/.style={->, line width=1.0pt, draw=vnink},
-  local/.style={->, line width=1.0pt, draw=gdgray}
+  local/.style={->, line width=1.0pt, draw=gdgray},
+  legend/.style={font=\sffamily\normalsize, text=vnink, anchor=west}
 ]
 
-% x positions of the four lifelines, and the y position of each step -
+% x positions of the four lifelines -
 \def\xM{0.0}
 \def\xH{7.4}
 \def\xS{14.2}
 \def\xA{20.4}
 
+% ------------------------------------------------------------ phase bands (drawn first, behind everything)
+\fill[band] (-1.9, -1.15) rectangle (22.3, -4.85);
+\fill[band] (-1.9, -6.15) rectangle (22.3, -8.25);
+\fill[band] (-1.9, -8.65) rectangle (22.3, -12.75);
+\fill[band] (-1.9, -13.15) rectangle (22.3, -15.25);
+\node[phase] at (-2.2, -3.0) {Discover\\and list};
+\node[phase] at (-2.2, -7.2) {Choose\\a tool};
+\node[phase] at (-2.2, -10.7) {Run\\the tool};
+\node[phase] at (-2.2, -14.2) {Write\\the answer};
+
 % ------------------------------------------------------------ headers and lifelines
-\node[head] (m) at (\xM, 0) {Language\\model};
+\node[head] (m) at (\xM, 0) {LLM};
 \node[head] (h) at (\xH, 0) {Host};
 \node[head] (s) at (\xS, 0) {MCP server};
 \node[head] (a) at (\xA, 0) {Web API};
 \foreach \x in {\xM, \xH, \xS, \xA} {
-  \draw[life] (\x, -0.6) -- (\x, -10.6);
+  \draw[life] (\x, -0.6) -- (\x, -16.2);
 }
 
-% the question arrives at the host -
-\node[note, fill=nodefill, inner sep=2pt] at (\xH, -1.25) {the user asks: ``Will it rain in Ithaca tonight?''};
+% ------------------------------------------------------------ discover and list (when the host starts the server)
+% 1: the host asks the server which versions and features it supports
+\draw[mcp] (\xH, -1.8) -- (\xS, -1.8) node[msg, midway, above=1pt] {server/discover request};
+\node[stepnum] at (\xH + 0.45, -1.45) {1};
 
-% ------------------------------------------------------------ the eight steps
-% 1: the host gives the model the question and the tool list
-\draw[local] (\xH, -2.2) -- (\xM, -2.2) node[msg, midway, above=1pt] {question and tool list};
-\node[stepnum] at (\xH - 0.45, -1.85) {1};
+% 2: the server answers with its versions, capabilities, and name
+\draw[mcp] (\xS, -2.7) -- (\xH, -2.7) node[msg, midway, above=1pt] {server/discover result};
+\node[stepnum] at (\xS - 0.45, -2.35) {2};
 
-% 2: the model picks a tool and its arguments
-\draw[local] (\xM, -3.2) -- (\xH, -3.2) node[msg, midway, above=1pt] {tool name and arguments};
-\node[stepnum] at (\xM + 0.45, -2.85) {2};
+% 3: the host asks for the tools of the server
+\draw[mcp] (\xH, -3.6) -- (\xS, -3.6) node[msg, midway, above=1pt] {tools/list request};
+\node[stepnum] at (\xH + 0.45, -3.25) {3};
 
-% 3: the host sends a tools/call request to the server
-\draw[mcp] (\xH, -4.2) -- (\xS, -4.2) node[msg, midway, above=1pt] {tools/call request};
-\node[stepnum] at (\xH + 0.45, -3.85) {3};
+% 4: the server answers with the tool list
+\draw[mcp] (\xS, -4.5) -- (\xH, -4.5) node[msg, midway, above=1pt] {tools/list result: the tool list};
+\node[stepnum] at (\xS - 0.45, -4.15) {4};
 
-% 4: the server calls the web API
-\draw[https] (\xS, -5.2) -- (\xA, -5.2) node[msg, midway, above=1pt] {HTTPS GET};
-\node[stepnum] at (\xS + 0.45, -4.85) {4};
+% the user asks the host a question -
+\node[note] at (\xH, -5.5) {User asks: ``Will it rain in Ithaca tonight?''};
 
-% 5: the web API answers
-\draw[https] (\xA, -6.2) -- (\xS, -6.2) node[msg, midway, above=1pt] {JSON forecast};
-\node[stepnum] at (\xA - 0.45, -5.85) {5};
+% ------------------------------------------------------------ choose a tool
+% 5: the host gives the LLM the question and the tool list
+\draw[local] (\xH, -6.8) -- (\xM, -6.8) node[msg, midway, above=1pt] {question and tool list};
+\node[stepnum] at (\xH - 0.45, -6.45) {5};
 
-% 6: the server returns the result of the tool
-\draw[mcp] (\xS, -7.2) -- (\xH, -7.2) node[msg, midway, above=1pt] {tools/call result};
-\node[stepnum] at (\xS - 0.45, -6.85) {6};
+% 6: the LLM answers with a tool name and its arguments
+\draw[local] (\xM, -7.8) -- (\xH, -7.8) node[msg, midway, above=1pt] {tool name and arguments};
+\node[stepnum] at (\xM + 0.45, -7.45) {6};
 
-% 7: the host gives the result to the model
-\draw[local] (\xH, -8.2) -- (\xM, -8.2) node[msg, midway, above=1pt] {tool result};
-\node[stepnum] at (\xH - 0.45, -7.85) {7};
+% ------------------------------------------------------------ run the tool
+% 7: the host sends a tools/call request to the server
+\draw[mcp] (\xH, -9.3) -- (\xS, -9.3) node[msg, midway, above=1pt] {tools/call request};
+\node[stepnum] at (\xH + 0.45, -8.95) {7};
 
-% 8: the model writes the answer
-\draw[local] (\xM, -9.2) -- (\xH, -9.2) node[msg, midway, above=1pt] {answer};
-\node[stepnum] at (\xM + 0.45, -8.85) {8};
+% 8: the server makes two HTTPS GET requests to the web API
+\draw[https] (\xS, -10.3) -- (\xA, -10.3) node[msg, midway, above=1pt] {two HTTPS GET requests};
+\node[stepnum] at (\xS + 0.45, -9.95) {8};
 
-% the host shows the answer -
-\node[note, fill=nodefill, inner sep=2pt] at (\xH, -10.0) {the host shows the answer to the user};
+% 9: the web API answers with the forecast
+\draw[https] (\xA, -11.3) -- (\xS, -11.3) node[msg, midway, above=1pt] {JSON forecast};
+\node[stepnum] at (\xA - 0.45, -10.95) {9};
+
+% 10: the server returns the result of the tool
+\draw[mcp] (\xS, -12.3) -- (\xH, -12.3) node[msg, midway, above=1pt] {tools/call result};
+\node[stepnum] at (\xS - 0.45, -11.95) {10};
+
+% ------------------------------------------------------------ write the answer
+% 11: the host gives the result to the LLM
+\draw[local] (\xH, -13.8) -- (\xM, -13.8) node[msg, midway, above=1pt] {tool result};
+\node[stepnum] at (\xH - 0.45, -13.45) {11};
+
+% 12: the LLM writes the answer
+\draw[local] (\xM, -14.8) -- (\xH, -14.8) node[msg, midway, above=1pt] {answer};
+\node[stepnum] at (\xM + 0.45, -14.45) {12};
+
+% the host shows the answer to the user -
+\node[note] at (\xH, -15.75) {Host shows the answer to the user};
+
+% ------------------------------------------------------------ legend
+\draw[local] (2.0, -17.2) -- (3.4, -17.2);
+\node[legend] at (3.55, -17.2) {inside the host};
+\draw[mcp] (8.6, -17.2) -- (10.0, -17.2);
+\node[legend] at (10.15, -17.2) {MCP message};
+\draw[https] (14.6, -17.2) -- (16.0, -17.2);
+\node[legend] at (16.15, -17.2) {HTTPS request or response};
 
 \end{tikzpicture}
 \end{document}
