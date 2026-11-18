@@ -190,12 +190,12 @@
 \begin{frame}[fragile]{Protocol Version \code{2026-07-28}}
   This version is \hilite{stateless}: the server does not need to remember
   earlier requests. Each request carries the protocol version, the client's name
-  and version, and the features that the client supports, in \code{params.\_meta}.
+  and version, and the features that the client supports.
 
   \vspace{0.5em}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.58\textwidth}
-      \textbf{\ink{The \code{\_meta} object of our requests}}
+      \textbf{\ink{What each of our requests carries}}
 \begin{Verbatim}[fontsize=\jsonfont]
 {
   "io.modelcontextprotocol/protocolVersion":
@@ -352,7 +352,7 @@
   \end{columns}
   \messagepair{3-call}{3-call}
   \lecturesource{MCP Messages / Call a Tool.
-    Excerpt: messages/3-call-request.json, with params._meta omitted for projection.}
+    Excerpt: messages/3-call-request.json, with the request metadata omitted for projection.}
 \end{frame}
 
 \begin{frame}[fragile]{The Tool Result}
@@ -484,7 +484,7 @@
           invalid-request error, \code{-32600}.
         \item If $m$ has no \code{id}, \textbf{then} $r\gets\texttt{nothing}$, because a
           notification receives no response.
-        \item If the \code{params.\_meta} object of $m$ does not name $v$,
+        \item If $m$ does not name the protocol version $v$,
           \textbf{then} $r\gets$ an unsupported-version error, \code{-32022}.
       \end{itemize}
   \end{enumerate}

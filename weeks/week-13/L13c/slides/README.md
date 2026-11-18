@@ -35,7 +35,7 @@ Requirements: XeLaTeX, `latexmk`, and the standard LaTeX packages used by the L1
 | 7 | Transports: standard input, standard output, standard error, one line of JSON per message, and Streamable HTTP |
 | 8 | MCP Messages: the sequence figure of one tool call, with its four phases (discover and list, choose a tool, run the tool, write the answer) |
 | 9 | The Message Format: JSON-RPC requests, responses, and notifications, and the comparison with REST |
-| 10 | Stateless protocol version `2026-07-28`: per-request metadata in `params._meta` |
+| 10 | Stateless protocol version `2026-07-28`: the protocol version, client, and client features that each request carries |
 | 11 | Discover a Server: supported versions, capabilities, instructions, and reuse of the response |
 | 12–13 | List the Tools: the two weather tools, their descriptions, JSON Schema, required arguments, and the range of `hours` |
 | 14–15 | Call a Tool: the Ithaca forecast request, response identifier, text content, structured content, and `isError` set to `false` |
