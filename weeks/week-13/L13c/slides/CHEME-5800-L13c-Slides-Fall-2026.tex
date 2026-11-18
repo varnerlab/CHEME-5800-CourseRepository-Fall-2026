@@ -10,6 +10,7 @@
 \newcommand{\lecturebase}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-13/L13c/}
 \newcommand{\lecturelink}{\lecturebase CHEME-5800-L13c-Lecture-ModelContextProtocol-Fall-2026.ipynb}
 \newcommand{\examplelink}{\lecturebase CHEME-5800-L13c-Example-MCP-NWS-Fall-2026.ipynb}
+\newcommand{\lablink}{https://github.com/varnerlab/CHEME-5800-CourseRepository-Fall-2026/blob/main/weeks/week-13/L13d/CHEME-5800-L13d-Lab-MCP-FRED-Fall-2026.ipynb}
 \newcommand{\speclink}{https://modelcontextprotocol.io/specification/2026-07-28}
 \newcommand{\lecturesource}[1]{\note{[Sources]\par
   \href{\lecturelink}{L13c lecture: The Model Context Protocol.}\par
@@ -39,8 +40,8 @@
       the client, and the server, and how the host connects a large language model (LLM) to servers.
     \item \hilite{Read the messages of a tool call}: follow the \href{https://www.jsonrpc.org/specification}{JSON-RPC}
       messages that discover a server, list its tools, and call a tool.
-    \item \hilite{Identify the trust boundaries of a tool call}: explain
-      what the host and the server each check before a tool runs.
+    \item \hilite{Follow the server loop}: step through the loop that reads
+      each message from the standard input and writes each response.
   \end{itemize}
   \slidenote{Lecture:}{\href{\lecturelink}{The Model Context Protocol}}
   \lecturesource{Introduction and three Learning Objectives.}
@@ -515,37 +516,6 @@
   \lecturesource{MCP Messages / The Server Loop: steps 3 (Route) and 4 (Write), Output, and the code link. The slide shortens the Route branches; the full version is in the lecture.}
 \end{frame}
 
-\begin{frame}{Trust and Security}
-  A \hilite{trust boundary} is a point where data passes between parts of a
-  system that we trust to different degrees. A tool call in our weather example
-  crosses three trust boundaries:
-
-  \vspace{0.5em}
-  \begin{itemize}\setlength{\itemsep}{0.7em}
-    \item \hilite{LLM $\rightarrow$ host}: the LLM asks for a tool and gives
-      its arguments. The host decides whether to run the call, and asks the user
-      for approval when its settings require it.
-    \item \hilite{Host $\rightarrow$ server}: our stdio servers run on the user's
-      computer with the user's permissions. A server can read or change any file
-      that the user can. Install only servers whose code you trust.
-    \item \hilite{Server $\rightarrow$ API}: the server checks the tool arguments
-      before it makes an API request. The server never puts an API key in an MCP
-      message.
-  \end{itemize}
-  \lecturesource{Trust and Security: the three trust boundaries.}
-\end{frame}
-
-\begin{frame}{Prompt Injection and User Approval}
-  \hilite{Prompt injection} happens when a tool result contains text that
-  tells the LLM to do something the user did not ask for.
-
-  \vspace{1.0em}
-  Our tools only read public data. Before each call to a tool that changes
-  data, such as a tool that places an order, the host should ask the user for
-  approval.
-  \lecturesource{Trust and Security: prompt injection and approval for tools that change data.}
-\end{frame}
-
 \begin{frame}{Example: An MCP Server for the NWS API}
   In this example, we wrap our NWS SDK in a server with two tools.
   We act as the host and send the requests that a host would send for its
@@ -568,9 +538,26 @@
   \lecturesource{Examples. Companion example: Tasks 1--3 and Close the Connection.}
 \end{frame}
 
+\begin{frame}{Lab: An MCP Server for the FRED API}
+  In the \href{\lablink}{lab}, we use an MCP server that wraps our SDK for the
+  Federal Reserve Economic Data (FRED) API:
+
+  \vspace{0.6em}
+  \begin{itemize}\setlength{\itemsep}{0.6em}
+    \item we \hilite{start the server}, list its three tools, and search FRED
+      for the price of natural gas,
+    \item you \hilite{write the input schema and the handler} of the tool that
+      downloads one data series,
+    \item we \hilite{act as the host} and answer a process engineer's question:
+      was natural gas cheaper in 2025 than in 2024?
+  \end{itemize}
+  \slidenote{Lab:}{\href{\lablink}{An MCP server for the FRED API}}
+  \lecturesource{Lab section. Lab notebook: introduction and Learning Objectives.}
+\end{frame}
+
 \begin{frame}{Summary}
   We introduced the Model Context Protocol, the messages of a tool call, and
-  the trust boundaries of a tool call.
+  the loop that an MCP server runs.
 
   \vspace{0.4em}
   {\large\textbf{\ink{Key takeaways}}}
@@ -583,8 +570,9 @@
       requests that name the protocol version. A request that the server
       cannot process gets a protocol error. A tool that fails returns a result
       with \code{isError} set to \code{true}.
-    \item \textbf{\ink{Trust boundaries.}} The host decides whether to run
-      each call. The server checks every argument before it calls an API.
+    \item \textbf{\ink{The server loop.}} Our server reads one line of JSON at
+      a time, checks the message, routes it by its method, and writes one line
+      back.
   \end{itemize}
 
   \vspace{0.4em}
