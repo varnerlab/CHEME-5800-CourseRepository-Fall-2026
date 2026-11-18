@@ -42,7 +42,7 @@ __Questions to discuss during the tour:__
 
 Open a terminal in this folder, and start your host:
 
-* __Claude Code:__ Run `claude`. Claude Code finds the `fred` server in [.mcp.json](.mcp.json) and asks whether to use it. Approve it. Type `/mcp` to check that the server is connected.
+* __Claude Code:__ Run `claude`. Claude Code finds the `fred` server in [.mcp.json](.mcp.json) and asks whether to use it. Choose __Use this MCP server__. Do not choose the option for all future MCP servers, which would also approve servers added to this folder later without asking. Type `/mcp` to check that the server is connected.
 * __Codex:__ Run `codex`. If Codex asks whether to trust this folder, answer yes, so that Codex reads [.codex/config.toml](.codex/config.toml). Type `/mcp` to check that the server is connected.
 
 Before each tool call, the host shows the tool and its arguments and asks for your approval. Approve one call at a time, so that you see the arguments of every call. If the server fails to start in Claude Code, quit and restart Claude Code with a longer startup timeout: `MCP_TIMEOUT=120000 claude` on macOS or Linux, or `$env:MCP_TIMEOUT=120000; claude` in Windows PowerShell.
@@ -82,6 +82,15 @@ What does the error message tell the language model? How did the model change it
 __Experiment 6: The same question without the server.__ Quit the host. Start it again from the `week-13` folder, where it cannot find the server, and ask the Experiment 2 question again.
 
 How does this answer differ from the answer in Experiment 2? Where does it come from?
+
+__More questions to try.__ Ask questions about interest rates, unemployment, inflation, and economic growth. For each answer, note which FRED series the language model used, and check one value on the [FRED website](https://fred.stlouisfed.org).
+
+* __Interest rates:__ How has the federal funds rate changed since January 2022? Compare it with the 30-year mortgage rate.
+* __Unemployment:__ What is the US unemployment rate now, and how does it compare with its peak in 2020?
+* __Unemployment by state:__ Which five states had the highest unemployment rate in the latest month?
+* __Inflation:__ What was the inflation rate of consumer prices in each of the last five years?
+* __Treasury rates:__ What is the difference between the 10-year and the 2-year Treasury rates today? When was this difference last negative?
+* __Economic growth:__ How fast did real gross domestic product (GDP) grow in each quarter of 2025?
 
 ## Call the server from Julia
 
