@@ -1,17 +1,21 @@
 # ================================================================================================ #
 # Eigen.jl
 #
-# The QR iteration method for the eigenvalues and eigenvectors of a real square matrix. An
-# eigenvector v of a matrix A is a vector that A only stretches: A⋅v = λ⋅v, where the number λ is
-# the eigenvalue that goes with v. The package exports qriteration(...); no course notebook calls it.
+# The QR iteration and power iteration methods for the eigenvalues and eigenvectors of a real
+# square matrix. An eigenvector v of a matrix A is a vector that A only stretches: A⋅v = λ⋅v, where
+# the number λ is the eigenvalue that goes with v. The week 14 advanced notebook (L14a) calls
+# qriteration(...) and poweriteration(...). Both follow the CHEME 5820 (Spring 2026) versions.
 #
 # Functions in this file:
-#   _rref!(...)             (private) put a matrix in reduced row echelon form, in place
-#   _upper_triangular(...)  (private) Gaussian elimination to an upper triangular matrix, with no row swaps
-#   qriteration(...)        the eigenvalues and eigenvectors of a real square matrix, by QR iteration
+#   _rref!(...)                     (private) put a matrix in reduced row echelon form, in place
+#   _upper_triangular(...)          (private) Gaussian elimination to an upper triangular matrix, with no row swaps
+#   _smallest_singular_vector(...)  (private) the right singular vector of the smallest singular value
+#   _nullspace_vector(...)          (private) one vector v with A⋅v = 0, from the reduced row echelon form
+#   qriteration(...)                the eigenvalues and eigenvectors of a real square matrix, by QR iteration
+#   poweriteration(...)             the dominant eigenvalue and eigenvector, by power iteration
 #
 # A leading underscore in a name marks a private helper, which the package does not export.
-# The functions use qr, diag, norm, and I (the identity matrix) from the LinearAlgebra package,
+# The functions use qr, svd, diag, dot, norm, and I (the identity matrix) from the LinearAlgebra package,
 # which the package module loads with `using LinearAlgebra`.
 # ================================================================================================ #
 
@@ -137,6 +141,77 @@ function _upper_triangular(matrix::Matrix)
 end
 
 
+"""
+    _smallest_singular_vector(A::Matrix{Float64}) -> Array{Float64,1}
+
+Return the right singular vector of `A` that goes with its smallest singular value. When `A` is
+singular, this vector `v` solves `A⋅v = 0`; when `A` is nearly singular, `A⋅v` is as small as any
+unit vector can make it. The singular value decomposition is `A = U⋅Σ⋅Vᵀ`, and `svd(A).Vt` holds
+the rows of `Vᵀ`, sorted from the largest singular value to the smallest, so the last row is the one we want.
+"""
+function _smallest_singular_vector(A::Matrix{Float64})::Array{Float64,1}
+    F = svd(A) # the singular value decomposition of A
+    return F.Vt[end, :] # the last row of Vᵀ
+end
+
+"""
+    _nullspace_vector(A::Matrix{Float64}; tol::Float64 = 1e-10) -> Array{Float64,1}
+
+Return one nonzero vector `x` with `A⋅x = 0` (a null-space vector of `A`). We put `A` in reduced
+row echelon form with `_rref!`, treating entries of size at most `tol` as zero. Each column without
+a pivot is a free column. We set the last free entry of `x` to 1, the other free entries to 0, and
+solve each pivot row for its pivot entry. When `A` has no free column, or the vector comes out too
+short, we return `_smallest_singular_vector(A)` instead.
+"""
+function _nullspace_vector(A::Matrix{Float64}; tol::Float64 = 1e-10)::Array{Float64,1}
+
+    # reduce a copy of A, so A itself is not changed -
+    R = _rref!(copy(A), tol)
+    number_of_rows = size(R, 1)
+    number_of_columns = size(R, 2)
+
+    # find the pivot of each row: the first entry larger than tol -
+    pivot_columns = Int64[]
+    pivot_rows = Int64[]
+    for i in 1:number_of_rows
+        pivot_column = 0
+        for j in 1:number_of_columns
+            if abs(R[i, j]) > tol
+                pivot_column = j
+                break
+            end
+        end
+        if pivot_column != 0
+            push!(pivot_columns, pivot_column)
+            push!(pivot_rows, i)
+        end
+    end
+
+    # the free columns are the ones without a pivot; with none, A has no exact null-space vector -
+    free_columns = setdiff(collect(1:number_of_columns), pivot_columns)
+    if isempty(free_columns) == true
+        return _smallest_singular_vector(A)
+    end
+
+    # set the last free entry to 1, then solve each pivot row for its pivot entry -
+    x = zeros(number_of_columns)
+    x[free_columns[end]] = 1.0
+    for k in 1:length(pivot_columns)
+        row = pivot_rows[k]
+        total = 0.0
+        for j in free_columns
+            total = total + R[row, j] * x[j]
+        end
+        x[pivot_columns[k]] = -total
+    end
+
+    # a vector that is too short is not useful; fall back to the singular vector -
+    if norm(x) <= tol
+        return _smallest_singular_vector(A)
+    end
+    return x
+end
+
 # -- PUBLIC METHODS BELOW HERE ---------------------------------------------------------------------------------------------------------------------------------------- #
 
 """
@@ -154,20 +229,12 @@ changes by less than `tolerance` (measured by the Euclidean norm of the change) 
 iterations, or after `maxiter` iterations, whichever comes first. The function does not report
 which of the two happened.
 
-Phase 2 estimates one eigenvector for each eigenvalue estimate `λᵢ`. We row-reduce the augmented
-matrix `[A − λᵢI  b]`, where `I` is the identity matrix and `b` is zero except for its last entry.
-That entry is the last diagonal entry of the upper triangular form of `A − λᵢI`, or 1 when that
-entry is exactly zero. We take the last column `x` of the reduced matrix and divide it by its
-length. When the row reduction finds a pivot in every column of `A − λᵢI`, the reduced matrix is
-`[I x]`, so `x` solves `(A − λᵢI)⋅x = b`. This is one step of the inverse iteration method.
-When `λᵢ` is close to an eigenvalue, the step usually turns `x` toward that eigenvalue's
-eigenvector. It does not always do so, because the result also depends on the right-hand side `b`.
-For `A = [2.0 1 0; 1 3 0; 0 0 10]`, the first two vectors returned are eigenvectors of the
-eigenvalue `10`. The function does not check its vectors. Before you use a returned vector `x`,
-compare `A⋅x` with `λᵢ⋅x`.
-Last, we multiply the eigenvector by `(−1)^(i+1)`, which flips the sign of every second
-eigenvector. An eigenvector times −1 is still an eigenvector; the code does not record why it
-flips these signs.
+Phase 2 estimates one eigenvector for each eigenvalue estimate `λᵢ`. The eigenvector `v` solves
+`(A − λᵢI)⋅v = 0`, where `I` is the identity matrix, so it is a null-space vector of `A − λᵢI`.
+We find one with `_nullspace_vector`, which row-reduces `A − λᵢI` and treats entries of size at
+most `tolerance` as zero. When `λᵢ` is only an estimate, `A − λᵢI` has no exact null space, and
+the function falls back to the right singular vector of the smallest singular value: the unit
+vector that `A − λᵢI` shrinks the most. We then divide the vector by its length.
 
 ### Arguments
 - `A::Array{Float64,2}`: a real square matrix of size `n × n`. It is not changed.
@@ -179,8 +246,7 @@ flips these signs.
 A tuple `(λ, eigenvectors)`:
 - `λ::Array{Float64,1}`: the eigenvalue estimates, sorted from smallest to largest.
 - `eigenvectors::Dict{Int64,Array{Float64,1}}`: `eigenvectors[i]` is a unit-length eigenvector
-  estimate for `λ[i]`. When the row reduction treats `A − λᵢI` as singular, the last column of the
-  reduced matrix can come out all zeros, and `eigenvectors[i]` is then all `NaN` ("not a number").
+  estimate for `λ[i]`. Check it before you use it: compare `A⋅v` with `λᵢ⋅v`.
 """
 function qriteration(A::Array{Float64,2}; 
     maxiter::Int64 = 10, tolerance::Float64 = 1e-9)::Tuple{Array{Float64,1}, Dict{Int64,Array{Float64,1}}}
@@ -232,28 +298,23 @@ function qriteration(A::Array{Float64,2};
         # set up the matrix of the homogeneous system (A − λᵢI)⋅v = 0. Matrix{Float64}(I, n, n) is the n×n identity matrix -
         AH = A - λ[i]*Matrix{Float64}(I, number_of_rows, number_of_rows);
 
-        # use Gaussian elimination to get the last pivot of A − λᵢI; we use 1.0 if that pivot is exactly zero -
-        pivot_value = 1.0
-        U = _upper_triangular(AH)
-        if (U[end,end] != 0.0) # U[end,end] is the entry in the last row and last column
-            pivot_value = U[end,end];
+        # compute the unscaled eigenvector: a null-space vector of A − λᵢI -
+        EVUS = _nullspace_vector(AH; tol = tolerance)
+
+        # compute the length of the unscaled eigenvector; a length of zero (or not a finite
+        # number) means the null-space step failed, so we use the singular vector instead -
+        d = norm(EVUS);
+        if isfinite(d) == false || d <= eps(Float64)
+            EVUS = _smallest_singular_vector(AH)
+            d = norm(EVUS)
         end
 
-        # create the augmented system [A − λᵢI  b], where b is zero except for its last entry -
-        b = zeros(number_of_rows);
-        b[number_of_rows] = pivot_value # the last entry of b is the pivot value
-        AM = [AH b]; # [AH b] puts the column b to the right of AH
-
-        # compute the unscaled eigenvector: the last column of the reduced row echelon form.
-        # [:,end] picks every row (:) of the last column (end) -
-        EVUS = _rref!(AM)[:,end];
-
-        # compute the length of the unscaled eigenvector -
-        d = norm(EVUS);
-
-        # scale the eigenvector to unit length, and multiply it by (-1)^(i+1): +1 for odd i and
-        # -1 for even i. The code does not record why it flips the sign of every second eigenvector -
-        eigenvectors[i] = ((-1)^(i+1))*(1/d)*EVUS
+        # scale the eigenvector to unit length -
+        if isfinite(d) == false || d <= eps(Float64)
+            eigenvectors[i] = zeros(number_of_rows) # no usable vector: store zeros, not NaN
+        else
+            eigenvectors[i] = (1/d)*EVUS
+        end
     end
 
     # return the sorted eigenvalues and the dictionary of eigenvectors -
@@ -261,3 +322,74 @@ function qriteration(A::Array{Float64,2};
 end
 
 # -- PUBLIC METHODS ABOVE HERE ---------------------------------------------------------------------------------------------------------------------------------------- #
+
+"""
+    poweriteration(A::Array{<:Number,2}, v::Array{<:Number,1};
+        maxiter::Int = 100, ϵ::Float64 = 0.0001) -> NamedTuple
+
+Estimate the dominant eigenvalue (the one of largest absolute value) and its eigenvector with the
+power iteration method. Each iteration multiplies the current vector by `A` and divides the result
+by its length: `w = A⋅v / ‖A⋅v‖`. Unless the starting vector misses the dominant eigenvector
+exactly, the vector turns toward that eigenvector. When the dominant eigenvalue is negative, the
+vector also flips its sign at each iteration. We stop when the vector changes by less than `ϵ` up
+to its sign, `min(‖w − v‖, ‖w + v‖)² ≤ ϵ`, or after `maxiter` iterations, and print which of the
+two happened. The eigenvalue estimate is the Rayleigh quotient `λ = (A⋅w)⋅w / (w⋅w)` of the last
+vector `w`.
+
+### Arguments
+- `A::Array{<:Number,2}`: a square matrix of real numbers.
+- `v::Array{<:Number,1}`: the starting vector, which must not be zero.
+- `maxiter::Int = 100`: the most iterations.
+- `ϵ::Float64 = 0.0001`: the stopping tolerance on `min(‖w − v‖, ‖w + v‖)²`.
+
+### Returns
+- A `NamedTuple` with the fields `vector` (the eigenvector estimate, unit length) and `value`
+  (the eigenvalue estimate).
+
+### Throws
+- `ArgumentError` when `v` is zero, or when `A⋅v` is zero at some iteration. A zero vector has no
+  direction, and dividing it by its length would give `NaN`.
+"""
+function poweriteration(A::Array{<:Number,2}, v::Array{<:Number,1};
+    maxiter::Int = 100, ϵ::Float64 = 0.0001)::NamedTuple
+
+    # check: a zero starting vector has no direction -
+    if (norm(v) == 0.0)
+        throw(ArgumentError("the starting vector v must not be zero"));
+    end
+
+    # initialize -
+    loopcount = 1;
+    should_we_stop = false;
+
+    while (should_we_stop == false)
+
+        # compute the next iteration: multiply by A, then divide by the length -
+        w = A * v;
+        if (norm(w) == 0.0)
+            throw(ArgumentError("A⋅v is zero at iteration $(loopcount); choose another starting vector"));
+        end
+        w = w / norm(w);
+
+        # the change in the vector, up to its sign: a negative dominant eigenvalue flips the sign at each iteration -
+        change = min(norm(w - v), norm(w + v))^2;
+        v = w; # keep the newest vector
+
+        # check: should we stop? Either the vector stopped changing, or we ran out of iterations -
+        if (change ≤ ϵ)
+            should_we_stop = true;
+            println("Converged in $(loopcount) iterations"); # let the user know how many iterations it took
+        elseif (loopcount ≥ maxiter)
+            should_we_stop = true;
+            println("Stopped after $(loopcount) iterations without converging"); # the tolerance was not reached
+        else
+            loopcount = loopcount + 1; # update the loop count
+        end
+    end
+
+    # compute the eigenvalue estimate, the Rayleigh quotient -
+    λ = dot(A * v, v) / dot(v, v);
+
+    # return the result -
+    return (vector = v, value = λ);
+end

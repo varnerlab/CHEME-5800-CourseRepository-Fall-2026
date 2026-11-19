@@ -1,0 +1,46 @@
+# Positive autoregulation: protein X activates transcription of its own gene.
+# The activator binds only when it carries the inducer I, so I sets how much X can bind.
+#
+# With these values, at the baseline inducer I = 1 µM, the gene has three steady states:
+#   low   p* ≈ 0.0113 µM, eigenvalues ≈ (−0.292, −0.028) 1/min: stable
+#   mid   p* ≈ 0.0583 µM, eigenvalues ≈ (−0.354, +0.034) 1/min: a saddle
+#   high  p* ≈ 0.884 µM,  eigenvalues ≈ (−0.289, −0.031) 1/min: stable
+# A 60 min inducer pulse to 2 µM returns the gene to the low state; a pulse to 5 µM or more
+# switches it to the high state, where it stays after the pulse ends.
+
+[metadata]
+description = "Positive autoregulation: protein X activates transcription of its own gene"
+reference = "Shoval and Alon, Cell 143 (2010), doi:10.1016/j.cell.2010.09.050"
+
+[parameters]
+mRNA_half_life = 2.5      # min
+protein_half_life = 35.0  # min
+doubling_time = 60.0      # min
+
+[[genes]]
+name = "X"
+G = 0.005          # gene concentration (µM)
+Vmax_X = 0.04      # transcription kinetic limit (µM/min)
+K_X = 0.005        # transcription saturation constant (µM)
+Vmax_L = 0.05      # translation kinetic limit (µM/min)
+K_L = 0.05         # translation saturation constant (µM)
+
+  [[genes.promoter]]          # RNA polymerase bound alone: the leak
+  W = 0.005
+  active = true
+
+  [[genes.promoter]]          # RNA polymerase with protein X bound: self-activation
+  W = 10.0
+  active = true
+
+    [[genes.promoter.bound]]
+    regulator = "X"
+    K = 0.04                  # half-binding concentration of the available X (µM)
+    n = 3                     # binding order
+    inducer = "I"             # inducer I sets the fraction of X that can bind
+    inducer_effect = "activates"
+    K_I = 10.0                # half of X carries the inducer at I = 10 µM
+    n_I = 1
+
+[inputs.I]
+initial = 1.0                 # baseline inducer concentration (µM)

@@ -42,6 +42,7 @@ using ImageIO # lets FileIO's load(...) read image files
 using NNlib # the softmax function (the modern Hopfield network in Hopfield.jl)
 using Distances # distance functions between vectors: hamming(...), which counts the entries that differ, in Hopfield.jl
 using Optim # NelderMead, Fminbox, and optimize, for the minimization in indifference(...) (Indifference.jl)
+using TOML # reads TOML config files: TOML.parsefile(...) in the gene network build(...) (Factory.jl)
 
 # load my codes - order matters: types before factories before compute/solve routines -
 # Types.jl must come first: the other files use its type names in their function signatures,
@@ -61,7 +62,8 @@ include("StacksQueues.jl"); # MyStack, MyQueue, and isbalanced (week 3, L3b)
 include("Recursion.jl"); # iterative and recursive Fibonacci functions (weeks 2 and 3)
 include("Graphs.jl"); # children, weight, walk, findshortestpath, and maximumflow (weeks 4 and 5)
 include("Solvers.jl"); # solve(...) for iterative linear solvers (week 6) and for linear programs (week 5)
-include("Eigen.jl"); # qriteration: eigenvalues and eigenvectors by QR iteration
+include("Eigen.jl"); # qriteration and poweriteration: eigenvalues and eigenvectors
+include("GeneNetworks.jl"); # gene network models built from TOML config files (week 14, L14a)
 include("Binary.jl"); # learn, classify, and confusion for binary classifiers (week 9)
 include("MDP.jl"); # Markov decision process functions and value iteration (weeks 11 and 12)
 include("Bandit.jl"); # solve(...) for multi-armed bandits and regret (week 10)
@@ -158,7 +160,17 @@ export maximumflow; # the maximum flow from a source to a sink (week 5)
 # Solvers, eigenvalues, and stock growth -
 export solve; # one name, many methods: linear programs, iterative linear solvers, bandits, value iteration, and Q-learning
 export qriteration; # eigenvalues and eigenvectors by QR iteration (Eigen.jl)
+export poweriteration; # the dominant eigenvalue and eigenvector by power iteration (Eigen.jl)
 export log_growth_matrix; # log growth rates of stock prices (Compute.jl; week 10, L10b)
+# Gene networks (week 14, L14a, GeneNetworks.jl) -
+export MyGeneNetworkModel, MyGeneModel, MyControlStateModel, MyBoundRegulatorModel, MyInputScheduleModel; # the network types (Types.jl)
+export motif_path; # the path of a motif config file in data/motifs
+export set_input!, input_value; # the piecewise-constant inducer schedules
+export bound_fraction, control, transcription_control, translation_control; # the Boltzmann (active-state) controls
+export balances!; # the mRNA and protein balances, in the form ODEProblem(...) expects
+export equations; # the balances and controls of a network, as text
+export jacobian, input_jacobian, steady_state; # linearization about a steady state
+export discretize; # the bilinear (S4) discretization of ẋ = A x + B u
 # Classification (week 9, Binary.jl) -
 export learn; # train a classifier on labeled data
 export classify; # predict the labels of new data

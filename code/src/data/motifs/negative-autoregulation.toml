@@ -1,0 +1,36 @@
+# Negative autoregulation: protein X represses transcription of its own gene.
+# The repressor-bound promoter is inactive, so it counts only in the denominator of the control.
+# The repression is weak enough that both eigenvalues at the steady state are real and negative.
+#
+# With these values the steady state is m* ≈ 0.023 µM, p* ≈ 0.50 µM, and the eigenvalues are
+# about −0.285 and −0.035 per minute.
+
+[metadata]
+description = "Negative autoregulation: protein X represses transcription of its own gene"
+reference = "Shoval and Alon, Cell 143 (2010), doi:10.1016/j.cell.2010.09.050"
+
+[parameters]
+mRNA_half_life = 2.5      # min
+protein_half_life = 35.0  # min
+doubling_time = 60.0      # min
+
+[[genes]]
+name = "X"
+G = 0.005          # gene concentration (µM)
+Vmax_X = 0.04      # transcription kinetic limit (µM/min)
+K_X = 0.005        # transcription saturation constant (µM)
+Vmax_L = 0.05      # translation kinetic limit (µM/min)
+K_L = 0.05         # translation saturation constant (µM)
+
+  [[genes.promoter]]          # RNA polymerase bound alone: transcription runs
+  W = 1.0
+  active = true
+
+  [[genes.promoter]]          # protein X bound: the promoter is blocked
+  W = 2.0
+  active = false
+
+    [[genes.promoter.bound]]
+    regulator = "X"
+    K = 0.5                   # half-binding concentration of X (µM)
+    n = 1                     # binding order

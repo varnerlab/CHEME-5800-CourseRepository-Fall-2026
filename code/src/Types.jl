@@ -77,6 +77,12 @@
 #   MyBinaryWeightedMajorityAlgorithmModel  the weighted majority algorithm (L10b) [AbstractOnlineLearningModel]
 #   MyTwoPersonZeroSumGameModel         a two-player game played with multiplicative weights (no course notebook uses it)
 #   MyQLearningAgentModel               a Q-learning agent: states, actions, α, γ, and the Q table (L12a, L12b)
+# Gene networks (week 14, L14a):
+#   MyBoundRegulatorModel               one regulator bound in a promoter state: K, n, and an optional inducer [no family]
+#   MyControlStateModel                 one promoter or translation state: its weight W, whether it is active, and its bound regulators [no family]
+#   MyGeneModel                         one gene: kinetic limits, degradation constants, promoter and translation states [no family]
+#   MyInputScheduleModel                a piecewise-constant inducer schedule: start times and values [no family]
+#   MyGeneNetworkModel                  a gene network read from a TOML config file [AbstractProcessModel]
 # Hopfield networks (no course notebook uses these):
 #   MyClassicalHopfieldNetworkModel     a classical Hopfield network [AbstractlHopfieldNetworkModel]
 #   MyModernHopfieldNetworkModel        a modern Hopfield network [AbstractlHopfieldNetworkModel]
@@ -216,8 +222,9 @@ abstract type AbstractLinearProgrammingProblemType end
 """
     abstract type AbstractProcessModel end
 
-The family of decision process models. The only member is [`MyMDPProblemModel`](@ref)
-(weeks 11 and 12).
+The family of process models. Its members are the Markov decision process
+[`MyMDPProblemModel`](@ref) (weeks 11 and 12) and the gene network [`MyGeneNetworkModel`](@ref)
+(week 14).
 """
 abstract type AbstractProcessModel end
 
@@ -1416,3 +1423,158 @@ mutable struct VLLinearUtilityFunction <: AbstractUtilityFunctionType
     VLLinearUtilityFunction() = new()
 end
 # -- UTILITY FUNCTIONS ABOVE HERE ------------------------------------------------------------------ #
+
+# -- GENE NETWORKS BELOW HERE --------------------------------------------------------------------- #
+# A gene network is a set of genes. Each gene j has an mRNA concentration m_j and a protein
+# concentration p_j, and the balances in GeneNetworks.jl describe how both change with time.
+# Transcription (DNA to mRNA) is controlled by the gene's promoter states, and translation
+# (mRNA to protein) by its translation states. The types below hold a network read from a
+# TOML config file by build(MyGeneNetworkModel, path) in Factory.jl (week 14, L14a).
+
+"""
+    mutable struct MyBoundRegulatorModel
+
+One regulator protein bound in a promoter (or translation) state. The bound fraction of the
+regulator is `f = xⁿ / (Kⁿ + xⁿ)`, where `x` is the regulator's available concentration.
+
+### Fields
+- `regulator::String`: the name of the gene whose protein binds in this state.
+- `K::Float64`: the concentration at which half of the regulator is bound (µM).
+- `n::Float64`: the binding order (the Hill coefficient).
+- `inducer::String`: the name of an inducer that changes how much regulator can bind, or `""`
+  when the state has no inducer.
+- `inducer_effect::String`: `"activates"` when the inducer must be bound for the regulator to bind
+  (available concentration `p ⋅ f_I`), or `"inactivates"` when the inducer blocks binding
+  (available concentration `p ⋅ (1 − f_I)`). It is `""` when there is no inducer.
+- `K_I::Float64`: the inducer concentration at which half of the regulator carries the inducer (µM).
+- `n_I::Float64`: the inducer binding order.
+"""
+mutable struct MyBoundRegulatorModel
+
+    # data -
+    regulator::String # the gene whose protein binds
+    K::Float64 # half-binding concentration of the regulator (µM)
+    n::Float64 # binding order of the regulator
+    inducer::String # the inducer that acts on the regulator, or "" for none
+    inducer_effect::String # "activates", "inactivates", or "" for none
+    K_I::Float64 # half-binding concentration of the inducer (µM)
+    n_I::Float64 # binding order of the inducer
+
+    # empty constructor: new() makes a model with no fields set; build(...) in Factory.jl fills them in -
+    MyBoundRegulatorModel() = new()
+end
+
+"""
+    mutable struct MyControlStateModel
+
+One state of a promoter (for transcription) or of an mRNA (for translation). The weight of the
+state is `W` times the bound fraction of every regulator in `bound`. Active states count in the
+numerator and the denominator of the control; inactive states count only in the denominator.
+
+### Fields
+- `W::Float64`: the relative weight of the state, `W = exp(−ΔG)`.
+- `active::Bool`: `true` when the process (transcription or translation) runs in this state.
+- `bound::Vector{MyBoundRegulatorModel}`: the regulators bound in this state. An empty vector
+  means no regulator is bound (for example, RNA polymerase bound alone).
+"""
+mutable struct MyControlStateModel
+
+    # data -
+    W::Float64 # relative weight of the state
+    active::Bool # true when transcription (or translation) runs in this state
+    bound::Vector{MyBoundRegulatorModel} # the regulators bound in this state
+
+    # empty constructor: new() makes a model with no fields set; build(...) in Factory.jl fills them in -
+    MyControlStateModel() = new()
+end
+
+"""
+    mutable struct MyGeneModel
+
+One gene of a gene network.
+
+### Fields
+- `name::String`: the gene's name, for example `"X"`.
+- `G::Float64`: the gene concentration (µM).
+- `Vmax_X::Float64`: the transcription kinetic limit (µM/min).
+- `K_X::Float64`: the transcription saturation constant (µM). The transcription rate is
+  `r_X = Vmax_X ⋅ G / (K_X + G)`.
+- `Vmax_L::Float64`: the translation kinetic limit (µM/min).
+- `K_L::Float64`: the translation saturation constant (µM). The translation rate is
+  `r_L = Vmax_L ⋅ m / (K_L + m)`.
+- `θ_m::Float64`: the mRNA degradation constant (1/min), `ln 2 / (mRNA half-life)`.
+- `θ_p::Float64`: the protein degradation constant (1/min), `ln 2 / (protein half-life)`.
+- `promoter::Vector{MyControlStateModel}`: the promoter states, which set the transcriptional control.
+- `translation::Vector{MyControlStateModel}`: the translation states, which set the translational
+  control. An empty vector means translation is not regulated.
+"""
+mutable struct MyGeneModel
+
+    # data -
+    name::String # the gene's name
+    G::Float64 # gene concentration (µM)
+    Vmax_X::Float64 # transcription kinetic limit (µM/min)
+    K_X::Float64 # transcription saturation constant (µM)
+    Vmax_L::Float64 # translation kinetic limit (µM/min)
+    K_L::Float64 # translation saturation constant (µM)
+    θ_m::Float64 # mRNA degradation constant (1/min)
+    θ_p::Float64 # protein degradation constant (1/min)
+    promoter::Vector{MyControlStateModel} # promoter states (transcription)
+    translation::Vector{MyControlStateModel} # translation states; empty when translation is not regulated
+
+    # empty constructor: new() makes a model with no fields set; build(...) in Factory.jl fills them in -
+    MyGeneModel() = new()
+end
+
+"""
+    mutable struct MyInputScheduleModel
+
+A piecewise-constant schedule for one inducer. Before `times[1]` the inducer has the value
+`initial`. From `times[k]` until the next time, it has the value `values[k]`.
+
+### Fields
+- `initial::Float64`: the inducer concentration before the first time (µM).
+- `times::Vector{Float64}`: the times at which the inducer changes (min), in increasing order.
+- `values::Vector{Float64}`: the inducer concentration from each time on (µM).
+"""
+mutable struct MyInputScheduleModel
+
+    # data -
+    initial::Float64 # inducer concentration before the first time (µM)
+    times::Vector{Float64} # times at which the inducer changes (min)
+    values::Vector{Float64} # inducer concentration from each time on (µM)
+
+    # empty constructor: new() makes a model with no fields set; build(...) in Factory.jl fills them in -
+    MyInputScheduleModel() = new()
+end
+
+"""
+    mutable struct MyGeneNetworkModel <: AbstractProcessModel
+
+A gene network read from a TOML config file (week 14, L14a). The state vector of the network is
+`[m_1, …, m_N, p_1, …, p_N]`: all mRNA concentrations, then all protein concentrations, in the order
+the genes appear in the config file.
+
+### Fields
+- `description::String`: the description line from the config's `[metadata]` table.
+- `genes::Vector{MyGeneModel}`: the genes, in config order.
+- `index::Dict{String,Int64}`: the position of each gene, by name.
+- `μ::Float64`: the specific growth rate (1/min), `ln 2 / (doubling time)`.
+- `inputs::Dict{String,MyInputScheduleModel}`: the inducer schedules, by name.
+
+### How to create one
+Call `build(MyGeneNetworkModel, path)`, defined in Factory.jl, with the path to a TOML config file.
+"""
+mutable struct MyGeneNetworkModel <: AbstractProcessModel
+
+    # data -
+    description::String # what the network is
+    genes::Vector{MyGeneModel} # the genes, in config order
+    index::Dict{String,Int64} # gene name => position
+    μ::Float64 # specific growth rate (1/min)
+    inputs::Dict{String,MyInputScheduleModel} # inducer name => schedule
+
+    # empty constructor: new() makes a model with no fields set; build(...) in Factory.jl fills them in -
+    MyGeneNetworkModel() = new()
+end
+# -- GENE NETWORKS ABOVE HERE --------------------------------------------------------------------- #

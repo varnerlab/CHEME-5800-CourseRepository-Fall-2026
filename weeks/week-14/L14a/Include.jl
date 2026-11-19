@@ -39,13 +39,9 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `Week14Core` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week14Core)
-    include(joinpath(@__DIR__, "..", "src", "Week14Core.jl"))
-end
+# This meeting has no source of its own. The gene network builder, the
+# discretization, and the eigenvalue algorithms all live in the course package,
+# which the root bootstrap above already loads.
 
 
 # --- 3. IMPORTS --------------------------------------------------------------
@@ -57,9 +53,12 @@ end
 #   VLDataScienceMachineLearningPackage   the course package
 #
 # Standard library:
-using LinearAlgebra # eigen, eigvals, norm, and matrix-vector products
-using Test          # @test / @testset for the checks in the notebook
+using LinearAlgebra  # eigen, eigvals, exp of a matrix, norm, and matrix-vector products
+using Test           # @test / @testset for the checks in the notebooks
 #
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .Week14Core   # from the include in section 2
+# Registered packages from the course environment:
+using OrdinaryDiffEq # ODEProblem, Tsit5, and solve for the nonlinear gene models;
+                     # call it as OrdinaryDiffEq.solve(...), because the course
+                     # package also exports a function named solve
+using Plots          # figures
+using PrettyTables   # the motif table in the example

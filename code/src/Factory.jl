@@ -1489,3 +1489,236 @@ U = build(VLLinearUtilityFunction, (α = [0.6, 0.4],));   # the comma makes a on
 """
 build(model::Type{VLLinearUtilityFunction}, data::NamedTuple)::VLLinearUtilityFunction = _build(model, data) # the short form f(x) = ... defines a one-line function
 # -- UTILITY FUNCTION METHODS ABOVE HERE -------------------------------------------------------------------------------- #
+
+# -- GENE NETWORK METHODS BELOW HERE --------------------------------------------------------------------------------- #
+# A gene network is read from a TOML config file. TOML.parsefile(path) returns the file as nested
+# dictionaries: a table such as [parameters] becomes a Dict, and an array of tables such as
+# [[genes]] becomes a Vector of Dicts, in the order the tables appear in the file (week 14, L14a).
+
+"""
+    _required_number(table::Dict, key::String, where::String) -> Float64
+
+Return the number stored under `key` in `table`, as a `Float64`. Throw an `ArgumentError` that
+names `key` and `where` (for example, "gene X") when the key is missing.
+"""
+function _required_number(table::Dict, key::String, where::String)::Float64
+
+    # the key must be present -
+    if haskey(table, key) == false
+        throw(ArgumentError("the config is missing the field $(key) for $(where)"))
+    end
+
+    # convert to Float64, so that integers such as n = 2 are stored as 2.0 -
+    return Float64(table[key])
+end
+
+"""
+    _optional_number(table::Dict, key::String, default::Float64) -> Float64
+
+Return the number stored under `key` in `table` as a `Float64`, or `default` when the key is missing.
+"""
+function _optional_number(table::Dict, key::String, default::Float64)::Float64
+
+    # use the default when the key is missing -
+    if haskey(table, key) == false
+        return default
+    end
+
+    # otherwise convert the stored number -
+    return Float64(table[key])
+end
+
+"""
+    _build_control_states(entries::Vector, where::String) -> Vector{MyControlStateModel}
+
+Turn the promoter (or translation) entries of one gene into a vector of control states. Each
+entry is a Dict with the keys `W` and `active`, and an optional array `bound` of regulator
+tables. Each regulator table has the keys `regulator`, `K`, and `n`, and the optional keys
+`inducer`, `inducer_effect`, `K_I`, and `n_I`.
+"""
+function _build_control_states(entries::Vector, where::String)::Vector{MyControlStateModel}
+
+    # initialize -
+    states = Vector{MyControlStateModel}()
+
+    # one MyControlStateModel per entry -
+    for entry in entries
+
+        # the weight and the active flag -
+        state = MyControlStateModel()
+        state.W = _required_number(entry, "W", where)
+        if haskey(entry, "active") == false
+            throw(ArgumentError("the config is missing the field active for a state of $(where)"))
+        end
+        state.active = entry["active"]
+
+        # the regulators bound in this state (none when the entry has no bound array) -
+        state.bound = Vector{MyBoundRegulatorModel}()
+        if haskey(entry, "bound") == true
+            for table in entry["bound"]
+
+                # the regulator and its binding constants -
+                b = MyBoundRegulatorModel()
+                if haskey(table, "regulator") == false
+                    throw(ArgumentError("the config is missing the field regulator for a bound entry of $(where)"))
+                end
+                b.regulator = table["regulator"]
+                b.K = _required_number(table, "K", where)
+                b.n = _required_number(table, "n", where)
+
+                # the optional inducer; "" means none -
+                if haskey(table, "inducer") == true
+                    b.inducer = table["inducer"]
+                    if haskey(table, "inducer_effect") == false
+                        throw(ArgumentError("the config is missing the field inducer_effect for the inducer $(b.inducer) of $(where)"))
+                    end
+                    b.inducer_effect = table["inducer_effect"]
+                    if b.inducer_effect != "activates" && b.inducer_effect != "inactivates"
+                        throw(ArgumentError("the field inducer_effect of $(where) must be \"activates\" or \"inactivates\""))
+                    end
+                else
+                    b.inducer = ""
+                    b.inducer_effect = ""
+                end
+                b.K_I = _optional_number(table, "K_I", 1.0)
+                b.n_I = _optional_number(table, "n_I", 1.0)
+
+                # store this regulator -
+                push!(state.bound, b)
+            end
+        end
+
+        # store this state -
+        push!(states, state)
+    end
+
+    # return -
+    return states
+end
+
+"""
+    build(model::Type{MyGeneNetworkModel}, path::String) -> MyGeneNetworkModel
+
+Build a gene network from the TOML config file at `path` (week 14, L14a). The file has a
+`[parameters]` table with the default half-lives and the doubling time, one `[[genes]]` table per
+gene (with its `[[genes.promoter]]` states and optional `[[genes.translation]]` states), and one
+`[inputs.<name>]` table per inducer. The genes keep the order in which they appear in the file.
+
+The method checks that every regulator named in a bound entry is a gene of the network, and that
+every inducer has an `[inputs.<name>]` table. It throws an `ArgumentError` that names the field
+otherwise.
+
+### Arguments
+- `model::Type{MyGeneNetworkModel}`: the model type to build.
+- `path::String`: the path to the TOML config file. The function `motif_path(name)` returns the
+  path of a motif file that ships with the package.
+
+### Returns
+- `MyGeneNetworkModel`: the network, with the fields `description`, `genes`, `index`, `μ`, and `inputs`.
+
+### Example
+```julia
+network = build(MyGeneNetworkModel, motif_path("positive-autoregulation"));
+```
+"""
+function build(model::Type{MyGeneNetworkModel}, path::String)::MyGeneNetworkModel
+
+    # read the file into nested dictionaries -
+    config = TOML.parsefile(path)
+
+    # build an empty model -
+    network = model()
+
+    # the description, if the file has one -
+    network.description = ""
+    if haskey(config, "metadata") == true && haskey(config["metadata"], "description") == true
+        network.description = config["metadata"]["description"]
+    end
+
+    # the default half-lives and the growth rate. θ = ln 2 / half-life, μ = ln 2 / doubling time -
+    if haskey(config, "parameters") == false
+        throw(ArgumentError("the config is missing the [parameters] table"))
+    end
+    parameters = config["parameters"]
+    default_mRNA_half_life = _required_number(parameters, "mRNA_half_life", "[parameters]")
+    default_protein_half_life = _required_number(parameters, "protein_half_life", "[parameters]")
+    network.μ = log(2) / _required_number(parameters, "doubling_time", "[parameters]")
+
+    # the inducer schedules. Each one starts with no changes: the inducer stays at its initial value -
+    network.inputs = Dict{String,MyInputScheduleModel}()
+    if haskey(config, "inputs") == true
+        for (name, table) in config["inputs"]
+            schedule = MyInputScheduleModel()
+            schedule.initial = _required_number(table, "initial", "the input $(name)")
+            schedule.times = Float64[]
+            schedule.values = Float64[]
+            network.inputs[name] = schedule
+        end
+    end
+
+    # the genes, in file order -
+    if haskey(config, "genes") == false
+        throw(ArgumentError("the config has no [[genes]] tables"))
+    end
+    network.genes = Vector{MyGeneModel}()
+    network.index = Dict{String,Int64}()
+    for table in config["genes"]
+
+        # the name comes first, so that error messages can name the gene -
+        if haskey(table, "name") == false
+            throw(ArgumentError("the config has a [[genes]] table without a name"))
+        end
+        gene = MyGeneModel()
+        gene.name = table["name"]
+        where = "gene $(gene.name)"
+
+        # the kinetic limits and saturation constants -
+        gene.G = _required_number(table, "G", where)
+        gene.Vmax_X = _required_number(table, "Vmax_X", where)
+        gene.K_X = _required_number(table, "K_X", where)
+        gene.Vmax_L = _required_number(table, "Vmax_L", where)
+        gene.K_L = _required_number(table, "K_L", where)
+
+        # the degradation constants; a gene's own half-life overrides the default -
+        gene.θ_m = log(2) / _optional_number(table, "mRNA_half_life", default_mRNA_half_life)
+        gene.θ_p = log(2) / _optional_number(table, "protein_half_life", default_protein_half_life)
+
+        # the promoter states (required) and the translation states (optional) -
+        if haskey(table, "promoter") == false
+            throw(ArgumentError("the config is missing the [[genes.promoter]] states for $(where)"))
+        end
+        gene.promoter = _build_control_states(table["promoter"], where)
+        gene.translation = Vector{MyControlStateModel}()
+        if haskey(table, "translation") == true
+            gene.translation = _build_control_states(table["translation"], where)
+        end
+
+        # check: each gene name appears once, because every regulator finds its gene by name -
+        if haskey(network.index, gene.name) == true
+            throw(ArgumentError("the config lists the gene \"$(gene.name)\" twice; each [[genes]] entry needs its own name"))
+        end
+
+        # store the gene and its position -
+        push!(network.genes, gene)
+        network.index[gene.name] = length(network.genes)
+    end
+
+    # check the names: every regulator is a gene, and every inducer has a schedule -
+    for gene in network.genes
+        all_states = vcat(gene.promoter, gene.translation)
+        for state in all_states
+            for b in state.bound
+                if haskey(network.index, b.regulator) == false
+                    throw(ArgumentError("gene $(gene.name) names the regulator $(b.regulator), which is not a gene of the network"))
+                end
+                if b.inducer != "" && haskey(network.inputs, b.inducer) == false
+                    throw(ArgumentError("gene $(gene.name) names the inducer $(b.inducer), which has no [inputs.$(b.inducer)] table"))
+                end
+            end
+        end
+    end
+
+    # return the populated model -
+    return network
+end
+# -- GENE NETWORK METHODS ABOVE HERE --------------------------------------------------------------------------------- #

@@ -1,0 +1,113 @@
+% L14a figure: phase portraits of four two-state linear models, dx/dt = A x.
+%
+% Each panel draws solution curves from several initial states. The dashed red
+% lines are the eigenvector directions, drawn where the eigenvalues are real, and
+% each is labeled with its eigenvalue. Every curve is the analytic solution
+% x(t) = exp(A t) x(0), so no data file is needed:
+%   stable node    A = diag(-1, -3)          eigenvalues -1, -3
+%   saddle         A = diag(1, -2)           eigenvalues 1, -2
+%   center         A = [0 2; -2 0]           eigenvalues +2i, -2i
+%   stable spiral  A = [-0.3 2; -2 -0.3]     eigenvalues -0.3 + 2i, -0.3 - 2i
+%
+% Drawn on November 19, 2026 with the palette and build of the L13a figures. The
+% notebook SVG carries a dark palette added by theme_svg.py; keep new colors in
+% that script's mapping when changing the palette here.
+\documentclass[tikz,border=4pt]{standalone}
+\usepackage[no-math]{fontspec}
+\IfFontExistsTF{Arial}{\setsansfont{Arial}}{\setsansfont{TeX Gyre Heros}}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{groupplots}
+\usetikzlibrary{arrows.meta, decorations.markings}
+
+% Ink and blue match the L13a figures. Blue draws the solution curves, and red
+% draws the eigenvector directions and their labels.
+\definecolor{vnink}{HTML}{202124}
+\definecolor{gdblue}{HTML}{0091FF}
+\definecolor{evred}{HTML}{D93025}
+
+\newcommand{\xa}{\textit{x}\textsubscript{1}}
+\newcommand{\xb}{\textit{x}\textsubscript{2}}
+
+\tikzset{
+  flow/.style={draw=gdblue, line width=0.9pt, postaction={decorate},
+    decoration={markings, mark=at position #1 with {\arrow[gdblue]{Stealth[length=2.4mm, width=1.8mm]}}}},
+  flow/.default=0.5,
+  inout/.style={draw=gdblue, line width=0.9pt, postaction={decorate},
+    decoration={markings,
+      mark=at position 0.22 with {\arrow[gdblue]{Stealth[length=2.4mm, width=1.8mm]}},
+      mark=at position 0.85 with {\arrow[gdblue]{Stealth[length=2.4mm, width=1.8mm]}}}},
+  eigline/.style={draw=evred, line width=1.0pt, dash pattern=on 4pt off 3pt},
+  eiglabel/.style={text=evred, font=\sffamily\small, fill=white, inner sep=1.5pt},
+  equilibrium/.style={fill=vnink, draw=none},
+}
+
+\begin{document}
+\begin{tikzpicture}
+\begin{groupplot}[
+  group style={group size=2 by 2, horizontal sep=1.6cm, vertical sep=2.4cm},
+  width=6.4cm, height=6.4cm,
+  xmin=-2, xmax=2, ymin=-2, ymax=2,
+  axis equal image,
+  trig format plots=rad,
+  axis line style={draw=vnink, line width=0.6pt},
+  tick style={draw=vnink},
+  ticklabel style={text=vnink, font=\sffamily\small},
+  xtick={-2,-1,0,1,2}, ytick={-2,-1,0,1,2},
+  xticklabels={−2,−1,0,1,2}, yticklabels={−2,−1,0,1,2},
+  xlabel={\xa}, ylabel={\xb},
+  label style={text=vnink, font=\sffamily},
+  xlabel style={yshift=2pt}, ylabel style={yshift=-4pt},
+  title style={text=vnink, font=\sffamily\bfseries, align=center},
+  clip=true,
+  samples=160,
+]
+
+% ------------------------------------------------------------ stable node
+\nextgroupplot[title={Stable node\\[-1pt]\normalfont λ = −1 and −3}]
+  \draw[eigline] (axis cs:-2,0) -- (axis cs:2,0);
+  \draw[eigline] (axis cs:0,-2) -- (axis cs:0,2);
+  \foreach \s in {-1.8, -1.0, -0.4, 0.4, 1.0, 1.8} {
+    \addplot[flow=0.45, domain=0:7, variable=\t] ({\s*exp(-\t)}, {2*exp(-3*\t)});
+    \addplot[flow=0.45, domain=0:7, variable=\t] ({\s*exp(-\t)}, {-2*exp(-3*\t)});
+  }
+  \foreach \s in {-0.8, 0.8} {
+    \addplot[flow=0.45, domain=0:7, variable=\t] ({2*exp(-\t)}, {\s*exp(-3*\t)});
+    \addplot[flow=0.45, domain=0:7, variable=\t] ({-2*exp(-\t)}, {\s*exp(-3*\t)});
+  }
+  \node[eiglabel, anchor=south east] at (axis cs:1.95,0.04) {λ = −1};
+  \node[eiglabel, anchor=north west] at (axis cs:0.04,1.95) {λ = −3};
+  \fill[equilibrium] (axis cs:0,0) circle (1.6pt);
+
+% ------------------------------------------------------------ saddle
+\nextgroupplot[title={Saddle\\[-1pt]\normalfont λ = 1 and −2}]
+  \draw[eigline] (axis cs:-2,0) -- (axis cs:2,0);
+  \draw[eigline] (axis cs:0,-2) -- (axis cs:0,2);
+  \foreach \s in {0.12, 0.4, 0.9} {
+    \addplot[inout, domain=0:{ln(2/\s)}, variable=\t] ({\s*exp(\t)}, {2*exp(-2*\t)});
+    \addplot[inout, domain=0:{ln(2/\s)}, variable=\t] ({-\s*exp(\t)}, {2*exp(-2*\t)});
+    \addplot[inout, domain=0:{ln(2/\s)}, variable=\t] ({\s*exp(\t)}, {-2*exp(-2*\t)});
+    \addplot[inout, domain=0:{ln(2/\s)}, variable=\t] ({-\s*exp(\t)}, {-2*exp(-2*\t)});
+  }
+  \node[eiglabel, anchor=south east] at (axis cs:1.95,0.04) {λ = 1};
+  \node[eiglabel, anchor=north west] at (axis cs:0.04,1.95) {λ = −2};
+  \fill[equilibrium] (axis cs:0,0) circle (1.6pt);
+
+% ------------------------------------------------------------ center
+\nextgroupplot[title={Center\\[-1pt]\normalfont λ = +2i and −2i}]
+  \foreach \r in {0.6, 1.2, 1.8} {
+    \addplot[flow=0.3, domain=0:{pi}, variable=\t, samples=120] ({\r*sin(2*\t)}, {\r*cos(2*\t)});
+  }
+  \fill[equilibrium] (axis cs:0,0) circle (1.6pt);
+
+% ------------------------------------------------------------ stable spiral
+\nextgroupplot[title={Stable spiral\\[-1pt]\normalfont λ = −0.3 + 2i and −0.3 − 2i}]
+  \addplot[flow=0.08, domain=0:14, variable=\t, samples=500]
+    ({exp(-0.3*\t)*(1.9*sin(2*\t))}, {exp(-0.3*\t)*(1.9*cos(2*\t))});
+  \addplot[flow=0.08, domain=0:14, variable=\t, samples=500]
+    ({exp(-0.3*\t)*(-1.9*sin(2*\t))}, {exp(-0.3*\t)*(-1.9*cos(2*\t))});
+  \fill[equilibrium] (axis cs:0,0) circle (1.6pt);
+\end{groupplot}
+\end{tikzpicture}
+\end{document}

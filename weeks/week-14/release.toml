@@ -3,14 +3,21 @@ week = 14
 version = "1.0-prototype"
 status = "prototype"
 cadence = "meeting"
-title = "Dominant eigenpairs and practicum launch"
+title = "Linear state space models and practicum launch"
 languages = ["Julia"]
 entry_notebooks = [
-  "L14a/CHEME-5800-L14a-Lecture-DominantEigenpairs-PowerIteration-Fall-2026.ipynb",
+  "L14a/CHEME-5800-L14a-Lecture-LinearStateSpaceModels-Fall-2026.ipynb",
 ]
-supporting_notebooks = []
-datasets = []
-student_paths = ["README.md", "L14a", "src"]
+supporting_notebooks = [
+  "L14a/CHEME-5800-L14a-Example-GeneSwitch-Fall-2026.ipynb",
+  "L14a/CHEME-5800-L14a-Advanced-ComputingEigenvalues-Fall-2026.ipynb",
+]
+datasets = [
+  "L14a/figs/Fig-Eigenvectors/Fig-Eigenvectors.svg",
+  "L14a/figs/Fig-PhasePortraits/Fig-PhasePortraits.svg",
+  "L14a/figs/Fig-Motifs/Fig-Motifs.svg",
+]
+student_paths = ["README.md", "L14a"]
 instructor_only_paths = ["../../instructor/validation/week-14"]
 [validation]
 julia = "julia --startup-file=no --project=. instructor/validation/week-14/runtests.jl"

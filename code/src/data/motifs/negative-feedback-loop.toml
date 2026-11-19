@@ -1,0 +1,57 @@
+# Negative feedback loop: protein X activates gene Y, and protein Y represses gene X.
+# Both genes use the same half-lives, which gives the Jacobian complex pairs of eigenvalues.
+#
+# With these values the steady state is m* ≈ (0.0019, 0.0095) µM and p* ≈ (0.059, 0.25) µM, and
+# the eigenvalues are about −0.010 ± 0.077i and −0.31 ± 0.077i per minute: the network rings
+# with a period near 80 min while it settles.
+
+[metadata]
+description = "Negative feedback loop: protein X activates gene Y, and protein Y represses gene X"
+reference = "Shoval and Alon, Cell 143 (2010), doi:10.1016/j.cell.2010.09.050"
+
+[parameters]
+mRNA_half_life = 2.5      # min
+protein_half_life = 35.0  # min
+doubling_time = 60.0      # min
+
+[[genes]]
+name = "X"
+G = 0.005          # gene concentration (µM)
+Vmax_X = 0.04      # transcription kinetic limit (µM/min)
+K_X = 0.005        # transcription saturation constant (µM)
+Vmax_L = 0.05      # translation kinetic limit (µM/min)
+K_L = 0.05         # translation saturation constant (µM)
+
+  [[genes.promoter]]          # RNA polymerase bound alone: transcription runs
+  W = 1.0
+  active = true
+
+  [[genes.promoter]]          # protein Y bound: the promoter of X is blocked
+  W = 100.0
+  active = false
+
+    [[genes.promoter.bound]]
+    regulator = "Y"
+    K = 0.3                   # half-binding concentration of Y (µM)
+    n = 4                     # binding order
+
+[[genes]]
+name = "Y"
+G = 0.005
+Vmax_X = 0.04
+K_X = 0.005
+Vmax_L = 0.05
+K_L = 0.05
+
+  [[genes.promoter]]          # RNA polymerase bound alone: the leak
+  W = 0.01
+  active = true
+
+  [[genes.promoter]]          # RNA polymerase with protein X bound: activation of Y
+  W = 100.0
+  active = true
+
+    [[genes.promoter.bound]]
+    regulator = "X"
+    K = 0.3                   # half-binding concentration of X (µM)
+    n = 4                     # binding order
