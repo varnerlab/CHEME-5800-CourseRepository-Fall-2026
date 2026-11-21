@@ -1,7 +1,7 @@
 schema_version = 2
 week = 14
-version = "1.0-prototype"
-status = "prototype"
+version = "1.0"
+status = "ready"
 cadence = "meeting"
 title = "Linear state space models and practicum launch"
 languages = ["Julia"]

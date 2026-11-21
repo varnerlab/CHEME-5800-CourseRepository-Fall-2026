@@ -3,14 +3,14 @@
 Week 14 has one instructional meeting before Thanksgiving break. Students solve linear
 time-invariant state space models, read the stability of a steady state from the eigenvalues of
 the state matrix, and solve a model with an input using the discretization of the S4 sequence
-model. An example linearizes a self-activating gene about a steady state and compares the linear
-and nonlinear responses to a pulse of an inducer.
+model. An example builds three gene circuits from config files, linearizes each circuit about a
+steady state, and compares the linear and nonlinear responses to a pulse of an inducer.
 
 ## Session sequence
 
 | Session | Topic | Language | Notebook |
 |---|---|---|---|
-| L14a | Linear state space models: the open-loop solution, stability from the eigenvalues, the S4 discretization, and linearization | Julia | [Lecture](L14a/CHEME-5800-L14a-Lecture-LinearStateSpaceModels-Fall-2026.ipynb), [example](L14a/CHEME-5800-L14a-Example-GeneCircuits-Fall-2026.ipynb), [advanced notebook](L14a/CHEME-5800-L14a-Advanced-ComputingEigenvalues-Fall-2026.ipynb), and [stability derivation](L14a/CHEME-5800-L14a-Advanced-Derivation-BilinearStability-Fall-2026.ipynb) |
+| L14a | Linear state space models: the open-loop solution, stability from the eigenvalues, the S4 and zero-order hold discretizations, and linearization | Julia | [Lecture](L14a/CHEME-5800-L14a-Lecture-LinearStateSpaceModels-Fall-2026.ipynb), [example](L14a/CHEME-5800-L14a-Example-GeneCircuits-Fall-2026.ipynb), [advanced notebook](L14a/CHEME-5800-L14a-Advanced-ComputingEigenvalues-Fall-2026.ipynb), and [stability derivation](L14a/CHEME-5800-L14a-Advanced-Derivation-BilinearStability-Fall-2026.ipynb) |
 | L14b | Practicum release and QA session | | Assessment is managed outside this course-content repository |
 | L14c | Thanksgiving break | | No class |
 | L14d | Thanksgiving break | | No class |
@@ -22,8 +22,10 @@ and nonlinear responses to a pulse of an inducer.
 
 The advanced notebook is refactored from the CHEME 5820 Spring 2026 eigenvalue lectures. Gram–Schmidt
 and principal component analysis remain in CHEME 5820. The gene expression model follows a chapter by
-J. D. Varner, in preparation for _Comprehensive Biotechnology_ (4th edition), and the network motifs
-follow Shoval and Alon, _Cell_ 143 (2010).
+J. D. Varner, in preparation for _Comprehensive Biotechnology_ (4th edition). The transcription and
+translation kinetic limits follow Adhikari et al., _Frontiers in Bioengineering and Biotechnology_ 8
+(2020), with the E. coli values of CHEME 5450. The network motifs follow Shoval and Alon, _Cell_ 143
+(2010).
 
 The L14a lecture has a [slide deck](L14a/slides/CHEME-5800-L14a-Slides-Fall-2026.pdf) in its [slides folder](L14a/slides/README.md), with editable LaTeX source and build instructions.
 
