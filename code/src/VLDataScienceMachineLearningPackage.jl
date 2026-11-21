@@ -167,10 +167,11 @@ export MyGeneNetworkModel, MyGeneModel, MyControlStateModel, MyBoundRegulatorMod
 export motif_path; # the path of a motif config file in data/motifs
 export set_input!, input_value; # the piecewise-constant inducer schedules
 export bound_fraction, control, transcription_control, translation_control; # the Boltzmann (active-state) controls
+export transcription_rate, translation_rate; # the kinetic limits of CHEME 5450 (L6b)
 export balances!; # the mRNA and protein balances, in the form ODEProblem(...) expects
 export equations; # the balances and controls of a network, as text
 export jacobian, input_jacobian, steady_state; # linearization about a steady state
-export discretize; # the bilinear (S4) discretization of ẋ = A x + B u
+export discretize; # the bilinear (S4) or zero-order hold discretization of ẋ = A x + B u
 # Classification (week 9, Binary.jl) -
 export learn; # train a classifier on labeled data
 export classify; # predict the labels of new data

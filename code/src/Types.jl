@@ -1425,8 +1425,8 @@ end
 # -- UTILITY FUNCTIONS ABOVE HERE ------------------------------------------------------------------ #
 
 # -- GENE NETWORKS BELOW HERE --------------------------------------------------------------------- #
-# A gene network is a set of genes. Each gene j has an mRNA concentration m_j and a protein
-# concentration p_j, and the balances in GeneNetworks.jl describe how both change with time.
+# A gene network is a set of genes. Each gene j has an mRNA level m_j and a protein
+# level p_j (nmol/gDW), and the balances in GeneNetworks.jl describe how both change with time.
 # Transcription (DNA to mRNA) is controlled by the gene's promoter states, and translation
 # (mRNA to protein) by its translation states. The types below hold a network read from a
 # TOML config file by build(MyGeneNetworkModel, path) in Factory.jl (week 14, L14a).
@@ -1435,17 +1435,17 @@ end
     mutable struct MyBoundRegulatorModel
 
 One regulator protein bound in a promoter (or translation) state. The bound fraction of the
-regulator is `f = xⁿ / (Kⁿ + xⁿ)`, where `x` is the regulator's available concentration.
+regulator is `f = xⁿ / (Kⁿ + xⁿ)`, where `x` is the regulator's available level.
 
 ### Fields
 - `regulator::String`: the name of the gene whose protein binds in this state.
-- `K::Float64`: the concentration at which half of the regulator is bound (µM).
+- `K::Float64`: the level at which half of the regulator is bound (nmol/gDW).
 - `n::Float64`: the binding order (the Hill coefficient).
 - `inducer::String`: the name of an inducer that changes how much regulator can bind, or `""`
   when the state has no inducer.
 - `inducer_effect::String`: `"activates"` when the inducer must be bound for the regulator to bind
-  (available concentration `p ⋅ f_I`), or `"inactivates"` when the inducer blocks binding
-  (available concentration `p ⋅ (1 − f_I)`). It is `""` when there is no inducer.
+  (available level `p ⋅ f_I`), or `"inactivates"` when the inducer blocks binding
+  (available level `p ⋅ (1 − f_I)`). It is `""` when there is no inducer.
 - `K_I::Float64`: the inducer concentration at which half of the regulator carries the inducer (µM).
 - `n_I::Float64`: the inducer binding order.
 """
@@ -1453,7 +1453,7 @@ mutable struct MyBoundRegulatorModel
 
     # data -
     regulator::String # the gene whose protein binds
-    K::Float64 # half-binding concentration of the regulator (µM)
+    K::Float64 # half-binding level of the regulator (nmol/gDW)
     n::Float64 # binding order of the regulator
     inducer::String # the inducer that acts on the regulator, or "" for none
     inducer_effect::String # "activates", "inactivates", or "" for none
@@ -1472,7 +1472,9 @@ state is `W` times the bound fraction of every regulator in `bound`. Active stat
 numerator and the denominator of the control; inactive states count only in the denominator.
 
 ### Fields
-- `W::Float64`: the relative weight of the state, `W = exp(−ΔG)`.
+- `W::Float64`: the relative weight of the state, the Boltzmann factor `W = exp(−ΔG/RT)` of the
+  state's Gibbs energy `ΔG` relative to the reference state (the empty promoter, for a promoter state).
+  `build` computes it from the state's `dG` (kJ/mol) and the network's `temperature` (K).
 - `active::Bool`: `true` when the process (transcription or translation) runs in this state.
 - `bound::Vector{MyBoundRegulatorModel}`: the regulators bound in this state. An empty vector
   means no regulator is bound (for example, RNA polymerase bound alone).
@@ -1491,17 +1493,26 @@ end
 """
     mutable struct MyGeneModel
 
-One gene of a gene network.
+One gene of a gene network. The kinetic limits follow CHEME 5450 (L6b): the transcription rate is
+`r_X = Vmax_X ⋅ G / (τ_X ⋅ K_X + (1 + τ_X) ⋅ G + O_X)` and the translation rate is
+`r_L = Vmax_L ⋅ m / (τ_L ⋅ K_L + (1 + τ_L) ⋅ m + O_L)`, where `O_X` and `O_L` describe the
+competition with the other genes of the network for RNA polymerase and ribosomes.
+`build(...)` computes every field below from the cell, polymerase, and ribosome values of the config.
 
 ### Fields
 - `name::String`: the gene's name, for example `"X"`.
-- `G::Float64`: the gene concentration (µM).
-- `Vmax_X::Float64`: the transcription kinetic limit (µM/min).
-- `K_X::Float64`: the transcription saturation constant (µM). The transcription rate is
-  `r_X = Vmax_X ⋅ G / (K_X + G)`.
-- `Vmax_L::Float64`: the translation kinetic limit (µM/min).
-- `K_L::Float64`: the translation saturation constant (µM). The translation rate is
-  `r_L = Vmax_L ⋅ m / (K_L + m)`.
+- `copies::Float64`: the number of copies of the gene in one cell.
+- `l_G::Float64`: the length of the gene (nt).
+- `l_P::Float64`: the length of the protein (aa).
+- `G::Float64`: the gene level (nmol/gDW), from `copies`.
+- `Vmax_X::Float64`: the maximum transcription rate, `R_X,T ⋅ v̇_X / l_G` (nmol/gDW/min).
+- `τ_X::Float64`: the transcription time constant, the ratio of the elongation rate constant
+  `v̇_X / l_G` to the initiation rate constant (dimensionless).
+- `K_X::Float64`: the transcription saturation constant (nmol/gDW).
+- `Vmax_L::Float64`: the maximum translation rate, `K_P ⋅ R_L,T ⋅ v̇_L / l_P` (nmol/gDW/min).
+- `τ_L::Float64`: the translation time constant, the ratio of the elongation rate constant
+  `v̇_L / l_P` to the initiation rate constant (dimensionless).
+- `K_L::Float64`: the translation saturation constant (nmol/gDW).
 - `θ_m::Float64`: the mRNA degradation constant (1/min), `ln 2 / (mRNA half-life)`.
 - `θ_p::Float64`: the protein degradation constant (1/min), `ln 2 / (protein half-life)`.
 - `promoter::Vector{MyControlStateModel}`: the promoter states, which set the transcriptional control.
@@ -1512,11 +1523,16 @@ mutable struct MyGeneModel
 
     # data -
     name::String # the gene's name
-    G::Float64 # gene concentration (µM)
-    Vmax_X::Float64 # transcription kinetic limit (µM/min)
-    K_X::Float64 # transcription saturation constant (µM)
-    Vmax_L::Float64 # translation kinetic limit (µM/min)
-    K_L::Float64 # translation saturation constant (µM)
+    copies::Float64 # copies of the gene in one cell
+    l_G::Float64 # length of the gene (nt)
+    l_P::Float64 # length of the protein (aa)
+    G::Float64 # gene level (nmol/gDW)
+    Vmax_X::Float64 # maximum transcription rate (nmol/gDW/min)
+    τ_X::Float64 # transcription time constant (dimensionless)
+    K_X::Float64 # transcription saturation constant (nmol/gDW)
+    Vmax_L::Float64 # maximum translation rate (nmol/gDW/min)
+    τ_L::Float64 # translation time constant (dimensionless)
+    K_L::Float64 # translation saturation constant (nmol/gDW)
     θ_m::Float64 # mRNA degradation constant (1/min)
     θ_p::Float64 # protein degradation constant (1/min)
     promoter::Vector{MyControlStateModel} # promoter states (transcription)
@@ -1552,7 +1568,7 @@ end
     mutable struct MyGeneNetworkModel <: AbstractProcessModel
 
 A gene network read from a TOML config file (week 14, L14a). The state vector of the network is
-`[m_1, …, m_N, p_1, …, p_N]`: all mRNA concentrations, then all protein concentrations, in the order
+`[m_1, …, m_N, p_1, …, p_N]`: all mRNA levels, then all protein levels, in the order
 the genes appear in the config file.
 
 ### Fields
@@ -1560,6 +1576,8 @@ the genes appear in the config file.
 - `genes::Vector{MyGeneModel}`: the genes, in config order.
 - `index::Dict{String,Int64}`: the position of each gene, by name.
 - `μ::Float64`: the specific growth rate (1/min), `ln 2 / (doubling time)`.
+- `R_X::Float64`: the RNA polymerase level `R_X,T` (nmol/gDW).
+- `R_L::Float64`: the ribosome level `R_L,T` (nmol/gDW).
 - `inputs::Dict{String,MyInputScheduleModel}`: the inducer schedules, by name.
 
 ### How to create one
@@ -1572,6 +1590,8 @@ mutable struct MyGeneNetworkModel <: AbstractProcessModel
     genes::Vector{MyGeneModel} # the genes, in config order
     index::Dict{String,Int64} # gene name => position
     μ::Float64 # specific growth rate (1/min)
+    R_X::Float64 # RNA polymerase level (nmol/gDW)
+    R_L::Float64 # ribosome level (nmol/gDW)
     inputs::Dict{String,MyInputScheduleModel} # inducer name => schedule
 
     # empty constructor: new() makes a model with no fields set; build(...) in Factory.jl fills them in -

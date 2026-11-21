@@ -2,7 +2,7 @@
 
 julia_version = "1.12.7"
 manifest_format = "2.0"
-project_hash = "4005c92e7d22cad7521ec523d462e3c1f0dd95f3"
+project_hash = "ae6fcc1f406b41d490bfb0f9503c09558e082334"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "5970c86505ae9c07bf5bc521ef2bbbb3849e8b7b"
@@ -515,6 +515,16 @@ version = "7.18.1"
     SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
     Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
     Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+
+[[deps.DiffEqCallbacks]]
+deps = ["ConcreteStructs", "DataStructures", "DiffEqBase", "DifferentiationInterface", "LinearAlgebra", "Markdown", "PrecompileTools", "RecipesBase", "RecursiveArrayTools", "SciMLBase", "StaticArraysCore"]
+git-tree-sha1 = "7f3d38ff9555696c29d13da449e57745623ddd2a"
+uuid = "459566f4-90b8-5000-8ac3-15dfb0a30def"
+version = "4.18.3"
+weakdeps = ["Functors"]
+
+    [deps.DiffEqCallbacks.extensions]
+    DiffEqCallbacksFunctorsExt = "Functors"
 
 [[deps.DiffResults]]
 deps = ["StaticArraysCore"]
@@ -3060,6 +3070,12 @@ deps = ["AbstractFFTs", "Clustering", "DataStructures", "Distributions", "Interp
 git-tree-sha1 = "88cf3587711d9ad0a55722d339a013c4c56c5bbc"
 uuid = "f3b207a7-027a-5e70-b257-86293d7955fd"
 version = "0.15.8"
+
+[[deps.SteadyStateDiffEq]]
+deps = ["ConcreteStructs", "DiffEqBase", "DiffEqCallbacks", "LinearAlgebra", "NonlinearSolveBase", "Reexport", "SciMLBase"]
+git-tree-sha1 = "888b0c38eef6a75bbc767b0d3b8a644141bc1be9"
+uuid = "9672c7b4-1e72-59bd-8a11-6ac3964bc41f"
+version = "2.11.0"
 
 [[deps.StringDistances]]
 deps = ["Distances", "StatsAPI"]

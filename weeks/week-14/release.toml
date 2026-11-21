@@ -9,13 +9,18 @@ entry_notebooks = [
   "L14a/CHEME-5800-L14a-Lecture-LinearStateSpaceModels-Fall-2026.ipynb",
 ]
 supporting_notebooks = [
-  "L14a/CHEME-5800-L14a-Example-GeneSwitch-Fall-2026.ipynb",
+  "L14a/CHEME-5800-L14a-Example-GeneCircuits-Fall-2026.ipynb",
   "L14a/CHEME-5800-L14a-Advanced-ComputingEigenvalues-Fall-2026.ipynb",
+  "L14a/CHEME-5800-L14a-Advanced-Derivation-BilinearStability-Fall-2026.ipynb",
 ]
 datasets = [
   "L14a/figs/Fig-Eigenvectors/Fig-Eigenvectors.svg",
   "L14a/figs/Fig-PhasePortraits/Fig-PhasePortraits.svg",
   "L14a/figs/Fig-Motifs/Fig-Motifs.svg",
+  "L14a/config/negative-autoregulation.toml",
+  "L14a/config/positive-autoregulation.toml",
+  "L14a/config/negative-feedback-loop.toml",
+  "L14a/slides/CHEME-5800-L14a-Slides-Fall-2026.pdf",
 ]
 student_paths = ["README.md", "L14a"]
 instructor_only_paths = ["../../instructor/validation/week-14"]

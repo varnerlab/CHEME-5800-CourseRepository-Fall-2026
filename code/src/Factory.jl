@@ -1494,6 +1494,8 @@ build(model::Type{VLLinearUtilityFunction}, data::NamedTuple)::VLLinearUtilityFu
 # A gene network is read from a TOML config file. TOML.parsefile(path) returns the file as nested
 # dictionaries: a table such as [parameters] becomes a Dict, and an array of tables such as
 # [[genes]] becomes a Vector of Dicts, in the order the tables appear in the file (week 14, L14a).
+const _GAS_CONSTANT = 8.314462618e-3 # the gas constant R (kJ/mol/K), for the Boltzmann factor W = exp(−ΔG/RT)
+const _AVOGADRO = 6.02214076e23 # Avogadro's number (1/mol), to turn copies per cell into a level
 
 """
     _required_number(table::Dict, key::String, where::String) -> Float64
@@ -1513,6 +1515,22 @@ function _required_number(table::Dict, key::String, where::String)::Float64
 end
 
 """
+    _required_positive(table::Dict, key::String, where::String) -> Float64
+
+Return the number stored under `key` in `table`, as a `Float64`. Throw an `ArgumentError` when the
+key is missing, or when the number is not finite and above zero.
+"""
+function _required_positive(table::Dict, key::String, where::String)::Float64
+
+    # the key must be present, and the number must be finite and above zero -
+    value = _required_number(table, key, where)
+    if isfinite(value) == false || value <= 0.0
+        throw(ArgumentError("the field $(key) for $(where) must be a finite number above zero"))
+    end
+    return value
+end
+
+"""
     _optional_number(table::Dict, key::String, default::Float64) -> Float64
 
 Return the number stored under `key` in `table` as a `Float64`, or `default` when the key is missing.
@@ -1529,14 +1547,16 @@ function _optional_number(table::Dict, key::String, default::Float64)::Float64
 end
 
 """
-    _build_control_states(entries::Vector, where::String) -> Vector{MyControlStateModel}
+    _build_control_states(entries::Vector, where::String, RT::Float64) -> Vector{MyControlStateModel}
 
 Turn the promoter (or translation) entries of one gene into a vector of control states. Each
-entry is a Dict with the keys `W` and `active`, and an optional array `bound` of regulator
-tables. Each regulator table has the keys `regulator`, `K`, and `n`, and the optional keys
-`inducer`, `inducer_effect`, `K_I`, and `n_I`.
+entry is a Dict with the keys `dG` and `active`, and an optional array `bound` of regulator
+tables. The key `dG` is the Gibbs energy ΔG of the state relative to the reference state (kJ/mol),
+and the state's weight is the Boltzmann factor `W = exp(−ΔG/RT)`, where `RT` is in kJ/mol. Each
+regulator table has the keys `regulator`, `K`, and `n`, and the optional keys `inducer`,
+`inducer_effect`, `K_I`, and `n_I`.
 """
-function _build_control_states(entries::Vector, where::String)::Vector{MyControlStateModel}
+function _build_control_states(entries::Vector, where::String, RT::Float64)::Vector{MyControlStateModel}
 
     # initialize -
     states = Vector{MyControlStateModel}()
@@ -1544,9 +1564,12 @@ function _build_control_states(entries::Vector, where::String)::Vector{MyControl
     # one MyControlStateModel per entry -
     for entry in entries
 
-        # the weight and the active flag -
+        # the weight, the Boltzmann factor of the state's Gibbs energy: W = exp(−ΔG/RT) -
         state = MyControlStateModel()
-        state.W = _required_number(entry, "W", where)
+        dG = _required_number(entry, "dG", where) # the Gibbs energy of the state (kJ/mol)
+        state.W = exp(-dG / RT)
+
+        # the active flag -
         if haskey(entry, "active") == false
             throw(ArgumentError("the config is missing the field active for a state of $(where)"))
         end
@@ -1599,10 +1622,30 @@ end
 """
     build(model::Type{MyGeneNetworkModel}, path::String) -> MyGeneNetworkModel
 
-Build a gene network from the TOML config file at `path` (week 14, L14a). The file has a
-`[parameters]` table with the default half-lives and the doubling time, one `[[genes]]` table per
-gene (with its `[[genes.promoter]]` states and optional `[[genes.translation]]` states), and one
-`[inputs.<name>]` table per inducer. The genes keep the order in which they appear in the file.
+Build a gene network from the TOML config file at `path` (week 14, L14a). The file has:
+
+- a `[parameters]` table with the cell (`mass_of_single_cell` in gDW/cell, `volume_of_single_cell`
+  in L/cell, `doubling_time` in min, and `temperature` in K), RNA polymerase
+  (`copies_of_rnap_per_cell`, `transcription_elongation_rate` in nt/s,
+  `transcription_initiation_time_constant` in s, `transcription_saturation_constant` in µM), the
+  ribosomes (`copies_of_ribosome_per_cell`, `translation_elongation_rate` in aa/s,
+  `translation_initiation_time_constant` in s, `translation_saturation_factor`, the ratio K_L / K_X,
+  `average_polysome_number`), and the default `mRNA_half_life` and `protein_half_life` in min;
+- one `[[genes]]` table per gene, with `gene_copy_number` (copies/cell), `length_of_gene_in_nt`,
+  `length_of_protein_in_aa`, its `[[genes.promoter]]` states, and optional `[[genes.translation]]` states;
+- one `[inputs.<name>]` table per inducer.
+
+The builder computes the kinetic limits as CHEME 5450 does (L6b and L8c). A number of copies per cell
+becomes a level with Avogadro's number and the dry mass of a cell, and a concentration in µM becomes a
+level with the cell volume and dry mass. For gene j,
+
+    Vmax_X = R_X,T ⋅ v̇_X / l_G,    τ_X = (v̇_X / l_G) ⋅ (transcription initiation time constant)
+    Vmax_L = K_P ⋅ R_L,T ⋅ v̇_L / l_P,    τ_L = (v̇_L / l_P) ⋅ (translation initiation time constant)
+
+where R_X,T and R_L,T are the RNA polymerase and ribosome levels, v̇_X and v̇_L the elongation rates,
+l_G and l_P the gene and protein lengths, and K_P the average polysome number. Each state gives its
+Gibbs energy `dG` (kJ/mol), and the builder stores its weight `W = exp(−dG/RT)`. The genes keep the
+order in which they appear in the file.
 
 The method checks that every regulator named in a bound entry is a gene of the network, and that
 every inducer has an `[inputs.<name>]` table. It throws an `ArgumentError` that names the field
@@ -1614,7 +1657,7 @@ otherwise.
   path of a motif file that ships with the package.
 
 ### Returns
-- `MyGeneNetworkModel`: the network, with the fields `description`, `genes`, `index`, `μ`, and `inputs`.
+- `MyGeneNetworkModel`: the network, with the fields `description`, `genes`, `index`, `μ`, `R_X`, `R_L`, and `inputs`.
 
 ### Example
 ```julia
@@ -1644,6 +1687,32 @@ function build(model::Type{MyGeneNetworkModel}, path::String)::MyGeneNetworkMode
     default_protein_half_life = _required_number(parameters, "protein_half_life", "[parameters]")
     network.μ = log(2) / _required_number(parameters, "doubling_time", "[parameters]")
 
+    # the cell: its dry mass and volume turn copies per cell and µM into levels (nmol/gDW) -
+    mass = _required_positive(parameters, "mass_of_single_cell", "[parameters]") # dry mass of one cell (gDW/cell)
+    volume = _required_positive(parameters, "volume_of_single_cell", "[parameters]") # volume of one cell (L/cell)
+    per_copy = 1.0e9 / (_AVOGADRO * mass) # the level of one copy per cell (nmol/gDW)
+    per_µM = 1.0e3 * volume / mass # the level of 1 µM inside the cell (nmol/gDW): 1e-6 mol/L ⋅ volume / mass ⋅ 1e9 nmol/mol
+
+    # RNA polymerase and transcription -
+    network.R_X = per_copy * _required_positive(parameters, "copies_of_rnap_per_cell", "[parameters]") # R_X,T (nmol/gDW)
+    v_X = _required_positive(parameters, "transcription_elongation_rate", "[parameters]") # v̇_X (nt/s)
+    t_X = _required_positive(parameters, "transcription_initiation_time_constant", "[parameters]") # (s)
+    K_X = per_µM * _required_positive(parameters, "transcription_saturation_constant", "[parameters]") # (nmol/gDW)
+
+    # ribosomes and translation -
+    network.R_L = per_copy * _required_positive(parameters, "copies_of_ribosome_per_cell", "[parameters]") # R_L,T (nmol/gDW)
+    v_L = _required_positive(parameters, "translation_elongation_rate", "[parameters]") # v̇_L (aa/s)
+    t_L = _required_positive(parameters, "translation_initiation_time_constant", "[parameters]") # (s)
+    K_L = _required_positive(parameters, "translation_saturation_factor", "[parameters]") * K_X # K_L = 190 × K_X in CHEME 5450 (nmol/gDW)
+    K_P = _required_positive(parameters, "average_polysome_number", "[parameters]") # ribosomes per transcript
+
+    # the temperature, for the Boltzmann factors of the states. It must be a finite number above absolute zero -
+    temperature = _required_number(parameters, "temperature", "[parameters]") # the absolute temperature (K)
+    if isfinite(temperature) == false || temperature <= 0.0
+        throw(ArgumentError("the temperature in [parameters] must be a finite number above zero (K)"))
+    end
+    RT = _GAS_CONSTANT * temperature # the thermal energy (kJ/mol)
+
     # the inducer schedules. Each one starts with no changes: the inducer stays at its initial value -
     network.inputs = Dict{String,MyInputScheduleModel}()
     if haskey(config, "inputs") == true
@@ -1672,12 +1741,21 @@ function build(model::Type{MyGeneNetworkModel}, path::String)::MyGeneNetworkMode
         gene.name = table["name"]
         where = "gene $(gene.name)"
 
-        # the kinetic limits and saturation constants -
-        gene.G = _required_number(table, "G", where)
-        gene.Vmax_X = _required_number(table, "Vmax_X", where)
-        gene.K_X = _required_number(table, "K_X", where)
-        gene.Vmax_L = _required_number(table, "Vmax_L", where)
-        gene.K_L = _required_number(table, "K_L", where)
+        # the gene: its copies per cell and the lengths of the gene and its protein -
+        gene.copies = _required_positive(table, "gene_copy_number", where) # copies/cell
+        gene.l_G = _required_positive(table, "length_of_gene_in_nt", where) # (nt)
+        gene.l_P = _required_positive(table, "length_of_protein_in_aa", where) # (aa)
+        gene.G = per_copy * gene.copies # the gene level (nmol/gDW)
+
+        # the transcription kinetic limit: Vmax_X = R_X,T ⋅ v̇_X / l_G, and τ_X = (v̇_X / l_G) ⋅ t_X. Rates per minute -
+        gene.Vmax_X = network.R_X * (60.0 * v_X) / gene.l_G # (nmol/gDW/min)
+        gene.τ_X = (v_X / gene.l_G) * t_X # elongation rate constant over initiation rate constant
+        gene.K_X = K_X # (nmol/gDW)
+
+        # the translation kinetic limit: Vmax_L = K_P ⋅ R_L,T ⋅ v̇_L / l_P, and τ_L = (v̇_L / l_P) ⋅ t_L -
+        gene.Vmax_L = K_P * network.R_L * (60.0 * v_L) / gene.l_P # (nmol/gDW/min)
+        gene.τ_L = (v_L / gene.l_P) * t_L # elongation rate constant over initiation rate constant
+        gene.K_L = K_L # (nmol/gDW)
 
         # the degradation constants; a gene's own half-life overrides the default -
         gene.θ_m = log(2) / _optional_number(table, "mRNA_half_life", default_mRNA_half_life)
@@ -1687,10 +1765,10 @@ function build(model::Type{MyGeneNetworkModel}, path::String)::MyGeneNetworkMode
         if haskey(table, "promoter") == false
             throw(ArgumentError("the config is missing the [[genes.promoter]] states for $(where)"))
         end
-        gene.promoter = _build_control_states(table["promoter"], where)
+        gene.promoter = _build_control_states(table["promoter"], where, RT)
         gene.translation = Vector{MyControlStateModel}()
         if haskey(table, "translation") == true
-            gene.translation = _build_control_states(table["translation"], where)
+            gene.translation = _build_control_states(table["translation"], where, RT)
         end
 
         # check: each gene name appears once, because every regulator finds its gene by name -

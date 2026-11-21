@@ -60,5 +60,9 @@ using Test           # @test / @testset for the checks in the notebooks
 using OrdinaryDiffEq # ODEProblem, Tsit5, and solve for the nonlinear gene models;
                      # call it as OrdinaryDiffEq.solve(...), because the course
                      # package also exports a function named solve
-using Plots          # figures
+import SteadyStateDiffEq # finds a steady state by running the model until it settles;
+                         # call it as SteadyStateDiffEq.solve(...)
+using SteadyStateDiffEq: SteadyStateProblem, DynamicSS # only these two names: a plain `using`
+                         # also brings in a discretize(...) that clashes with the course package's
+using Plots         # figures
 using PrettyTables   # the motif table in the example
