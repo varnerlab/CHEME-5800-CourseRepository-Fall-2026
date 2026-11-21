@@ -2,8 +2,8 @@
 # The repressor-bound promoter is inactive, so it counts only in the denominator of the control.
 # X binds the promoter only when it carries the inducer I, so I sets how strong the repression is.
 #
-# With these values, at the baseline inducer I = 1 µM, the steady state is m* ≈ 0.0104 nmol/gDW,
-# p* ≈ 31.0 nmol/gDW, and the eigenvalues are about −0.147 and −0.015 per minute.
+# With these values, at the baseline inducer I = 1 µM, the steady state is m* ≈ 0.0128 nmol/gDW,
+# p* ≈ 14.2 nmol/gDW, and the eigenvalues are about −0.139 and −0.043 per minute.
 
 [metadata]
 description = "Negative autoregulation: protein X represses transcription of its own gene"
@@ -36,7 +36,7 @@ average_polysome_number = 4.0                 # ribosomes on each transcript, th
 
 # Degradation. A gene can override these with its own mRNA_half_life or protein_half_life.
 mRNA_half_life = 5.0                          # average mRNA half-life (min): 0.083 h is 4.98 min, rounded to 5 min
-protein_half_life = 4200.0                    # average protein half-life (min), 70 h
+protein_half_life = 35.0                      # average protein half-life in a growing cell (min)
 
 # The inducer I in the medium. Its baseline concentration is set here; the pulse is set in the
 # settings cell of the example notebook.
