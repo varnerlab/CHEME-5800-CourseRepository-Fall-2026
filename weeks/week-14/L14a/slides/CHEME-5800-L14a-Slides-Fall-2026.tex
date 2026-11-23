@@ -28,7 +28,7 @@
 \newcommand{\op}{\text{op}}
 
 \title{\texorpdfstring{{\vnheavy L14a}: Linear State Space Models and Stability}{L14a: Linear State Space Models and Stability}}
-\subtitle{\texorpdfstring{Eigenvalues, the S4 recursion, and linearization\\[3pt]CHEME 5800 Cornell University}{Eigenvalues, the S4 recursion, and linearization; CHEME 5800 Cornell University}}
+\subtitle{\texorpdfstring{Eigenvalues, discretization, and linearization\\[3pt]CHEME 5800 Cornell University}{Eigenvalues, discretization, and linearization; CHEME 5800 Cornell University}}
 \author{Copyright Jeffrey Varner 2026. All Rights Reserved}
 
 \begin{document}
@@ -46,13 +46,12 @@
       input, the solution is a sum of modes, one for each eigenvalue of the
       state matrix. The real part of each eigenvalue decides whether its mode
       grows or decays.
-    \item \hilite{Solve the forced model with the S4 recursion}: with an input,
-      the solution contains an integral of the input over time. The bilinear
-      discretization of the S4 sequence model solves the model one time step at
-      a time.
+    \item \hilite{Solve the forced model one time step at a time}: with an
+      input, the solution contains an integral of the input over time. We
+      derive two discretizations, the bilinear and the zero-order hold.
     \item \hilite{Linearize a nonlinear model about an operating point}: a
-      first-order Taylor expansion gives a linear state space model with a
-      constant term. A steady state removes the constant term.
+      first-order Taylor expansion gives a linear model whose matrices are
+      Jacobians. Its eigenvalues give the stability of a steady state.
   \end{itemize}
   \slidenote{Lecture:}{\href{\lecturelink}{Linear State Space Models and Stability}}
   \lecturesource{Introduction and three Learning Objectives.}
@@ -64,8 +63,8 @@
 
   In this lecture, we solve linear time-invariant state space models, in which
   the state changes at a rate set by the current state and an input. We read the
-  stability of a model from the eigenvalues of its state matrix. Then we solve
-  the model with an input, using the discretization of the S4 sequence model.
+  stability of a model from the eigenvalues of its state matrix. Then we
+  linearize a nonlinear model about an operating point.
 
   \vspace{1.1em}
   \textbf{\ink{Example:}}
@@ -73,7 +72,8 @@
 
   In this example, we build the model of a gene circuit from its config file
   and solve it with an ODE solver. We linearize the model about its steady
-  state, and solve the linear model with the S4 recursion.
+  state, and solve the linear model with the bilinear or the zero-order hold
+  discretization.
   \lecturesource{Introduction and the Examples section.}
 \end{frame}
 
@@ -240,8 +240,9 @@
 
   \vspace{0.3em}
   \raggedright
-  A stable node has two negative eigenvalues, and a saddle has one positive
-  and one negative eigenvalue. Dashed red lines mark the eigenvector directions.
+  A stable node draws every curve into the origin. A saddle brings curves in
+  along the eigenvector of its negative eigenvalue and sends them out along
+  the other.
   \lecturesource{Phase Portraits: the definition and the top row of the four-panel figure.
     Figure: ../figs/Fig-PhasePortraits/Fig-PhasePortraits.pdf (light TikZ build), top row.}
 \end{frame}
@@ -281,15 +282,14 @@
       carried forward by the open-loop model over the remaining time $t-s$.
       For a general input, this integral has no closed form.
   \end{itemize}
-  \lecturesource{The Forced Solution and the S4 Recursion: the derivation, condensed to three steps, and the paragraph after it.}
+  \lecturesource{The Forced Solution and Discretization: the derivation, condensed to three steps, and the paragraph after it.}
 \end{frame}
 
 \begin{frame}{The Trapezoid Rule}
-  The structured state space sequence model of
-  \href{https://arxiv.org/abs/2111.00396}{Gu, Goel, and R\'e (2022)}, called
-  \hilite{S4}, avoids the integral. It solves the model on a grid of times
-  $t_{k}=k\Delta t$, with a step $\Delta t>0$, and holds the input constant at
-  $\mathbf{u}_{k}\in\mathbb{R}^{d}$ over each step.
+  A \hilite{discretization} advances the state from one time to the next on a
+  grid of times $t_{k}=k\Delta t$, with a step $\Delta t>0$. We derive two,
+  and both hold the input constant at $\mathbf{u}_{k}\in\mathbb{R}^{d}$ over
+  each step.
 
   \vspace{0.3em}
   The \hilite{trapezoid rule} approximates the integral of a function $g$
@@ -302,7 +302,7 @@
     \left(\mathbf{I}-\tfrac{\Delta t}{2}\mathbf{A}\right)\mathbf{x}_{k}=\left(\mathbf{I}+\tfrac{\Delta t}{2}\mathbf{A}\right)\mathbf{x}_{k-1}+\Delta t\,\mathbf{B}\mathbf{u}_{k}
   \]
   where $\mathbf{x}_{k}$ approximates the state $\mathbf{x}(t_{k})$.
-  \lecturesource{The Bilinear Discretization: S4, the grid, the trapezoid rule, and the derivation through the factored step.}
+  \lecturesource{The Forced Solution and Discretization: the definition of a discretization. The Bilinear Discretization: the trapezoid rule and the derivation through the factored step.}
 \end{frame}
 
 \begin{frame}{The Bilinear Discretization}
@@ -324,7 +324,7 @@
   \lecturesource{The Bilinear Discretization: the last step of the derivation, the condition on the inverse, and the Bilinear discretization box.}
 \end{frame}
 
-\begin{frame}{The Recursion Keeps Stability}
+\begin{frame}{The Bilinear Recursion Keeps Stability}
   Each eigenvector $\mathbf{v}$ of $\mathbf{A}$ is also an eigenvector of
   $\bar{\mathbf{A}}$, but its eigenvalue changes from $\lambda$ to
   $\bar{\lambda}$:
@@ -343,6 +343,54 @@
   \end{itemize}
   \slidenote{Derivation:}{\href{\bilinearlink}{Stability of the bilinear discretization}}
   \lecturesource{The Bilinear Discretization: the stability statement in the box and the accuracy paragraph. Examples section: the companion derivation.}
+\end{frame}
+
+\begin{frame}{The Zero-Order Hold}
+  When the input is constant over each step, the forced solution gives the
+  state at the end of each step exactly. Over one step, from $t_{k-1}$ to
+  $t_{k}$:
+  \begin{align*}
+    \mathbf{x}(t_{k}) &= e^{\mathbf{A}\Delta t}\mathbf{x}(t_{k-1})+\int_{t_{k-1}}^{t_{k}}e^{\mathbf{A}(t_{k}-s)}\mathbf{B}\mathbf{u}(s)\,ds
+      && \text{forced solution over one step}\\
+    &= e^{\mathbf{A}\Delta t}\mathbf{x}(t_{k-1})+\left(\int_{0}^{\Delta t}e^{\mathbf{A}\sigma}\,d\sigma\right)\mathbf{B}\mathbf{u}_{k}
+      && \mathbf{u}(s)=\mathbf{u}_{k}\text{, and } \sigma=t_{k}-s\\
+    \mathbf{x}_{k} &= e^{\mathbf{A}\Delta t}\mathbf{x}_{k-1}+\mathbf{A}^{-1}\left(e^{\mathbf{A}\Delta t}-\mathbf{I}\right)\mathbf{B}\mathbf{u}_{k}
+      && \text{antiderivative } \mathbf{A}^{-1}e^{\mathbf{A}\sigma}
+  \end{align*}
+
+  \vspace{0.2em}
+  \begin{itemize}\setlength{\itemsep}{0.4em}
+    \item No step is an approximation: $\mathbf{x}_{k}$ equals the state
+      $\mathbf{x}(t_{k})$ at every grid time, for any step $\Delta t$.
+    \item The \hilite{zero-order hold} is named for the constant input, a
+      polynomial of order zero in time.
+  \end{itemize}
+  \lecturesource{The Zero-Order Hold Discretization: the opening paragraph and the two derivations, condensed to three steps, and the exactness statement.}
+\end{frame}
+
+\begin{frame}{The Zero-Order Hold Keeps Stability}
+  The discrete matrices $\bar{\mathbf{A}}\in\mathbb{R}^{n\times n}$ and
+  $\bar{\mathbf{B}}\in\mathbb{R}^{n\times d}$ give the same recursion,
+  $\mathbf{x}_{k}=\bar{\mathbf{A}}\mathbf{x}_{k-1}+\bar{\mathbf{B}}\mathbf{u}_{k}$:
+  \[
+    \boxed{\bar{\mathbf{A}}=e^{\mathbf{A}\Delta t},\qquad
+    \bar{\mathbf{B}}=\mathbf{A}^{-1}\left(e^{\mathbf{A}\Delta t}-\mathbf{I}\right)\mathbf{B}}
+  \]
+  Each eigenvalue $\lambda$ of $\mathbf{A}$ becomes $\bar{\lambda}$, with the
+  same eigenvector:
+  \[
+    \bar{\lambda}=e^{\lambda\Delta t},\qquad
+    |\bar{\lambda}|=e^{\mathrm{Re}(\lambda)\Delta t}<1\iff\mathrm{Re}(\lambda)<0
+  \]
+  \vspace{-0.2em}
+  \begin{itemize}\setlength{\itemsep}{0.4em}
+    \item The inverse of $\mathbf{A}$ exists when no eigenvalue is zero. A
+      stable model gives a stable recursion, for any step $\Delta t$.
+    \item The zero-order hold needs the matrix exponential. The bilinear
+      discretization needs only the inverse of
+      $\mathbf{I}-\tfrac{\Delta t}{2}\mathbf{A}$.
+  \end{itemize}
+  \lecturesource{The Zero-Order Hold Discretization: the condition on the inverse, the Zero-order hold discretization box, and the closing paragraph.}
 \end{frame}
 
 \begin{frame}{Linearization}
@@ -389,8 +437,8 @@
       input, both evaluated at the operating point.
     \item The constant $\mathbf{f}_{\op}\in\mathbb{R}^{n}$ acts like an input
       that never changes. With the input $(\Delta\mathbf{u},1)$ and the input
-      matrix $[\,\mathbf{B}\;\;\mathbf{f}_{\op}\,]$, the S4 recursion applies
-      unchanged.
+      matrix $[\,\mathbf{B}\;\;\mathbf{f}_{\op}\,]$, the deviations follow the
+      forced model, and both discretizations apply unchanged.
     \item The linear model is accurate only near the operating point. When
       $\mathbf{f}_{\op}\neq\mathbf{0}$, the state drifts, which can carry it
       away from the point.
@@ -413,8 +461,7 @@
       and the steady state is \hilite{stable}.
     \item One eigenvalue has a positive real part: a small deviation grows, and
       the steady state is \hilite{unstable}.
-    \item An eigenvalue with zero real part leaves the question open. The terms
-      that the Taylor expansion dropped then decide the stability.
+    \item An eigenvalue with zero real part leaves the question open.
   \end{itemize}
   \lecturesource{Linearization about a Steady State: the definition, the linear model, and the three cases.}
 \end{frame}
@@ -430,8 +477,9 @@
       an ODE solver.
     \item Find the steady state with the solver, and read the eigenvalues of
       the Jacobian there.
-    \item Linearize the model about the steady state, solve it with the S4
-      recursion, and compare it with the nonlinear model for the pulse.
+    \item Linearize the model about the steady state, solve it with the
+      bilinear or the zero-order hold discretization, and compare it with the
+      nonlinear model for the pulse.
   \end{enumerate}
 
   \vspace{0.2em}
@@ -451,10 +499,12 @@
   \begin{itemize}\setlength{\itemsep}{0.6em}
     \item \textbf{\ink{Eigenvalues decide stability.}} The model is stable when
       every eigenvalue has a negative real part.
-    \item \textbf{\ink{The S4 recursion solves the forced model.}} It keeps the model's
-      stability for any step, with error scaling as $\Delta t^{2}$.
+    \item \textbf{\ink{Two discretizations of the forced model.}} Both keep the
+      model's stability for any step. With the input held constant over each
+      step, the zero-order hold gives the exact state at every grid time.
     \item \textbf{\ink{Linearization gives a local linear model.}} At a steady
-      state, the eigenvalues decide whether small deviations decay or grow.
+      state, with the input held fixed, small deviations decay when every
+      eigenvalue has a negative real part.
   \end{itemize}
 
   \vspace{0.5em}

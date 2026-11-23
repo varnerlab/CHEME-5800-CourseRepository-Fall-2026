@@ -51,7 +51,7 @@
 #   jacobian(...)               the state Jacobian (the A matrix of the linearized model)
 #   input_jacobian(...)         the derivative of the balances with respect to one inducer, through the controls
 #   steady_state(...)           a steady state, by Newton's method
-#   discretize(...)             the bilinear (S4) or zero-order hold discretization of ẋ = A x + B u
+#   discretize(...)             the bilinear or zero-order hold discretization of ẋ = A x + B u
 #
 # The type definitions are in Types.jl, and build(MyGeneNetworkModel, path) is in Factory.jl.
 # ================================================================================================ #
@@ -600,8 +600,8 @@ Return the discretization `(Ā, B̄)` of the linear model `ẋ = A x + B u` with
 discrete model is the recursion `x_k = Ā x_{k−1} + B̄ u_k`, with the input held constant at `u_k`
 over each step. The keyword `method` chooses the discretization:
 
-- `:bilinear`, the default, is the discretization of the S4 sequence model. It integrates the model
-  over one step with the trapezoid rule:
+- `:bilinear`, the default, is the bilinear discretization. It integrates the model over one step
+  with the trapezoid rule:
 
       Ā = (I − Δt/2 ⋅ A)⁻¹ (I + Δt/2 ⋅ A)
       B̄ = (I − Δt/2 ⋅ A)⁻¹ Δt ⋅ B
@@ -627,7 +627,7 @@ function discretize(A::Matrix{Float64}, B::AbstractVecOrMat{Float64}; Δt::Float
     n = size(A, 1)
     identity = Matrix{Float64}(I, n, n)
 
-    # the bilinear discretization of the S4 sequence model -
+    # the bilinear discretization -
     if method == :bilinear
 
         # the two factors of the bilinear map -

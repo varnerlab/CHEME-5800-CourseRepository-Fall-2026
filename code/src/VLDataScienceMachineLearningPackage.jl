@@ -171,7 +171,7 @@ export transcription_rate, translation_rate; # the kinetic limits of CHEME 5450 
 export balances!; # the mRNA and protein balances, in the form ODEProblem(...) expects
 export equations; # the balances and controls of a network, as text
 export jacobian, input_jacobian, steady_state; # linearization about a steady state
-export discretize; # the bilinear (S4) or zero-order hold discretization of ẋ = A x + B u
+export discretize; # the bilinear or zero-order hold discretization of ẋ = A x + B u
 # Classification (week 9, Binary.jl) -
 export learn; # train a classifier on labeled data
 export classify; # predict the labels of new data

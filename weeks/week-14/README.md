@@ -2,15 +2,15 @@
 
 Week 14 has one instructional meeting before Thanksgiving break. Students solve linear
 time-invariant state space models, read the stability of a steady state from the eigenvalues of
-the state matrix, and solve a model with an input using the discretization of the S4 sequence
-model. An example builds three gene circuits from config files, linearizes each circuit about a
+the state matrix, and solve a model with an input one time step at a time, using the bilinear
+discretization and the zero-order hold. An example builds three gene circuits from config files, linearizes each circuit about a
 steady state, and compares the linear and nonlinear responses to a pulse of an inducer.
 
 ## Session sequence
 
 | Session | Topic | Language | Notebook |
 |---|---|---|---|
-| L14a | Linear state space models: the open-loop solution, stability from the eigenvalues, the S4 and zero-order hold discretizations, and linearization | Julia | [Lecture](L14a/CHEME-5800-L14a-Lecture-LinearStateSpaceModels-Fall-2026.ipynb), [example](L14a/CHEME-5800-L14a-Example-GeneCircuits-Fall-2026.ipynb), [advanced notebook](L14a/CHEME-5800-L14a-Advanced-ComputingEigenvalues-Fall-2026.ipynb), and [stability derivation](L14a/CHEME-5800-L14a-Advanced-Derivation-BilinearStability-Fall-2026.ipynb) |
+| L14a | Linear state space models: the open-loop solution, stability from the eigenvalues, the bilinear and zero-order hold discretizations, and linearization | Julia | [Lecture](L14a/CHEME-5800-L14a-Lecture-LinearStateSpaceModels-Fall-2026.ipynb), [example](L14a/CHEME-5800-L14a-Example-GeneCircuits-Fall-2026.ipynb), [advanced notebook](L14a/CHEME-5800-L14a-Advanced-ComputingEigenvalues-Fall-2026.ipynb), and [stability derivation](L14a/CHEME-5800-L14a-Advanced-Derivation-BilinearStability-Fall-2026.ipynb) |
 | L14b | Practicum release and QA session | | Assessment is managed outside this course-content repository |
 | L14c | Thanksgiving break | | No class |
 | L14d | Thanksgiving break | | No class |

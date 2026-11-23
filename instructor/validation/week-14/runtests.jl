@@ -717,7 +717,7 @@ nbvar(ws::Module, name::Symbol) = Core.eval(ws, name)
 """
 Check the pulse run of the notebook run `ws` against that run's own settings: the inducer follows
 the schedule the settings give, rounded to whole steps; the run ends at the last whole step at or
-before the final time; both models start at the steady state; and the linear trace is the S4
+before the final time; both models start at the steady state; and the linear trace is the
 recursion of the run's own matrices, driven by that schedule.
 """
 function check_pulse_run(ws::Module)
@@ -762,7 +762,7 @@ function check_pulse_run(ws::Module)
     B_I = input_jacobian(model, x_steady, 0.0, "I")
     @test isapprox(B * dū_dI, B_I; rtol = 1e-5, atol = 1e-6 * max(norm(B_I), eps()))
 
-    # the linear trace is the S4 recursion of the run's own matrices, driven by the change in each
+    # the linear trace is the recursion of the run's own matrices, driven by the change in each
     # control that the inducer causes, with every level at the steady state -
     Ā = nbvar(ws, :Ā)
     B̄ = nbvar(ws, :B̄)
