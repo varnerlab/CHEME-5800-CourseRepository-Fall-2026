@@ -1,0 +1,2 @@
+[     103ms] [WARNING] Warning: KaTeX doesn't work in quirks mode. Make sure your website has a suitable doctype. @ https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js:1
+[   61510ms] [LOG] MathJax localStorage error: Failed to read the 'localStorage' property from 'Window': Access is denied for this document. @ https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js:1

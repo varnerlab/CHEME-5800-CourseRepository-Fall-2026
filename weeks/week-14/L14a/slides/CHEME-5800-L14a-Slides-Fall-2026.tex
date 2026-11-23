@@ -146,12 +146,17 @@
 \end{frame}
 
 \begin{frame}{Modes}
-  Substituting the powers $\mathbf{A}^{k}$ into the series gives:
-  \[
-    \mathbf{x}(t)=\mathbf{V}e^{\boldsymbol{\Lambda}t}\mathbf{V}^{-1}\mathbf{x}_{0}
-    =c_{1}e^{\lambda_{1}t}\mathbf{v}_{1}+c_{2}e^{\lambda_{2}t}\mathbf{v}_{2}+\dots+c_{n}e^{\lambda_{n}t}\mathbf{v}_{n}
-  \]
-  where $e^{\boldsymbol{\Lambda}t}=\operatorname{diag}(e^{\lambda_{1}t},\dots,e^{\lambda_{n}t})$.
+  Every power keeps the form $\mathbf{A}^{k}=\mathbf{V}\boldsymbol{\Lambda}^{k}\mathbf{V}^{-1}$,
+  because each inner $\mathbf{V}^{-1}\mathbf{V}=\mathbf{I}$ cancels. We substitute
+  these powers and $\mathbf{I}=\mathbf{V}\mathbf{V}^{-1}$ into the series:
+  \begin{align*}
+    e^{\mathbf{A}t} &= \mathbf{V}\left(\mathbf{I}+\boldsymbol{\Lambda}t+\tfrac{(\boldsymbol{\Lambda}t)^{2}}{2!}+\dots\right)\mathbf{V}^{-1}
+      =\mathbf{V}e^{\boldsymbol{\Lambda}t}\mathbf{V}^{-1}\\
+    \mathbf{x}(t) &= \mathbf{V}e^{\boldsymbol{\Lambda}t}\mathbf{V}^{-1}\mathbf{x}_{0}
+      =c_{1}e^{\lambda_{1}t}\mathbf{v}_{1}+\dots+c_{n}e^{\lambda_{n}t}\mathbf{v}_{n}
+  \end{align*}
+  where $e^{\boldsymbol{\Lambda}t}=\operatorname{diag}(e^{\lambda_{1}t},\dots,e^{\lambda_{n}t})$,
+  because each power of $\boldsymbol{\Lambda}$ is diagonal.
 
   \vspace{0.5em}
   \begin{itemize}\setlength{\itemsep}{0.5em}
