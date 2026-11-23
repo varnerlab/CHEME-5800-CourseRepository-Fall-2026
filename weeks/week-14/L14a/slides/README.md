@@ -6,7 +6,7 @@ The 23-slide deck follows the [Linear State Space Models and Stability lecture](
 
 It then derives the forced solution in three steps and defines a discretization. It builds the bilinear discretization from the trapezoid rule and the zero-order hold from the exact solution over one step, and shows that each recursion keeps the stability of the continuous model. It closes with linearization about an operating point and about a steady state, the example, and the Summary. Its three learning objectives align with its three closing takeaways.
 
-**Review status:** Written on November 20, 2026, after the lecture gained its dimension declarations, the capital Δ deviations, the determinant written as det(**A**), and the braces on Euler's formula. The first external review pass (8.5/10) led to five fixes: the example's peak rise, four symbol definitions, shorter takeaways, and the phase portraits split across two slides. The second pass rated the deck 9.2/10. The deck has no overfull or underfull boxes. Approved by the instructor on November 20, 2026. Updated on November 23, 2026, to match the revised lecture: the sequence-model references were removed, the objectives and takeaways now cover both discretizations, and two zero-order hold slides were added. The update has not yet been reviewed by the instructor.
+**Review status:** Written on November 20, 2026, after the lecture gained its dimension declarations, the capital Δ deviations, the determinant written as det(**A**), and the braces on Euler's formula. The first external review pass (8.5/10) led to five fixes: the example's peak rise, four symbol definitions, shorter takeaways, and the phase portraits split across two slides. The second pass rated the deck 9.2/10. The deck has no overfull or underfull boxes. Approved by the instructor on November 20, 2026. Updated on November 23, 2026, to match the revised lecture: the sequence-model references were removed, the objectives and takeaways now cover both discretizations, and two zero-order hold slides were added. Slide 7 now derives the mode solution from the eigendecomposition one step at a time. The update has not yet been reviewed by the instructor.
 
 The style files and Cornell seal are copied unchanged from L13a (identical to L13c, L12c, L12a, L10c, L10a, L9c, and L9a, which match the approved L6a deck). The deck keeps their 16:9 format, typography, palette, title page, and footer. Text and equations are editable in the LaTeX source.
 
@@ -56,5 +56,5 @@ Source notebook snapshots (SHA-256):
 
 | Notebook | SHA-256 |
 |---|---|
-| CHEME-5800-L14a-Lecture-LinearStateSpaceModels-Fall-2026.ipynb | `1853b50f5b635b7dac454905148f7c2e4abf05015d971c33a2672ae36cf10f20` |
-| CHEME-5800-L14a-Example-GeneCircuits-Fall-2026.ipynb | `9b1eb50360e1f519eb8aa41871ddf6d0285d3258edd0b7478306ef3ca3cd2d6c` |
+| CHEME-5800-L14a-Lecture-LinearStateSpaceModels-Fall-2026.ipynb | `989539c37f911c4cdbe6c43143d6bcab2a49cc42bdff92427cdefa3668a9d061` |
+| CHEME-5800-L14a-Example-GeneCircuits-Fall-2026.ipynb | `d63a687f05bd56e55236ae7e6eb18ec6df0f24bbc5d6b8fc9093e2a3871eaa1d` |

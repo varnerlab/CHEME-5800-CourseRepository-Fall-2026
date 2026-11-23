@@ -21,6 +21,12 @@ let active_project = Base.active_project()
     end
 end
 
+# Install and compile the course packages here, before any `using` line.
+# In a VS Code notebook on Julia 1.12, a compile started by `using` crashes when
+# it prints its progress. A compile run by Pkg does not. When nothing is missing,
+# this check takes about 1.5 s.
+Pkg.instantiate()
+
 using VLDataScienceMachineLearningPackage # exported course models and algorithms, including L4c shortest paths
 
 # Mark completion only after activation and imports succeed, so a failed setup
