@@ -1,0 +1,126 @@
+# Alon's regulated feedback (memory) motif.
+# The inducer I activates protein X. Protein X activates genes Y and Z, and proteins Y and Z
+# activate each other's genes. The promoters of Y and Z are OR gates: X or the partner protein can
+# switch them on. Gene X lists one promoter state, RNA polymerase bound alone, so gene X is always
+# transcribed.
+# Gene Z and its protein are shorter than genes X and Y and their proteins. The shorter gene has a
+# larger maximum transcription rate, and the shorter protein has a larger maximum translation rate.
+#
+# Units: mRNA and protein concentrations and the half-binding concentrations K are per gram dry
+# weight (nmol/gDW). The inducer I and K_I are concentrations in the medium (µM). Times are in min
+# unless a line says otherwise, dG is in kJ/mol, and the temperature is in K.
+#
+# The state order is mRNA X, Y, Z, then protein X, Y, Z.
+
+[metadata]
+description = "Regulated feedback (memory) motif: I activates X; X activates Y and Z; Y and Z activate each other"
+reference = "Alon, Nat. Rev. Genet. 8 (2007), doi:10.1038/nrg2102"
+
+[parameters]
+# The cell: a bacterium such as E. coli growing at 37 °C. The loader turns copies per cell into
+# nmol/gDW with the dry mass of the cell, and µM into nmol/gDW with the volume and the dry mass.
+mass_of_single_cell = 2.8e-13                 # dry mass of one cell (gDW/cell)
+volume_of_single_cell = 6.7e-16               # cytoplasm volume of one cell (L/cell)
+doubling_time = 60.0                          # doubling time of the culture (min)
+temperature = 310.15                          # absolute temperature (K), 37 °C
+
+# RNA polymerase and transcription.
+copies_of_rnap_per_cell = 4600.0              # RNA polymerase (copies/cell)
+transcription_elongation_rate = 60.0          # RNA polymerase elongation rate (nt/s)
+transcription_initiation_time_constant = 42.0 # transcription initiation time constant (s)
+transcription_saturation_constant = 0.3       # transcription saturation constant (µM)
+
+# Ribosomes and translation. The translation saturation constant is the translation saturation
+# factor times the transcription saturation constant.
+copies_of_ribosome_per_cell = 50000.0         # ribosomes (copies/cell)
+translation_elongation_rate = 16.5            # ribosome elongation rate (aa/s)
+translation_initiation_time_constant = 15.0   # translation initiation time constant (s)
+translation_saturation_factor = 190.0         # translation saturation factor (dimensionless)
+average_polysome_number = 4.0                 # ribosomes on each mRNA
+
+# The characteristic lengths. The maximum rates and the time constants are computed at these
+# lengths, and the length factors correct the maximum rates for the actual length of each gene.
+characteristic_length_of_gene_in_nt = 1000.0  # characteristic gene length (nt)
+characteristic_length_of_protein_in_aa = 330.0 # characteristic protein length (aa)
+
+# Degradation in a growing cell.
+mRNA_half_life = 5.0                          # mRNA half-life (min)
+protein_half_life = 35.0                      # protein half-life (min)
+
+# The inducer I in the medium. There is no inducer before the first pulse.
+[inputs.I]
+initial = 0.0                                 # inducer concentration before the first pulse (µM)
+
+[[genes]]
+name = "X"
+gene_copy_number = 1.0          # copies of the gene per cell
+length_of_gene_in_nt = 1000.0   # length of the gene (nt)
+length_of_protein_in_aa = 330.0 # length of the protein (aa)
+
+  [[genes.promoter]]          # RNA polymerase bound alone: transcription runs
+  dG = -5.94                  # Gibbs energy relative to the empty promoter (kJ/mol): W ≈ 10.0
+  active = true
+
+[[genes]]
+name = "Y"
+gene_copy_number = 1.0          # copies of the gene per cell
+length_of_gene_in_nt = 1000.0   # length of the gene (nt)
+length_of_protein_in_aa = 330.0 # length of the protein (aa)
+
+  [[genes.promoter]]          # RNA polymerase bound alone: the leak
+  dG = 13.66                  # Gibbs energy relative to the empty promoter (kJ/mol): W ≈ 0.005
+  active = true
+
+  [[genes.promoter]]          # RNA polymerase with protein X bound: transcription runs
+  dG = 5.50                   # Gibbs energy relative to the empty promoter (kJ/mol): W ≈ 0.12
+  active = true
+
+    [[genes.promoter.bound]]
+    regulator = "X"
+    K = 800.0                 # half-binding concentration of the available X (nmol/gDW)
+    n = 2                     # binding order
+    inducer = "I"             # inducer I sets the fraction of X that can bind
+    inducer_effect = "activates"
+    K_I = 10.0                # half of X is bound to the inducer at I = 10 µM
+    n_I = 1
+
+  [[genes.promoter]]          # RNA polymerase with protein Z bound: transcription runs
+  dG = -5.94                  # Gibbs energy relative to the empty promoter (kJ/mol): W ≈ 10.0
+  active = true
+
+    [[genes.promoter.bound]]
+    regulator = "Z"
+    K = 600.0                 # half-binding concentration of Z (nmol/gDW)
+    n = 3                     # binding order
+
+[[genes]]
+name = "Z"
+gene_copy_number = 1.0          # copies of the gene per cell
+length_of_gene_in_nt = 750.0    # length of the gene (nt), shorter than genes X and Y
+length_of_protein_in_aa = 250.0 # length of the protein (aa), shorter than proteins X and Y
+
+  [[genes.promoter]]          # RNA polymerase bound alone: the leak
+  dG = 13.66                  # Gibbs energy relative to the empty promoter (kJ/mol): W ≈ 0.005
+  active = true
+
+  [[genes.promoter]]          # RNA polymerase with protein X bound: transcription runs
+  dG = 5.50                   # Gibbs energy relative to the empty promoter (kJ/mol): W ≈ 0.12
+  active = true
+
+    [[genes.promoter.bound]]
+    regulator = "X"
+    K = 800.0                 # half-binding concentration of the available X (nmol/gDW)
+    n = 2                     # binding order
+    inducer = "I"             # inducer I sets the fraction of X that can bind
+    inducer_effect = "activates"
+    K_I = 10.0                # half of X is bound to the inducer at I = 10 µM
+    n_I = 1
+
+  [[genes.promoter]]          # RNA polymerase with protein Y bound: transcription runs
+  dG = -5.94                  # Gibbs energy relative to the empty promoter (kJ/mol): W ≈ 10.0
+  active = true
+
+    [[genes.promoter.bound]]
+    regulator = "Y"
+    K = 600.0                 # half-binding concentration of Y (nmol/gDW)
+    n = 3                     # binding order

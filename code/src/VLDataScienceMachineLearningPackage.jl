@@ -64,6 +64,7 @@ include("Graphs.jl"); # children, weight, walk, findshortestpath, and maximumflo
 include("Solvers.jl"); # solve(...) for iterative linear solvers (week 6) and for linear programs (week 5)
 include("Eigen.jl"); # qriteration and poweriteration: eigenvalues and eigenvectors
 include("GeneNetworks.jl"); # gene network models built from TOML config files (week 14, L14a)
+include("FixedStepMethods.jl"); # advance and integrate: explicit Euler and RK4 for ODEs (week 15, L15a)
 include("Binary.jl"); # learn, classify, and confusion for binary classifiers (week 9)
 include("MDP.jl"); # Markov decision process functions and value iteration (weeks 11 and 12)
 include("Bandit.jl"); # solve(...) for multi-armed bandits and regret (week 10)
@@ -100,6 +101,7 @@ export AbstractGraphSearchAlgorithm; # shortest-path algorithm tags (week 4)
 export AbstractGraphFlowAlgorithm; # maximum-flow algorithm tags (week 5)
 export AbstractGraphTraversalAlgorithm; # traversal algorithm tags
 export AbstractLinearSolverAlgorithm; # iterative linear solver tags (week 6)
+export AbstractFixedStepAlgorithm; # fixed-step ODE method tags (week 15)
 export AbstractClassificationAlgorithm; # binary classifiers (week 9)
 export AbstractLinearProgrammingProblemType; # linear programs (week 5)
 export AbstractProcessModel; # Markov decision processes (weeks 11 and 12)
@@ -172,6 +174,10 @@ export balances!; # the mRNA and protein balances, in the form ODEProblem(...) e
 export equations; # the balances and controls of a network, as text
 export jacobian, input_jacobian, steady_state; # linearization about a steady state
 export discretize; # the bilinear or zero-order hold discretization of ẋ = A x + B u
+# Fixed-step ODE methods (week 15, L15a, FixedStepMethods.jl) -
+export ExplicitEulerMethod, RungeKutta4Method; # the method tags (Types.jl)
+export advance; # one explicit Euler or RK4 step of dx/dt = f(x, p, t)
+export integrate; # a run of steps from t_start to t_final
 # Classification (week 9, Binary.jl) -
 export learn; # train a classifier on labeled data
 export classify; # predict the labels of new data

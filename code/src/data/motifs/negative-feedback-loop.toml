@@ -22,19 +22,24 @@ doubling_time = 60.0                          # doubling time of the culture (mi
 temperature = 310.15                          # absolute temperature T (K), 37 °C, a value of this example; each state's weight is W = exp(−dG/RT)
 
 # RNA polymerase and transcription. The transcription time constant of a gene is
-# τ_X = (transcription_elongation_rate / length_of_gene_in_nt) × transcription_initiation_time_constant.
+# τ_X = (transcription_elongation_rate / characteristic_length_of_gene_in_nt) × transcription_initiation_time_constant.
 copies_of_rnap_per_cell = 4600.0              # RNA polymerase (copies/cell)
 transcription_elongation_rate = 60.0          # RNA polymerase elongation rate (nt/s)
 transcription_initiation_time_constant = 42.0 # transcription initiation time constant (s)
 transcription_saturation_constant = 0.3       # K_X (µM), the elongation slope of McClure (1980)
 
 # Ribosomes and translation. The translation time constant of a gene is
-# τ_L = (translation_elongation_rate / length_of_protein_in_aa) × translation_initiation_time_constant.
+# τ_L = (translation_elongation_rate / characteristic_length_of_protein_in_aa) × translation_initiation_time_constant.
 copies_of_ribosome_per_cell = 50000.0         # ribosomes (copies/cell)
 translation_elongation_rate = 16.5            # ribosome elongation rate (aa/s)
 translation_initiation_time_constant = 15.0   # translation initiation time constant (s), BNID 109525
 translation_saturation_factor = 190.0         # K_L = 190 × K_X, as in CHEME 5450 (L8c)
 average_polysome_number = 4.0                 # ribosomes on each transcript, the polysome amplification constant K_P
+
+# The characteristic lengths. The maximum rates and the time constants are computed at these
+# lengths, and the length factors correct the maximum rates for the actual length of each gene.
+characteristic_length_of_gene_in_nt = 1000.0  # characteristic gene length (nt)
+characteristic_length_of_protein_in_aa = 330.0 # characteristic protein length (aa)
 
 # Degradation. A gene can override these with its own mRNA_half_life or protein_half_life.
 mRNA_half_life = 5.0                          # average mRNA half-life (min): 0.083 h is 4.98 min, rounded to 5 min

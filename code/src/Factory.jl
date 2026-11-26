@@ -1496,6 +1496,8 @@ build(model::Type{VLLinearUtilityFunction}, data::NamedTuple)::VLLinearUtilityFu
 # [[genes]] becomes a Vector of Dicts, in the order the tables appear in the file (week 14, L14a).
 const _GAS_CONSTANT = 8.314462618e-3 # the gas constant R (kJ/mol/K), for the Boltzmann factor W = exp(−ΔG/RT)
 const _AVOGADRO = 6.02214076e23 # Avogadro's number (1/mol), to turn copies per cell into a level
+const _CHARACTERISTIC_GENE_LENGTH = 1000.0 # the default characteristic gene length l*_G (nt), the average transcript length of CHEME 5450 L8c
+const _CHARACTERISTIC_PROTEIN_LENGTH = 330.0 # the default characteristic protein length l*_P (aa), the average protein length of CHEME 5450 L8c
 
 """
     _required_number(table::Dict, key::String, where::String) -> Float64
@@ -1630,20 +1632,27 @@ Build a gene network from the TOML config file at `path` (week 14, L14a). The fi
   `transcription_initiation_time_constant` in s, `transcription_saturation_constant` in µM), the
   ribosomes (`copies_of_ribosome_per_cell`, `translation_elongation_rate` in aa/s,
   `translation_initiation_time_constant` in s, `translation_saturation_factor`, the ratio K_L / K_X,
-  `average_polysome_number`), and the default `mRNA_half_life` and `protein_half_life` in min;
+  `average_polysome_number`), the characteristic lengths `characteristic_length_of_gene_in_nt` and
+  `characteristic_length_of_protein_in_aa` (optional, with defaults of 1000 nt and 330 aa), and the
+  default `mRNA_half_life` and `protein_half_life` in min;
 - one `[[genes]]` table per gene, with `gene_copy_number` (copies/cell), `length_of_gene_in_nt`,
   `length_of_protein_in_aa`, its `[[genes.promoter]]` states, and optional `[[genes.translation]]` states;
 - one `[inputs.<name>]` table per inducer.
 
-The builder computes the kinetic limits as CHEME 5450 does (L6b and L8c). A number of copies per cell
+The builder computes the maximum rates as CHEME 5450 does (L6b and L8c). Unlike CHEME 5450 L8c, which
+computes the time constants at the actual lengths, the builder computes them at the characteristic lengths. A number of copies per cell
 becomes a level with Avogadro's number and the dry mass of a cell, and a concentration in µM becomes a
 level with the cell volume and dry mass. For gene j,
 
-    Vmax_X = R_X,T ⋅ v̇_X / l_G,    τ_X = (v̇_X / l_G) ⋅ (transcription initiation time constant)
-    Vmax_L = K_P ⋅ R_L,T ⋅ v̇_L / l_P,    τ_L = (v̇_L / l_P) ⋅ (translation initiation time constant)
+    Vmax_X,j = R_X,T ⋅ (v̇_X / l*_G) ⋅ (l*_G / l_G,j),    τ_X = (v̇_X / l*_G) ⋅ (transcription initiation time constant)
+    Vmax_L,j = K_P ⋅ R_L,T ⋅ (v̇_L / l*_P) ⋅ (l*_P / l_P,j),    τ_L = (v̇_L / l*_P) ⋅ (translation initiation time constant)
 
 where R_X,T and R_L,T are the RNA polymerase and ribosome levels, v̇_X and v̇_L the elongation rates,
-l_G and l_P the gene and protein lengths, and K_P the average polysome number. Each state gives its
+l_G,j and l_P,j the lengths of gene j and its protein, and K_P the average polysome number. The
+maximum rates and the time constants are computed at the characteristic lengths l*_G and l*_P. The
+length factors l*_G / l_G,j and l*_P / l_P,j correct the maximum rates for the actual lengths, so a
+longer gene has a smaller maximum transcription rate and a longer protein has a smaller maximum
+translation rate. Each state gives its
 Gibbs energy `dG` (kJ/mol), and the builder stores its weight `W = exp(−dG/RT)`. The genes keep the
 order in which they appear in the file.
 
@@ -1699,6 +1708,13 @@ function build(model::Type{MyGeneNetworkModel}, path::String)::MyGeneNetworkMode
     t_X = _required_positive(parameters, "transcription_initiation_time_constant", "[parameters]") # (s)
     K_X = per_µM * _required_positive(parameters, "transcription_saturation_constant", "[parameters]") # (nmol/gDW)
 
+    # the characteristic lengths of a gene and a protein. Each one must be a number above zero -
+    l_G_star = _optional_number(parameters, "characteristic_length_of_gene_in_nt", _CHARACTERISTIC_GENE_LENGTH) # l*_G (nt)
+    l_P_star = _optional_number(parameters, "characteristic_length_of_protein_in_aa", _CHARACTERISTIC_PROTEIN_LENGTH) # l*_P (aa)
+    if isfinite(l_G_star) == false || isfinite(l_P_star) == false || l_G_star <= 0.0 || l_P_star <= 0.0
+        throw(ArgumentError("the characteristic lengths in [parameters] must be numbers above zero")) # stop with a message that names the field
+    end
+
     # ribosomes and translation -
     network.R_L = per_copy * _required_positive(parameters, "copies_of_ribosome_per_cell", "[parameters]") # R_L,T (nmol/gDW)
     v_L = _required_positive(parameters, "translation_elongation_rate", "[parameters]") # v̇_L (aa/s)
@@ -1747,14 +1763,16 @@ function build(model::Type{MyGeneNetworkModel}, path::String)::MyGeneNetworkMode
         gene.l_P = _required_positive(table, "length_of_protein_in_aa", where) # (aa)
         gene.G = per_copy * gene.copies # the gene level (nmol/gDW)
 
-        # the transcription kinetic limit: Vmax_X = R_X,T ⋅ v̇_X / l_G, and τ_X = (v̇_X / l_G) ⋅ t_X. Rates per minute -
-        gene.Vmax_X = network.R_X * (60.0 * v_X) / gene.l_G # (nmol/gDW/min)
-        gene.τ_X = (v_X / gene.l_G) * t_X # elongation rate constant over initiation rate constant
+        # the transcription kinetic limit at the characteristic length, corrected by the length factor l*_G / l_G. Rates per minute -
+        V_X = network.R_X * (60.0 * v_X) / l_G_star # the maximum transcription rate of a gene of the characteristic length (nmol/gDW/min)
+        gene.Vmax_X = V_X * (l_G_star / gene.l_G) # the maximum transcription rate of this gene (nmol/gDW/min)
+        gene.τ_X = (v_X / l_G_star) * t_X # elongation rate constant over initiation rate constant, at the characteristic length
         gene.K_X = K_X # (nmol/gDW)
 
-        # the translation kinetic limit: Vmax_L = K_P ⋅ R_L,T ⋅ v̇_L / l_P, and τ_L = (v̇_L / l_P) ⋅ t_L -
-        gene.Vmax_L = K_P * network.R_L * (60.0 * v_L) / gene.l_P # (nmol/gDW/min)
-        gene.τ_L = (v_L / gene.l_P) * t_L # elongation rate constant over initiation rate constant
+        # the translation kinetic limit at the characteristic length, corrected by the length factor l*_P / l_P -
+        V_L = K_P * network.R_L * (60.0 * v_L) / l_P_star # the maximum translation rate of a protein of the characteristic length (nmol/gDW/min)
+        gene.Vmax_L = V_L * (l_P_star / gene.l_P) # the maximum translation rate of this protein (nmol/gDW/min)
+        gene.τ_L = (v_L / l_P_star) * t_L # elongation rate constant over initiation rate constant, at the characteristic length
         gene.K_L = K_L # (nmol/gDW)
 
         # the degradation constants; a gene's own half-life overrides the default -

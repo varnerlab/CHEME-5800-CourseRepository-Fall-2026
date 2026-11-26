@@ -39,34 +39,12 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `Week15Core` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week15Core)
-    include(joinpath(@__DIR__, "..", "src", "Week15Core.jl"))
-end
-
-
 # --- 3. IMPORTS --------------------------------------------------------------
-# Everything this meeting brings into scope. One `using` per line so each can
-# be annotated and each shows up on its own line in a diff.
-#
-# Already imported by the root bootstrap above, listed so this block is the
-# whole picture rather than most of it:
-#   VLDataScienceMachineLearningPackage   the course package
-#
-# Standard library:
-using LinearAlgebra   # factorizations, norms, and matrix operations
-using Statistics      # mean, std, and friends
-using Test            # @test / @testset for the checks in the notebook
-#
-# Packages:
-using DataFrames      # tabular records held as columns
-using OrdinaryDiffEq  # ODE solvers
-using Plots           # figures
-using PrettyTables    # formatted table output in the notebook
-#
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .Week15Core     # from the include in section 2
+# The bootstrap above imports the course package.
+
+using LinearAlgebra # eigenvalues of the steady-state Jacobians
+using Test # assertions in the meeting validation suite
+using OrdinaryDiffEq # ODEProblem and Tsit5. Call OrdinaryDiffEq.solve explicitly.
+using Plots # trajectories, error curves, and plot themes
+using Colors: RGBA # translucent plot panels
+using PrettyTables # table of modes and Euler step limits

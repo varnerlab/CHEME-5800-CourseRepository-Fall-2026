@@ -38,6 +38,8 @@ const AVOGADRO = 6.02214076e23 # Avogadro's number (1/mol)
 """
 The kinetic constants of a parsed config, computed by hand as CHEME 5450 does (L6b and L8c): the
 RNA polymerase and ribosome levels, and for each gene its level G, Vmax_X, τ_X, K_X, Vmax_L, τ_L, K_L.
+The maximum rates and time constants use the characteristic lengths l*_G and l*_P, and the length
+factors l*_G / l_G and l*_P / l_P correct the maximum rates for the actual lengths.
 """
 function hand_constants(config::Dict)
     P = config["parameters"]
@@ -45,16 +47,18 @@ function hand_constants(config::Dict)
     per_µM = 1e-6 * P["volume_of_single_cell"] / P["mass_of_single_cell"] * 1e9     # nmol/gDW of 1 µM in the cell
     R_X = P["copies_of_rnap_per_cell"] * per_copy
     R_L = P["copies_of_ribosome_per_cell"] * per_copy
+    l_G_star = get(P, "characteristic_length_of_gene_in_nt", VLDataScienceMachineLearningPackage._CHARACTERISTIC_GENE_LENGTH)      # l*_G (nt); the package default when the file has none
+    l_P_star = get(P, "characteristic_length_of_protein_in_aa", VLDataScienceMachineLearningPackage._CHARACTERISTIC_PROTEIN_LENGTH) # l*_P (aa); the package default when the file has none
     genes = []
     for gene in config["genes"]
         l_G = gene["length_of_gene_in_nt"]
         l_P = gene["length_of_protein_in_aa"]
         push!(genes, (G = gene["gene_copy_number"] * per_copy,
-            Vmax_X = R_X * 60 * P["transcription_elongation_rate"] / l_G,
-            τ_X = P["transcription_elongation_rate"] / l_G * P["transcription_initiation_time_constant"],
+            Vmax_X = R_X * 60 * P["transcription_elongation_rate"] / l_G_star * (l_G_star / l_G),
+            τ_X = P["transcription_elongation_rate"] / l_G_star * P["transcription_initiation_time_constant"],
             K_X = P["transcription_saturation_constant"] * per_µM,
-            Vmax_L = P["average_polysome_number"] * R_L * 60 * P["translation_elongation_rate"] / l_P,
-            τ_L = P["translation_elongation_rate"] / l_P * P["translation_initiation_time_constant"],
+            Vmax_L = P["average_polysome_number"] * R_L * 60 * P["translation_elongation_rate"] / l_P_star * (l_P_star / l_P),
+            τ_L = P["translation_elongation_rate"] / l_P_star * P["translation_initiation_time_constant"],
             K_L = P["translation_saturation_factor"] * P["transcription_saturation_constant"] * per_µM))
     end
     return (R_X = R_X, R_L = R_L, genes = genes)
@@ -196,7 +200,7 @@ end
 
         # two genes compete for RNA polymerase and ribosomes: the rates match the hand formulas with O_X and O_L,
         # and each rate is below the rate of the same gene alone
-        two_text = TEST_PARAMETERS * gene_block("P") * replace(gene_block("Q"),   # Q has its own lengths, so the competition ratios are not 1
+        two_text = TEST_PARAMETERS * gene_block("P") * replace(gene_block("Q"),   # Q has its own lengths, so its maximum rates differ from those of P
             "length_of_gene_in_nt = 1000.0" => "length_of_gene_in_nt = 1500.0",
             "length_of_protein_in_aa = 330.0" => "length_of_protein_in_aa = 500.0")
         two_path = write_config("competition", two_text)
@@ -209,6 +213,47 @@ end
             @test isapprox(translation_rate(two, j, x_test), hand_r_L(two_hand, j, m_test); rtol = 1e-12)
             g = two_hand.genes[j]
             @test transcription_rate(two, j) < g.Vmax_X * g.G / (g.τ_X * g.K_X + (1 + g.τ_X) * g.G)   # the same gene alone, O_X = 0
+        end
+
+        # the length factor: the longer gene Q keeps the time constants of the characteristic lengths, and its
+        # maximum rates fall by the ratio of the lengths, so Q is transcribed and translated more slowly than P
+        @test two.genes[2].τ_X == two.genes[1].τ_X                       # the same transcription time constant
+        @test two.genes[2].τ_L == two.genes[1].τ_L                       # the same translation time constant
+        @test isapprox(two.genes[2].Vmax_X / two.genes[1].Vmax_X, two.genes[1].l_G / two.genes[2].l_G; rtol = 1e-12) # Vmax_X scales with 1/l_G
+        @test isapprox(two.genes[2].Vmax_L / two.genes[1].Vmax_L, two.genes[1].l_P / two.genes[2].l_P; rtol = 1e-12) # Vmax_L scales with 1/l_P
+        @test transcription_rate(two, 2) < transcription_rate(two, 1)     # the longer gene Q has the smaller kinetic limit
+        equal_m = vcat([0.02, 0.02], [1.0, 1.0])                          # equal mRNA concentrations of P and Q (nmol/gDW)
+        @test translation_rate(two, 2, equal_m) < translation_rate(two, 1, equal_m) # the longer protein Q has the smaller kinetic limit
+
+        # the characteristic lengths come from [parameters] when the file gives them, and from the package defaults otherwise
+        star_parameters = replace(TEST_PARAMETERS, "average_polysome_number = 4.0\n" =>
+            "average_polysome_number = 4.0\ncharacteristic_length_of_gene_in_nt = 1200.0\ncharacteristic_length_of_protein_in_aa = 400.0\n")
+        star_path = write_config("characteristic", star_parameters * gene_block("X"))
+        star = build(MyGeneNetworkModel, star_path)
+        star_hand = hand_constants(TOML.parsefile(star_path))
+        default_star = build(MyGeneNetworkModel, write_config("characteristic-default", TEST_PARAMETERS * gene_block("X")))
+        for field in (:Vmax_X, :τ_X, :Vmax_L, :τ_L)
+            @test isapprox(getfield(star.genes[1], field), getfield(star_hand.genes[1], field); rtol = 1e-12)
+        end
+        @test star.genes[1].τ_X != default_star.genes[1].τ_X             # the file's characteristic gene length is used
+        @test star.genes[1].τ_L != default_star.genes[1].τ_L             # the file's characteristic protein length is used
+
+        # the defaults are the characteristic lengths that the motif files write out
+        motif_parameters = TOML.parsefile(motif_path("positive-autoregulation"))["parameters"]
+        written_text = replace(TEST_PARAMETERS, "average_polysome_number = 4.0\n" =>
+            "average_polysome_number = 4.0\ncharacteristic_length_of_gene_in_nt = $(motif_parameters["characteristic_length_of_gene_in_nt"])\n" *
+            "characteristic_length_of_protein_in_aa = $(motif_parameters["characteristic_length_of_protein_in_aa"])\n")
+        written = build(MyGeneNetworkModel, write_config("characteristic-written", written_text * gene_block("X")))
+        for field in (:Vmax_X, :τ_X, :Vmax_L, :τ_L)
+            @test getfield(default_star.genes[1], field) == getfield(written.genes[1], field) # a missing key gives the motif value
+        end
+
+        # a characteristic length of zero, below zero, or NaN is rejected
+        for key in ["characteristic_length_of_gene_in_nt", "characteristic_length_of_protein_in_aa"]
+            for bad in ["0.0", "-1.0", "nan"]
+                bad_parameters = replace(star_parameters, Regex("(?m)^" * key * " = .*\$") => key * " = " * bad)
+                @test_throws ArgumentError build(MyGeneNetworkModel, write_config("bad-" * key * "-" * bad, bad_parameters * gene_block("X"))) # stops with a message
+            end
         end
 
         # a missing or nonpositive value of the cell, the polymerase, the ribosomes, or a gene is rejected

@@ -1,0 +1,93 @@
+# Negative feedback loop: protein X activates gene Y, and protein Y represses gene X.
+# The negative loop gives the Jacobian complex pairs of eigenvalues, so the proteins ring while they settle.
+# Y binds the promoter of X only when it carries the inducer I, so I sets how strong the repression is.
+# The two genes compete for RNA polymerase and ribosomes, through the terms O_X and O_L of the kinetic limits.
+#
+# With these values, at the baseline inducer I = 1 µM, the steady state has p* ≈ (2.95, 4.19)
+# nmol/gDW, and the slowest eigenvalues are about −0.0032 ± 0.064i per minute: the network rings
+# with a period near 98 min while it settles.
+
+[metadata]
+description = "Negative feedback loop: protein X activates gene Y, and protein Y represses gene X"
+reference = "Shoval and Alon, Cell 143 (2010), doi:10.1016/j.cell.2010.09.050"
+
+[parameters]
+# The cell. Unless a line says otherwise, the values are the E. coli values of CHEME 5450 (L8c,
+# Parameters.json); BNID numbers are BioNumbers entries. A number of copies per cell becomes a level
+# (nmol/gDW) with the dry mass of the cell, and a concentration in µM becomes a level with the volume
+# and the dry mass of the cell.
+mass_of_single_cell = 2.8e-13                 # dry mass of one cell (gDW/cell), BNID 103904
+volume_of_single_cell = 6.7e-16               # cytoplasm volume of one cell (L/cell), BNID 100011
+doubling_time = 60.0                          # doubling time of the culture (min), a value of this example
+temperature = 310.15                          # absolute temperature T (K), 37 °C, a value of this example; each state's weight is W = exp(−dG/RT)
+
+# RNA polymerase and transcription. The transcription time constant of a gene is
+# τ_X = (transcription_elongation_rate / characteristic_length_of_gene_in_nt) × transcription_initiation_time_constant.
+copies_of_rnap_per_cell = 4600.0              # RNA polymerase (copies/cell)
+transcription_elongation_rate = 60.0          # RNA polymerase elongation rate (nt/s)
+transcription_initiation_time_constant = 42.0 # transcription initiation time constant (s)
+transcription_saturation_constant = 0.3       # K_X (µM), the elongation slope of McClure (1980)
+
+# Ribosomes and translation. The translation time constant of a gene is
+# τ_L = (translation_elongation_rate / characteristic_length_of_protein_in_aa) × translation_initiation_time_constant.
+copies_of_ribosome_per_cell = 50000.0         # ribosomes (copies/cell)
+translation_elongation_rate = 16.5            # ribosome elongation rate (aa/s)
+translation_initiation_time_constant = 15.0   # translation initiation time constant (s), BNID 109525
+translation_saturation_factor = 190.0         # K_L = 190 × K_X, as in CHEME 5450 (L8c)
+average_polysome_number = 4.0                 # ribosomes on each transcript, the polysome amplification constant K_P
+
+# The characteristic lengths. The maximum rates and the time constants are computed at these
+# lengths, and the length factors correct the maximum rates for the actual length of each gene.
+characteristic_length_of_gene_in_nt = 1000.0  # characteristic gene length (nt)
+characteristic_length_of_protein_in_aa = 330.0 # characteristic protein length (aa)
+
+# Degradation. A gene can override these with its own mRNA_half_life or protein_half_life.
+mRNA_half_life = 5.0                          # average mRNA half-life (min): 0.083 h is 4.98 min, rounded to 5 min
+protein_half_life = 35.0                      # average protein half-life in a growing cell (min)
+
+# The inducer I in the medium. Its baseline concentration is set here; the pulse is set in the
+# settings cell of the example notebook.
+[inputs.I]
+initial = 1.0                                 # baseline inducer concentration (µM)
+
+[[genes]]
+name = "X"
+gene_copy_number = 1.0          # copies of the gene in one cell
+length_of_gene_in_nt = 1000.0   # length of the gene (nt), the average E. coli transcript length of CHEME 5450
+length_of_protein_in_aa = 330.0 # length of the protein (aa), the average E. coli protein length of CHEME 5450
+
+  [[genes.promoter]]          # RNA polymerase bound alone: transcription runs
+  dG = 11.88                  # Gibbs energy relative to the empty promoter (kJ/mol): W ≈ 0.01
+  active = true
+
+  [[genes.promoter]]          # protein Y bound: the promoter of X is blocked
+  dG = -11.88                 # Gibbs energy relative to the empty promoter (kJ/mol): W ≈ 100.0
+  active = false
+
+    [[genes.promoter.bound]]
+    regulator = "Y"
+    K = 5.0                   # half-binding level of the available Y (nmol/gDW)
+    n = 3                     # binding order
+    inducer = "I"             # inducer I sets the fraction of Y that can bind
+    inducer_effect = "activates"
+    K_I = 1.0                 # half of Y carries the inducer at I = 1 µM
+    n_I = 1
+
+[[genes]]
+name = "Y"
+gene_copy_number = 1.0          # copies of the gene in one cell
+length_of_gene_in_nt = 1000.0   # length of the gene (nt), the average E. coli transcript length of CHEME 5450
+length_of_protein_in_aa = 330.0 # length of the protein (aa), the average E. coli protein length of CHEME 5450
+
+  [[genes.promoter]]          # RNA polymerase bound alone: the leak
+  dG = 23.75                  # Gibbs energy relative to the empty promoter (kJ/mol): W ≈ 1.0e-4
+  active = true
+
+  [[genes.promoter]]          # RNA polymerase with protein X bound: activation of Y
+  dG = 11.88                  # Gibbs energy relative to the empty promoter (kJ/mol): W ≈ 0.01
+  active = true
+
+    [[genes.promoter.bound]]
+    regulator = "X"
+    K = 5.0                   # half-binding level of X (nmol/gDW)
+    n = 3                     # binding order

@@ -10,11 +10,11 @@
 #
 # with the kinetic limits of CHEME 5450 (L6b): the transcription rate
 #
-#   r_X,j = Vmax_X,j ⋅ G_j / (τ_X,j ⋅ K_X,j + (1 + τ_X,j) ⋅ G_j + O_X,j),   Vmax_X,j = R_X,T ⋅ v̇_X / l_G,j
+#   r_X,j = Vmax_X,j ⋅ G_j / (τ_X,j ⋅ K_X,j + (1 + τ_X,j) ⋅ G_j + O_X,j),   Vmax_X,j = R_X,T ⋅ (v̇_X / l*_G) ⋅ (l*_G / l_G,j)
 #
 # and the translation rate
 #
-#   r_L,j = Vmax_L,j ⋅ m_j / (τ_L,j ⋅ K_L,j + (1 + τ_L,j) ⋅ m_j + O_L,j),   Vmax_L,j = K_P ⋅ R_L,T ⋅ v̇_L / l_P,j
+#   r_L,j = Vmax_L,j ⋅ m_j / (τ_L,j ⋅ K_L,j + (1 + τ_L,j) ⋅ m_j + O_L,j),   Vmax_L,j = K_P ⋅ R_L,T ⋅ (v̇_L / l*_P) ⋅ (l*_P / l_P,j)
 #
 # The terms O_X,j and O_L,j describe the competition of the other genes for RNA polymerase and ribosomes:
 #
@@ -100,12 +100,12 @@ function set_input!(model::MyGeneNetworkModel, name::String, times::Vector{Float
 end
 
 """
-    input_value(model::MyGeneNetworkModel, name::String, t::Float64) -> Float64
+    input_value(model::MyGeneNetworkModel, name::String, t::Real) -> Real
 
 Return the concentration of the inducer `name` at time `t`. The value is the one set at the last
 schedule time at or before `t`, or the initial value when `t` is before the first schedule time.
 """
-function input_value(model::MyGeneNetworkModel, name::String, t::Float64)::Float64
+function input_value(model::MyGeneNetworkModel, name::String, t::Real)::Real
 
     # the inducer must exist -
     if haskey(model.inputs, name) == false
@@ -124,14 +124,14 @@ function input_value(model::MyGeneNetworkModel, name::String, t::Float64)::Float
 end
 
 """
-    bound_fraction(model::MyGeneNetworkModel, b::MyBoundRegulatorModel, x::AbstractVector, t::Float64) -> Float64
+    bound_fraction(model::MyGeneNetworkModel, b::MyBoundRegulatorModel, x::AbstractVector, t::Real) -> Real
 
 Return the bound fraction `f = aⁿ / (Kⁿ + aⁿ)` of the regulator `b`, where `a` is the regulator's
 available level. Without an inducer, `a` is the regulator's protein level `p`.
 With an inducer `I`, whose own bound fraction is `f_I = I^n_I / (K_I^n_I + I^n_I)`, `a = p ⋅ f_I`
 when the inducer activates the regulator, and `a = p ⋅ (1 − f_I)` when it inactivates it.
 """
-function bound_fraction(model::MyGeneNetworkModel, b::MyBoundRegulatorModel, x::AbstractVector, t::Float64)::Float64
+function bound_fraction(model::MyGeneNetworkModel, b::MyBoundRegulatorModel, x::AbstractVector, t::Real)::Real
 
     # the regulator's protein level. Proteins follow the N mRNA entries in x -
     N = length(model.genes)
@@ -159,7 +159,7 @@ function bound_fraction(model::MyGeneNetworkModel, b::MyBoundRegulatorModel, x::
 end
 
 """
-    control(model::MyGeneNetworkModel, states::Vector{MyControlStateModel}, x::AbstractVector, t::Float64) -> Float64
+    control(model::MyGeneNetworkModel, states::Vector{MyControlStateModel}, x::AbstractVector, t::Real) -> Real
 
 Return the Boltzmann (active-state) control of a list of promoter or translation states. The
 weight of a state is its `W` times the bound fraction of each regulator bound in it, where
@@ -171,7 +171,7 @@ reference state. The control is
 where the 1 is the weight of the reference state (the empty promoter, for transcription). The control lies between
 0 and 1. An empty list of states means the process is not regulated, and the control is 1.
 """
-function control(model::MyGeneNetworkModel, states::Vector{MyControlStateModel}, x::AbstractVector, t::Float64)::Float64
+function control(model::MyGeneNetworkModel, states::Vector{MyControlStateModel}, x::AbstractVector, t::Real)::Real
 
     # no states: the process is not regulated -
     if isempty(states) == true
@@ -201,24 +201,24 @@ function control(model::MyGeneNetworkModel, states::Vector{MyControlStateModel},
 end
 
 """
-    transcription_control(model::MyGeneNetworkModel, j::Int64, x::AbstractVector, t::Float64) -> Float64
+    transcription_control(model::MyGeneNetworkModel, j::Int64, x::AbstractVector, t::Real) -> Real
 
 Return the total transcriptional control ū_j = u_j + u†_j of gene `j`: the probability of every
 promoter state that transcribes, at the network state `x` and time `t`. Here u_j is the regulated
 control, and u†_j is the probability of the states with unregulated transcription, which gives the
 leak λ_j = r_X,j ⋅ u†_j.
 """
-function transcription_control(model::MyGeneNetworkModel, j::Int64, x::AbstractVector, t::Float64)::Float64
+function transcription_control(model::MyGeneNetworkModel, j::Int64, x::AbstractVector, t::Real)::Real
     return control(model, model.genes[j].promoter, x, t)
 end
 
 """
-    translation_control(model::MyGeneNetworkModel, j::Int64, x::AbstractVector, t::Float64) -> Float64
+    translation_control(model::MyGeneNetworkModel, j::Int64, x::AbstractVector, t::Real) -> Real
 
 Return the translational control w_j of gene `j`: the Boltzmann control of the gene's translation
 states, or 1 when the gene has none.
 """
-function translation_control(model::MyGeneNetworkModel, j::Int64, x::AbstractVector, t::Float64)::Float64
+function translation_control(model::MyGeneNetworkModel, j::Int64, x::AbstractVector, t::Real)::Real
     return control(model, model.genes[j].translation, x, t)
 end
 
@@ -250,7 +250,7 @@ function transcription_rate(model::MyGeneNetworkModel, j::Int64)::Float64
 end
 
 """
-    translation_rate(model::MyGeneNetworkModel, j::Int64, x::AbstractVector) -> Float64
+    translation_rate(model::MyGeneNetworkModel, j::Int64, x::AbstractVector) -> Real
 
 Return the translation kinetic limit of gene `j` at the state `x` (nmol/gDW/min), from CHEME 5450 (L6b):
 
@@ -260,7 +260,7 @@ Return the translation kinetic limit of gene `j` at the state `x` (nmol/gDW/min)
 The term O_L,j describes the competition of the other mRNAs for ribosomes. The mRNA levels are the
 first N entries of `x`.
 """
-function translation_rate(model::MyGeneNetworkModel, j::Int64, x::AbstractVector)::Float64
+function translation_rate(model::MyGeneNetworkModel, j::Int64, x::AbstractVector)::Real
 
     # the gene, and the competition of every other mRNA for ribosomes -
     gene = model.genes[j]
@@ -298,7 +298,7 @@ function balances!(dx::AbstractVector, x::AbstractVector, model::MyGeneNetworkMo
 
     # the number of genes; mRNA entries come first, then protein entries -
     N = length(model.genes)
-    time = Float64(t) # the solver may pass t as another number type
+    time = t # the solver may pass t as a ForwardDiff dual number
 
     # one pair of balances per gene -
     for j in 1:N

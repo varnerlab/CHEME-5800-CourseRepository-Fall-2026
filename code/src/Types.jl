@@ -62,6 +62,7 @@
 #   FordFulkersonAlgorithm, EdmondsKarpAlgorithm         maximum flow with maximumflow(...) (L5a, L5b)
 #   DepthFirstSearchAlgorithm, BreadthFirstSearchAlgorithm   graph traversal with walk(...)
 #   JacobiMethod, GaussSeidelMethod, SuccessiveOverRelaxationMethod   iterative linear solvers with solve(...) (L6c, L6d)
+#   ExplicitEulerMethod, RungeKutta4Method               fixed-step ODE methods with advance(...) and integrate(...) (week 15)
 # Markov decision processes (weeks 11 and 12):
 #   MyMDPProblemModel                   states, actions, transitions T, rewards R, and discount factor γ [AbstractProcessModel]
 #   MyRectangularGridWorldModel         a grid of squares: state numbers, moves, and rewards [AbstractWorldModel]
@@ -195,6 +196,17 @@ The members are [`JacobiMethod`](@ref), [`GaussSeidelMethod`](@ref), and
 `solve(A, b, xₒ; algorithm = ...)` in Solvers.jl to choose the method it runs (week 6, L6c and L6d).
 """
 abstract type AbstractLinearSolverAlgorithm end
+
+"""
+    abstract type AbstractFixedStepAlgorithm end
+
+The family of fixed-step tags for ordinary differential equations `dx/dt = f(x, p, t)`.
+
+The members are [`ExplicitEulerMethod`](@ref) and [`RungeKutta4Method`](@ref). We pass a member as
+the `algorithm` keyword of `advance(...)` and `integrate(...)` in FixedStepMethods.jl to choose the
+method they run (week 15, L15a).
+"""
+abstract type AbstractFixedStepAlgorithm end
 
 """
     abstract type AbstractClassificationAlgorithm end
@@ -854,6 +866,36 @@ Create the tag with `JacobiMethod()` and pass it as the `algorithm` keyword, e.g
 struct JacobiMethod <: AbstractLinearSolverAlgorithm end
 
 """
+    struct ExplicitEulerMethod <: AbstractFixedStepAlgorithm
+
+A tag that selects the explicit Euler method in `advance(...)` and `integrate(...)` from
+FixedStepMethods.jl (week 15, L15a). It is the default of both functions.
+
+A tag type has no fields; its only job is to choose the method. One explicit Euler step of size
+`Δt` is `x ← x + Δt ⋅ f(x, p, t)`. The method has order 1.
+
+### How to use one
+Create the tag with `ExplicitEulerMethod()` and pass it as the `algorithm` keyword, e.g.,
+`advance(f!, x, p, t, Δt, algorithm = ExplicitEulerMethod())`.
+"""
+struct ExplicitEulerMethod <: AbstractFixedStepAlgorithm end
+
+"""
+    struct RungeKutta4Method <: AbstractFixedStepAlgorithm
+
+A tag that selects the classical fourth-order Runge-Kutta method in `advance(...)` and
+`integrate(...)` from FixedStepMethods.jl (week 15, L15a).
+
+A tag type has no fields; its only job is to choose the method. One step of size `Δt` combines
+four slopes of `f`, taken at `t`, at `t + Δt/2` (twice), and at `t + Δt`. The method has order 4.
+
+### How to use one
+Create the tag with `RungeKutta4Method()` and pass it as the `algorithm` keyword, e.g.,
+`advance(f!, x, p, t, Δt, algorithm = RungeKutta4Method())`.
+"""
+struct RungeKutta4Method <: AbstractFixedStepAlgorithm end
+
+"""
     struct GaussSeidelMethod <: AbstractLinearSolverAlgorithm
 
 A tag that selects the Gauss-Seidel method in `solve(A, b, xₒ; algorithm = ...)` from Solvers.jl
@@ -1505,13 +1547,15 @@ competition with the other genes of the network for RNA polymerase and ribosomes
 - `l_G::Float64`: the length of the gene (nt).
 - `l_P::Float64`: the length of the protein (aa).
 - `G::Float64`: the gene level (nmol/gDW), from `copies`.
-- `Vmax_X::Float64`: the maximum transcription rate, `R_X,T ⋅ v̇_X / l_G` (nmol/gDW/min).
+- `Vmax_X::Float64`: the maximum transcription rate (nmol/gDW/min), `R_X,T ⋅ (v̇_X / l*_G) ⋅ (l*_G / l_G)`,
+  where `l*_G` is the characteristic gene length and `l*_G / l_G` is the dimensionless length factor.
 - `τ_X::Float64`: the transcription time constant, the ratio of the elongation rate constant
-  `v̇_X / l_G` to the initiation rate constant (dimensionless).
+  `v̇_X / l*_G` at the characteristic length to the initiation rate constant (dimensionless).
 - `K_X::Float64`: the transcription saturation constant (nmol/gDW).
-- `Vmax_L::Float64`: the maximum translation rate, `K_P ⋅ R_L,T ⋅ v̇_L / l_P` (nmol/gDW/min).
+- `Vmax_L::Float64`: the maximum translation rate (nmol/gDW/min), `K_P ⋅ R_L,T ⋅ (v̇_L / l*_P) ⋅ (l*_P / l_P)`,
+  where `l*_P` is the characteristic protein length and `l*_P / l_P` is the dimensionless length factor.
 - `τ_L::Float64`: the translation time constant, the ratio of the elongation rate constant
-  `v̇_L / l_P` to the initiation rate constant (dimensionless).
+  `v̇_L / l*_P` at the characteristic length to the initiation rate constant (dimensionless).
 - `K_L::Float64`: the translation saturation constant (nmol/gDW).
 - `θ_m::Float64`: the mRNA degradation constant (1/min), `ln 2 / (mRNA half-life)`.
 - `θ_p::Float64`: the protein degradation constant (1/min), `ln 2 / (protein half-life)`.
