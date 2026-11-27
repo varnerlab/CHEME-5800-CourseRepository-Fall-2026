@@ -39,12 +39,17 @@ if !isdefined(@__MODULE__, :CHEME5800_BOOTSTRAP_LOADED) ||
     include(joinpath(@__DIR__, "..", "..", "..", "Include.jl"))
 end
 
-# `Week15Core` holds this meeting's own source. It is wrapped in a module so that
-# the guard below has a name meaning "this file's contents", and so that a
-# student stub and a reference solution declaring the same module name stay
-# drop-in interchangeable between the notebook and the validation suite.
-if !isdefined(@__MODULE__, :Week15Core)
-    include(joinpath(@__DIR__, "..", "src", "Week15Core.jl"))
+# `L15bMethods` holds the student functions mysolve(...), mystep(...), and
+# myintegrate(...). The include is deliberately unguarded: students edit
+# `src/Compute.jl` during the lab, and re-running this setup file must reload
+# those edits. Julia 1.12 replaces the module silently. Notebook calls stay
+# qualified (`L15bMethods.mysolve(...)`) so they resolve against the
+# replacement module.
+include(joinpath(@__DIR__, "src", "Compute.jl"))
+
+# Supplied figures for the three tasks; loaded once.
+if !isdefined(@__MODULE__, :L15bPlots)
+    include(joinpath(@__DIR__, "src", "Visualize.jl"))
 end
 
 
@@ -57,16 +62,19 @@ end
 #   VLDataScienceMachineLearningPackage   the course package
 #
 # Standard library:
-using LinearAlgebra   # factorizations, norms, and matrix operations
-using Statistics      # mean, std, and friends
-using Test            # @test / @testset for the checks in the notebook
+using LinearAlgebra # eigenvalues of the Jacobian, for the Things to Try
+using Test # @test for the checks in the notebook
 #
 # Packages:
-using DataFrames      # tabular records held as columns
-using OrdinaryDiffEq  # ODE solvers
-using Plots           # figures
-using PrettyTables    # formatted table output in the notebook
+using OrdinaryDiffEq # ODEProblem and Tsit5. Call OrdinaryDiffEq.solve explicitly.
+using Plots # figures and plot themes
+using Colors: RGBA # translucent plot panels
 #
-# This meeting's own source, included above. The leading dot means "a module
-# defined here", as opposed to an installed package of the same name:
-using .Week15Core     # from the include in section 2
+# The figure module is included above. The leading dot means "a module defined
+# here", as opposed to an installed package of the same name:
+using .L15bPlots # plot_stops, plot_pulse_runs, and plot_error_against_step
+#
+# There is deliberately no `using .L15bMethods`. Re-running this file replaces
+# that module, and on Julia 1.12 a second `using` of the replacement makes every
+# exported name ambiguous. The notebook calls L15bMethods.mysolve(...) and the
+# other student functions by their qualified names instead.

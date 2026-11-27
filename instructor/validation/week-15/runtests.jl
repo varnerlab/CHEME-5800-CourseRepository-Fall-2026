@@ -3,6 +3,7 @@ using Test
 using TOML
 import JSON # read the notebook with its cell ids
 import REPL # apply the notebook's soft-scope rules
+import Random # seeded random states for the L15b step checks
 
 const WEEK_ROOT = normpath(joinpath(@__DIR__, "..", "..", "..", "weeks", "week-15"))
 include(joinpath(@__DIR__, "..", "release_scope.jl"))
@@ -11,6 +12,8 @@ include(joinpath(@__DIR__, "..", "release_scope.jl"))
 get!(ENV, "GKSwstype", "100")
 
 released("L15a") && include(joinpath(WEEK_ROOT, "L15a", "Include.jl"))
+# a release of L15b alone loads the course environment through the L15b setup -
+released("L15b") && !released("L15a") && include(joinpath(WEEK_ROOT, "L15b", "Include.jl"))
 
 # the test equation dx/dt = p ⋅ x, in the form f!(dx, x, p, t) -
 function decay!(dx, x, p, t)
@@ -399,5 +402,351 @@ end
                 @test occursin(Regex("^$(name) = ", "m"), settings)
             end
         end
+    end
+end
+
+# -- L15b: the student functions, loaded from the starter and the solution ------------------- #
+
+const L15B_ROOT = joinpath(WEEK_ROOT, "L15b")
+const L15B_SOLUTION = joinpath(L15B_ROOT, "src", "Compute-solution.jl")
+const L15B_STARTER = joinpath(L15B_ROOT, "src", "Compute.jl")
+const L15B_CONFIG = joinpath(L15B_ROOT, "config", "memory.toml")
+
+# code that only the solution may hold: each marker sits on an answer line -
+const L15B_ANSWER_MARKERS = ["ODEProblem(", "OrdinaryDiffEq.solve(", "f!(k₁", "f!(k₄", "mystep(algorithm, "]
+
+"""Include a lab source file into a fresh module, and return that module's `L15bMethods`."""
+function load_lab(path::String)::Module
+    workspace = Module(:L15bLabValidation)
+    Base.include(workspace, path)
+    return Base.invokelatest(getproperty, workspace, :L15bMethods)
+end
+
+"""A right-hand side that blows up at t = 1 from x = 1: dx/dt = x²."""
+function blowup!(dx, x, p, t)
+    dx[1] = x[1]^2
+    return nothing
+end
+
+"""Return the non-blank lines of a source file, stripped."""
+nonblank_lines(text::String) = [String(strip(line)) for line in split(text, '\n') if !isempty(strip(line))]
+
+"""Return the code lines of a source file: non-blank lines outside docstrings that do not start with `#`."""
+function code_lines_outside_docstrings(text::String)
+    lines = String[]
+    inside = false
+    for line in split(text, '\n')
+        stripped = strip(line)
+        if occursin("\"\"\"", stripped)
+            isodd(count("\"\"\"", stripped)) && (inside = !inside) # a delimiter that opens or closes a docstring
+            continue
+        end
+        (inside || isempty(stripped) || startswith(stripped, "#")) && continue
+        push!(lines, String(stripped))
+    end
+    return lines
+end
+
+"""True when every entry of `short` appears in `long`, in order."""
+function is_subsequence(short::Vector{String}, long::Vector{String})
+    j = 1
+    for line in long
+        j <= length(short) && line == short[j] && (j += 1)
+    end
+    return j > length(short)
+end
+
+"""The memory circuit at its low steady state, with one pulse set from test constants."""
+function l15b_memory_setup(; on = 40.0, off = 52.0, concentration = 4.0)
+    model = build(MyGeneNetworkModel, L15B_CONFIG)
+    N = length(model.genes)
+    x₀ = steady_state(model; guess = zeros(2 * N), t = 0.0).x
+    set_input!(model, "I", [on, off], [concentration, model.inputs["I"].initial])
+    return (model = model, x₀ = x₀, on = on, off = off)
+end
+
+"""The L15b mysolve checks, run in the latest world so the loaded modules' methods are visible."""
+function check_l15b_mysolve(sol::Module, starter::Module)
+    @test sort(names(sol)) == sort([:L15bMethods, :myintegrate, :mysolve, :mystep])
+    @test sort(names(starter)) == sort(names(sol))
+    @test read(L15B_CONFIG) == read(joinpath(WEEK_ROOT, "L15a", "config", "memory.toml"))
+
+    (model, x₀, on, off) = l15b_memory_setup()
+    T = 240.0
+    Δs = 1.0
+    rt = 1e-8
+    at = 1e-12
+    x₀_copy = copy(x₀)
+    kw = (t_start = 0.0, t_final = T, stops = [on, off], Δt_save = Δs, reltol = rt, abstol = at)
+
+    @test_throws ErrorException starter.mysolve(balances!, x₀, model; kw...)
+    run = sol.mysolve(balances!, x₀, model; kw...)
+    save_times = [0.0 + k * Δs for k in 0:round(Int, T / Δs)] # each save time from its index
+    save_times[end] = T
+    direct = OrdinaryDiffEq.solve(ODEProblem(balances!, copy(x₀), (0.0, T), model), Tsit5();
+        tstops = [on, off], saveat = save_times, reltol = rt, abstol = at)
+    @test run.t == direct.t
+    @test run.x == reduce(hcat, direct.u)
+    @test size(run.x) == (length(x₀), length(run.t))
+    @test run.evaluations == direct.stats.nf
+    @test x₀ == x₀_copy
+
+    # stops at the ends and past the end are dropped (Review Focus 2) -
+    @test sol.mysolve(balances!, x₀, model; kw..., stops = [0.0, on, off, T, T + Δs]).x == run.x
+    # a save step that does not divide the span (Review Focus 4) -
+    @test_throws ArgumentError sol.mysolve(balances!, x₀, model; kw..., Δt_save = T / (round(T / Δs) + 0.5))
+    @test_throws ArgumentError sol.mysolve(balances!, x₀, model; kw..., t_final = 0.0)
+    # a save step longer than the span rounds to zero saves (codex finding 4) -
+    @test_throws ArgumentError sol.mysolve(balances!, x₀, model; kw..., Δt_save = 1e10 * T)
+    # a save step with no exact binary form: one save per step, and the last save at t_final (codex finding 1) -
+    T_odd = 32.4
+    Δs_odd = T_odd / 15 # computed as the lab computes each window step
+    t_odd = 112.0 # a start after zero, like the window of the lab
+    odd = sol.mysolve(balances!, x₀, model; kw..., t_start = t_odd, t_final = t_odd + T_odd, Δt_save = Δs_odd)
+    @test length(odd.t) == round(Int, T_odd / Δs_odd) + 1
+    @test odd.t[end] == t_odd + T_odd
+    # a solve that stops early (Review Focus 3) -
+    @test_throws ErrorException sol.mysolve(blowup!, [1.0], nothing; t_start = 0.0, t_final = 2.0,
+        stops = Float64[], Δt_save = 0.5, reltol = rt, abstol = at)
+
+    # edit, save, re-run: including the file twice replaces the module (Review Focus 5) -
+    ws = Module(:L15bReload)
+    Base.include(ws, L15B_SOLUTION)
+    Base.include(ws, L15B_SOLUTION)
+    again = Base.invokelatest(getproperty, ws, :L15bMethods)
+    @test Base.invokelatest(again.mysolve, balances!, x₀, model; kw...).x == run.x
+
+    # the starter is the solution without its answer lines -
+    starter_text = read(L15B_STARTER, String)
+    solution_text = read(L15B_SOLUTION, String)
+    starter_lines = filter(line -> !startswith(line, "error("), nonblank_lines(starter_text))
+    solution_lines = nonblank_lines(solution_text)
+    @test is_subsequence(starter_lines, solution_lines)
+    @test length(starter_lines) < length(solution_lines)
+    starter_code = code_lines_outside_docstrings(starter_text)
+    solution_code = code_lines_outside_docstrings(solution_text)
+    for marker in L15B_ANSWER_MARKERS
+        @test any(line -> occursin(marker, line), solution_code)
+        @test !any(line -> occursin(marker, line), starter_code)
+    end
+end
+
+@meeting "L15b" begin
+    @testset "L15b mysolve" begin
+        sol = load_lab(L15B_SOLUTION)
+        starter = load_lab(L15B_STARTER)
+        Base.invokelatest(check_l15b_mysolve, sol, starter)
+    end
+end
+
+"""The L15b mystep and myintegrate checks, run in the latest world."""
+function check_l15b_steps(sol::Module, starter::Module)
+    (model, x₀, on, off) = l15b_memory_setup()
+    T = 120.0
+    Δt = 1.0
+    λ = -0.3
+    z = Δt * λ
+    rng = Random.Xoshiro(5800)
+
+    # the states of the step checks: the start, a state inside the pulse, and a random positive state -
+    pkg_run = integrate(balances!, x₀, model; t_start = 0.0, t_final = T, Δt = Δt, algorithm = ExplicitEulerMethod())
+    k_inside = round(Int, ((on + off) / 2) / Δt) + 1
+    states = [(x₀, 0.0), (pkg_run.x[k_inside, :], pkg_run.t[k_inside]), (x₀ .* (0.5 .+ rand(rng, length(x₀))), 0.0)]
+
+    for alg in (ExplicitEulerMethod(), RungeKutta4Method())
+        @test_throws ErrorException starter.mystep(alg, balances!, x₀, model, 0.0, Δt)
+        @test_throws ErrorException starter.myintegrate(balances!, x₀, model; t_start = 0.0, t_final = T, Δt = Δt, algorithm = alg)
+        for (x, t) in states
+            x_copy = copy(x)
+            @test isapprox(sol.mystep(alg, balances!, x, model, t, Δt), advance(balances!, x, model, t, Δt; algorithm = alg); rtol = 1e-12)
+            @test x == x_copy
+        end
+        for step in (Δt, Δt / 2)
+            mine = sol.myintegrate(balances!, x₀, model; t_start = 0.0, t_final = T, Δt = step, algorithm = alg)
+            pkg = integrate(balances!, x₀, model; t_start = 0.0, t_final = T, Δt = step, algorithm = alg)
+            @test mine.t == pkg.t
+            @test size(mine.x) == (length(x₀), length(mine.t))
+            @test isapprox(mine.x, permutedims(pkg.x); rtol = 1e-12)
+            @test mine.evaluations == pkg.evaluations
+        end
+        # a step that does not divide the span (Review Focus 4) -
+        @test_throws ArgumentError sol.myintegrate(balances!, x₀, model; t_start = 0.0, t_final = T,
+            Δt = T / (round(T / Δt) + 0.5), algorithm = alg)
+        @test_throws ArgumentError sol.myintegrate(balances!, x₀, model; t_start = 0.0, t_final = T, Δt = 0.0, algorithm = alg)
+    end
+
+    # one step on the test equation dx/dt = λx matches the Taylor polynomial of exp(z) of each order -
+    @test sol.mystep(ExplicitEulerMethod(), decay!, [1.0], λ, 0.0, Δt)[1] ≈ 1 + z
+    @test sol.mystep(RungeKutta4Method(), decay!, [1.0], λ, 0.0, Δt)[1] ≈ 1 + z + z^2/2 + z^3/6 + z^4/24
+end
+
+@meeting "L15b" begin
+    @testset "L15b mystep and myintegrate" begin
+        sol = load_lab(L15B_SOLUTION)
+        starter = load_lab(L15B_STARTER)
+        Base.invokelatest(check_l15b_steps, sol, starter)
+    end
+end
+
+# -- Run the L15b lab through the same cells a student runs ---------------------------------- #
+
+const L15B_LAB = joinpath(L15B_ROOT, "CHEME-5800-L15b-Lab-ExplicitMethods-Fall-2026.ipynb")
+
+"""Return the cells of the L15b lab, read from the notebook file."""
+lab_cells() = JSON.parsefile(L15B_LAB)["cells"]
+
+"""
+Run the L15b lab in a fresh module. Replace named settings before evaluation. With `solution`,
+include the reference functions right after the setup cell, as a student's finished file would be.
+Render plots on request.
+"""
+function run_lab(; settings = (;), solution = true, render = false)
+    workspace = Module(:L15bLabValidation)
+    Core.eval(workspace, :(include(path::AbstractString) = Base.include(@__MODULE__, path)))
+    for (i, cell) in enumerate(lab_cells())
+        cell["cell_type"] == "code" || continue
+        source = join(cell["source"])
+        id = cell["id"]
+        if id == "settings"
+            for (name, value) in pairs(settings)
+                pattern = Regex("^$(name) = [^;]*;", "m")
+                @assert occursin(pattern, source) "unknown lab setting: $(name)"
+                source = replace(source, pattern => "$(name) = $(repr(value));"; count = 1)
+            end
+        end
+        result = Base.include_string(REPL.softscope, workspace, source, joinpath(L15B_ROOT, "validation-cell-$(i).jl"))
+        if id == "include" && solution
+            Base.include(workspace, L15B_SOLUTION)
+        end
+        if render && endswith(id, "-plot")
+            svg = Base.invokelatest(repr, MIME("image/svg+xml"), result)
+            @test occursin("<svg", svg)
+        end
+    end
+    return workspace
+end
+
+"""Read the value of `name = value;` from the lab's settings cell."""
+function lab_setting(name::String)
+    cell = only(filter(c -> get(c, "id", "") == "settings", lab_cells()))
+    found = match(Regex("^$(name) = ([^;]*);", "m"), join(cell["source"]))
+    @assert found !== nothing "no setting $(name)"
+    return eval(Meta.parse(found.captures[1]))
+end
+
+"""The L15b lab checks, run in the latest world."""
+function check_l15b_lab()
+    # the lab ships without outputs, and a markdown cell leads every code cell -
+    cells = lab_cells()
+    for k in 1:length(cells)
+        if cells[k]["cell_type"] == "code"
+            @test isempty(cells[k]["outputs"])
+            @test cells[k]["execution_count"] === nothing
+            @test k > 1 && cells[k-1]["cell_type"] == "markdown"
+        end
+    end
+
+    # the starter stops at the first student function -
+    failure = nothing
+    try
+        run_lab(solution = false)
+    catch e
+        failure = e
+    end
+    @test failure !== nothing
+    @test occursin("mysolve", sprint(showerror, failure))
+
+    # the default settings, with every figure rendered -
+    ws = run_lab(render = true)
+    y = nbvar(ws, :protein_y)
+    model = nbvar(ws, :model)
+    @test y == length(model.genes) + model.index["Y"]
+
+    # without the stops, the solver steps over the short pulse -
+    with_stops = nbvar(ws, :with_stops)
+    without_stops = nbvar(ws, :without_stops)
+    rise = maximum(with_stops.x[y, :]) - with_stops.x[y, 1]
+    @test rise > 0
+    @test maximum(abs.(without_stops.x[y, :] .- without_stops.x[y, 1])) < 0.01 * rise
+    @test with_stops.t == without_stops.t
+
+    # the measured orders, from successive largest errors on the window -
+    euler_errors = nbvar(ws, :euler_errors)
+    rk4_errors = nbvar(ws, :rk4_errors)
+    step_sizes = nbvar(ws, :step_sizes)
+    @test all(step_sizes[1:end-1] ./ step_sizes[2:end] .≈ 2)
+    @test all(0.8 .<= log2.(euler_errors[1:end-1] ./ euler_errors[2:end]) .<= 1.2)
+    @test all(3.5 .<= log2.(rk4_errors[1:end-1] ./ rk4_errors[2:end]) .<= 4.5)
+
+    # the library reference is accurate enough: tightening both tolerances by 100 moves it far less than the RK4 error -
+    long_pulse = nbvar(ws, :long_pulse)
+    reference = nbvar(ws, :reference)
+    Δt = lab_setting("Δt")
+    window_start = long_pulse.stop
+    window_end = window_start + lab_setting("window_length")
+    x_window = reference.x[:, round(Int, window_start / Δt) + 1]
+    @test reference.t[round(Int, window_start / Δt) + 1] ≈ window_start
+    set_input!(model, "I", [long_pulse.start, long_pulse.stop], [long_pulse.concentration, long_pulse.baseline])
+    rt = lab_setting("relative_tolerance")
+    at = lab_setting("absolute_tolerance")
+    solver = Base.invokelatest(getproperty, ws, :L15bMethods)
+    base = Base.invokelatest(solver.mysolve, balances!, x_window, model; t_start = window_start, t_final = window_end,
+        stops = Float64[], Δt_save = step_sizes[end], reltol = rt, abstol = at)
+    tight = Base.invokelatest(solver.mysolve, balances!, x_window, model; t_start = window_start, t_final = window_end,
+        stops = Float64[], Δt_save = step_sizes[end], reltol = rt / 100, abstol = at / 100)
+    @test maximum(abs.(base.x[y, :] .- tight.x[y, :])) < 0.01 * minimum(rk4_errors)
+    @test all(model.inputs["I"].times .<= window_start)
+
+    # every setting changed, from the defaults -
+    changed = (
+        Δt = Δt / 2,
+        final_time = lab_setting("final_time") + 4 * Δt,
+        Δt_save = 2 * lab_setting("Δt_save"),
+        pulse_concentration = 1.25 * lab_setting("pulse_concentration"),
+        pulse_start = lab_setting("pulse_start") + Δt,
+        pulse_length = lab_setting("pulse_length") + Δt,
+        short_pulse_length = lab_setting("short_pulse_length") + lab_setting("Δt_save"),
+        relative_tolerance = rt / 10,
+        absolute_tolerance = at / 10,
+        window_length = lab_setting("window_length") / 2,
+        step_counts = 2 .* lab_setting("step_counts"),
+    )
+    ws_changed = run_lab(settings = changed)
+
+    # a window grid whose step has no exact binary form (codex finding 1) -
+    ws_odd = run_lab(settings = (window_length = 32.4, step_counts = [15, 30, 60]))
+    @test length(nbvar(ws_odd, :rk4_errors)) == 3
+
+    # Euler and RK4 runs that turn NaN before the middle of a very long pulse: the one-step checks still pass (codex finding 2) -
+    ws_nan = run_lab(settings = (Δt = 40.0, pulse_length = 40000.0, final_time = 41000.0))
+    @test any(isnan, nbvar(ws_nan, :euler).x)
+    @test nbvar(ws_changed, :euler).t[end] == round(changed.final_time / changed.Δt) * changed.Δt
+
+    # a step that divides neither the pulse start nor the save step: the pulse edges move onto its grid -
+    Δt_off = 0.7 * Δt
+    @test abs(lab_setting("pulse_start") / Δt_off - round(lab_setting("pulse_start") / Δt_off)) > 1e-6
+    ws_off = run_lab(settings = (Δt = Δt_off,))
+    off_pulse = nbvar(ws_off, :long_pulse)
+    off_grid = nbvar(ws_off, :euler).t
+    @test any(abs.(off_grid .- off_pulse.start) .< 1e-9)
+    @test any(abs.(off_grid .- off_pulse.stop) .< 1e-9)
+
+    # a step above the Euler limit of the memory circuit at its low steady state (Review Focus 1) -
+    x₀ = nbvar(ws, :x₀)
+    λ = eigvals(jacobian(model, x₀, 0.0))
+    limits = Float64[]
+    for k in 1:length(λ)
+        if real(λ[k]) < 0
+            push!(limits, -2 * real(λ[k]) / abs2(λ[k]))
+        end
+    end
+    ws_big = run_lab(settings = (Δt = 1.2 * minimum(limits),), render = true)
+    euler_big = nbvar(ws_big, :euler)
+    @test !isapprox(euler_big.x[y, :], nbvar(ws_big, :reference).x[y, :]; rtol = 0.1) # false for a NaN run too
+end
+
+@meeting "L15b" begin
+    @testset "L15b lab" begin
+        Base.invokelatest(check_l15b_lab)
     end
 end
